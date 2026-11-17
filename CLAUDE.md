@@ -81,6 +81,7 @@ questions) and ask the owner to confirm the phase. No criteria or code for an id
 - **Nothing live without a yes:** a PNG reaches `Loop/` only through an approval link with a valid token from an
   allowlisted requester or the visual team (DLV-03..06).
 - **Personal data stays in Google:** names and mail addresses never go to GitHub, logs or the Claude API (INT-04).
+- **The repo is public:** no workflow logs or uploads request text, slide text or a PNG (INT-07).
 - **Nothing lost silently:** every failure ends as a mail to the visual team with the reason (DLV-08).
 - **Secrets** only in GitHub secrets and Apps Script properties. Never print them, never commit them.
 

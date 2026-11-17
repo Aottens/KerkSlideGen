@@ -1,7 +1,8 @@
 # Interface: renderer ↔ Google
 
 The only contract between `subprojects/google` (Apps Script) and `subprojects/renderer` (GitHub Actions). A change
-here changes both sides in one PR. No names or mail addresses cross it (INT-04).
+here changes both sides in one PR. No names or mail addresses cross it (INT-04). The repo is public: the render job
+logs only id, round and outcome (INT-07).
 
 ## 1. Dispatch (Apps Script → GitHub)
 `POST https://api.github.com/repos/<owner>/<repo>/dispatches`, fine-grained token with *Contents: read and write* on

@@ -21,6 +21,10 @@ How a request gets in. It has to be as easy as sending a mail, for people who do
   then the request goes to the visual team (DLV-08). The Sheet shows the state at every step.
 - **INT-06** A text over 5000 characters or a form filled in more than 5 times in an hour from the same mail address
   is not dispatched: the visual team gets it (abuse and cost guard).
+- **INT-07** The repo is public (DECISIONS 2026-11-17), so its workflow logs and artifacts are too: no workflow
+  prints the request text, the `change` text, the slide text or the PNG, and no workflow uploads them as an artifact.
+  A run's log shows only the request id, the round and the outcome. A test greps the workflow files for `echo`,
+  `cat` or `upload-artifact` of those fields.
 
 ## Owner questions
 1. **Google Form or mail-in?** Recommended: the form for phase 1: fixed fields, dates that parse. Mail to an address

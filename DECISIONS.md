@@ -5,6 +5,21 @@ Long-form records live in `specs/ADRs/`; this log is the index.
 
 ---
 
+## 2026-11-17 — The GitHub repo is public
+
+**Decision:** `Aottens/KerkSlideGen` is public. Workflow logs and artifacts never hold request text, slide text or a
+PNG (INT-07); names and mail addresses never reach GitHub at all (INT-04).
+
+**Alternatives considered:** private repo with a fixed billing or a higher Actions spending limit.
+
+**Why:** the owner's choice when GitHub refused Actions on the private repo for the account's billing; public repos
+run Actions for free.
+
+**Reversal trigger:** a member's text shows up in a public log or artifact, or billing is fixed and the owner prefers
+private.
+
+---
+
 ## 2026-11-17 — Port the CMDMX harness, English in the repo
 
 **Decision:** The project runs on the CMDMX harness: spec → test → code → review, numbered criteria, `STATE.md` as

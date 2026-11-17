@@ -12,7 +12,7 @@ Status (the first word of the Status cell, checked by `scripts/check-tracking.py
 | Id | Task (one sentence, verifiable) | Spec ids | Size | Status |
 | --- | --- | --- | --- | --- |
 | HAR-01 | The harness is in place: meta-layer, specs with criteria, tracking and risk-gate scripts green locally. | TRK, ARV | M | done (2026-11-17) |
-| HAR-02 | The private GitHub repo exists with this history, CI and Tracking are green on `main`, branch protection requires them. | TRK-01..09 | S | blocked: repo pushed 2026-11-17, Actions refused by the account's billing |
+| HAR-02 | The public GitHub repo exists with this history, CI and Tracking are green on `main`, branch protection requires them. | TRK-01..09 | S | todo |
 | HAR-03 | Review and risk gate run on a first PR in shadow: `CLAUDE_CODE_OAUTH_TOKEN` set, `findings.json` and the lane comment appear. | ARV-01..09 | S | todo |
 
 ## Vertical slice 1 — text in, PNG out, on a laptop

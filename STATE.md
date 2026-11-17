@@ -10,15 +10,14 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 
 ## Next
 1. Gate 1: the owner approves `specs/PRD.md` and the module specs, with the owner questions in each.
-2. HAR-02: CI green on the private repo once billing is fixed, then HAR-03 the review in shadow.
+2. HAR-02: CI and Tracking green on the public repo, branch protection; then HAR-03 the review in shadow.
 3. VS1-01 + VS1-02, the renderer, as soon as `assets/background.png` and a font are in.
 
 ## Waiting on the owner
 - Put the triple-wide background in `assets/background.png` (one file, full width, 1080 high) and say which font.
 
 ## Blocked
-- HAR-02: GitHub does not start Actions on the private repo: the account's payment failed or its spending
-  limit is too low (Billing & plans). Fix it there, or make the repo public (then request texts show in logs).
+- Nothing.
 
 ## Owner to decide
 - The owner questions in `specs/modules/render.md`, `condense.md`, `intake.md`, `deliver.md`, `autoreview.md`.
@@ -27,6 +26,7 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - Is `visueel@baptistengemeente.nl` a Google Workspace account, and may Apps Script run as that account?
 
 ## Good to know
+- The repo is public: no request text, slide text or PNG in workflow logs or artifacts (INT-07).
 - Only the centre 1920×1080 of the triple-wide canvas carries text: it is also the livestream.
 - ProPresenter is reached only through the synced `Loop/` folder: its API cannot import media (research 2026-11-17).
 - CI never calls the Claude API; the eval set costs money and runs only on the owner's word.

@@ -137,4 +137,5 @@ decision is code with tests; sensitive paths never merge by themselves; every de
 ## Owner questions
 1. **Same settings as CMDMX?** Recommended: yes: medium PRs without findings merge by themselves once `AUTOMERGE` is
    on, two fix rounds, 600 lines, the owner's subscription token (`claude setup-token`) as `CLAUDE_CODE_OAUTH_TOKEN`.
-2. **Public or private repo?** Recommended: private. The request texts in workflow logs are members' words.
+2. **Public or private repo?** Answered by the owner 2026-11-17: public (Actions on the private repo were refused by
+   the account's billing). Members' words stay out of logs and artifacts by INT-07.
