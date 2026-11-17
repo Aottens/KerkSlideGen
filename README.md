@@ -8,10 +8,11 @@ How it works: `ARCHITECTURE.md`. How we work: `CLAUDE.md`. Where it stands: `STA
 
 ## What works today
 - The engineering harness: specs with numbered criteria, the tracking check and the risk gate (ported from CMDMX).
+- CI and Tracking run on every push and PR; `main` requires both.
 
 ## Status
 Phase 1 is specified and waits for the owner's approval of the specs (gate 1).
-Next: HAR-02 the GitHub repo, then the renderer VS1-01 and VS1-02 once the background is in `assets/`.
+Next: HAR-03 the review in shadow, then the renderer VS1-01 and VS1-02 once the background is in `assets/`.
 
 ## Layout
 | Path | What |

@@ -12,8 +12,8 @@ Status (the first word of the Status cell, checked by `scripts/check-tracking.py
 | Id | Task (one sentence, verifiable) | Spec ids | Size | Status |
 | --- | --- | --- | --- | --- |
 | HAR-01 | The harness is in place: meta-layer, specs with criteria, tracking and risk-gate scripts green locally. | TRK, ARV | M | done (2026-11-17) |
-| HAR-02 | The public GitHub repo exists with this history, CI and Tracking are green on `main`, branch protection requires them. | TRK-01..09 | S | todo |
-| HAR-03 | Review and risk gate run on a first PR in shadow: `CLAUDE_CODE_OAUTH_TOKEN` set, `findings.json` and the lane comment appear. | ARV-01..09 | S | todo |
+| HAR-02 | The public GitHub repo exists with this history, CI and Tracking are green on `main`, a ruleset on `main` requires them. | TRK-01..09 | S | done (2026-11-17) |
+| HAR-03 | Review and risk gate run on a first PR in shadow: `CLAUDE_CODE_OAUTH_TOKEN` set, `findings.json` and the lane comment appear, then `risk-gate` joins the required checks. | ARV-01..09 | S | todo |
 
 ## Vertical slice 1 — text in, PNG out, on a laptop
 Builds (proposed): VS1-01 + VS1-02 (render); VS1-03 + VS1-04 (condense); VS1-05 alone (Actions).

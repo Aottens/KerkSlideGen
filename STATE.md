@@ -10,10 +10,11 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 
 ## Next
 1. Gate 1: the owner approves `specs/PRD.md` and the module specs, with the owner questions in each.
-2. HAR-02: CI and Tracking green on the public repo, branch protection; then HAR-03 the review in shadow.
+2. HAR-03: the review and risk gate in shadow on the first PR; `risk-gate` becomes a required check after it.
 3. VS1-01 + VS1-02, the renderer, as soon as `assets/background.png` and a font are in.
 
 ## Waiting on the owner
+- Set the repo secret `CLAUDE_CODE_OAUTH_TOKEN` (`claude setup-token`) for the review (HAR-03).
 - Put the triple-wide background in `assets/background.png` (one file, full width, 1080 high) and say which font.
 
 ## Blocked
