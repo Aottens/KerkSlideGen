@@ -1,0 +1,140 @@
+# Module spec: autoreview (ARV)
+
+Owner: `.github/workflows/review.yml` (the review), `.github/workflows/automerge.yml`, `scripts/risk-gate.py` (the
+decision), the PR steps of a build session in `CLAUDE.md`. Tests: `scripts/test_risk_gate.py`.
+Status: ported from CMDMX on 2026-11-17 (its ARV-01..19 as approved there by the owner on 2026-11-13..15), with this
+project's paths in ARV-05 and line rules in ARV-07. Waits for gate 1 here. Starts in shadow: `AUTOMERGE` is off (ARV-16).
+
+The owner reviews and merges every PR (gate 2) but cannot catch a defect by reading a diff. A reviewer on GitHub that
+did not write the code, and a fixed rule that decides from its findings and the paths, take over the PRs where a
+mistake is cheap, and keep the owner for those where it is not: an agent may stop a merge but never decide one; the
+decision is code with tests; sensitive paths never merge by themselves; every decision stays readable afterwards.
+
+## Definitions
+- **Finding:** one defect the review reports: file, line, severity (`blocker`, `major`, `minor`), verdict
+  (`confirmed` when checked against the code, `plausible` when not) and one sentence.
+- **Impact:** how much a defect in a changed file can cost, `low`, `medium` or `high` (ARV-05).
+- **Lane:** what happens to the PR: `green` (merges by itself), `amber` (the harness fixes or records it first) or `red` (the
+  owner decides).
+- **Shadow:** the gate decides and says so, but nothing merges by itself.
+
+## Review on GitHub
+- **ARV-01** Every PR from a branch of this repo gets a review by Claude on GitHub when it opens, at every push and
+  when it leaves draft; a draft gets none. `anthropics/claude-code-action`, pinned to a commit SHA, follows
+  `.github/review-prompt.md`: the steps of the code-review plugin's command (claude-plugins-official 9780cf4, v1.0.1,
+  Apache 2.0) with `--comment`, so findings are inline comments on the lines concerned. The copy drops the plugin's
+  first step, an agent that stops the review for a PR that is "automated", "trivial" or already commented on by
+  Claude: here every PR is written by Claude and reviewed at every push, and that stop left CMDMX #305..CMDMX #307 not reviewed
+  (amended 2026-11-15). It authenticates with the owner's `CLAUDE_CODE_OAUTH_TOKEN` secret.
+- **ARV-02** The review looks for correctness against `CLAUDE.md` (its rules and architecture constraints) and
+  the criteria the PR names, not for style, and gives every finding a severity and a verdict.
+- **ARV-03** The review job writes its findings as `findings.json` (a list of finding objects) to the job's artifacts
+  and a table of them to the job summary. Without the secret, or when the review fails, it writes no file and the
+  summary says why; the gate then reads *not reviewed*. A review has failed too, whatever it returned, when fewer
+  agents reported back to it than the prompt's steps name (two to prepare, four to review), or when any agent it
+  launched had not reported by the time it returned: an empty list from a review that did not hear its reviewers
+  must not read as a clean review (CMDMX owner, 2026-11-13, found on CMDMX #298). An agent reports when its result comes back to
+  the review; one launched in the background reports only when its task completes. The prompt launches every agent
+  in the foreground and returns only after all of them have reported (amended 2026-11-15: from CMDMX #309 to CMDMX #317, nine of
+  the ten reviews still kept launched their reviewers in the background and returned before four of them had
+  reported; CMDMX #317's first round returned a placeholder finding, the others `[]`). The review's execution
+  file is kept as the artifact `review-execution` for 7 days, so a review that stopped early can be read afterwards
+  (amended 2026-11-15).
+- **ARV-04** A push that changes only `low` files keeps the earlier review: no new review runs, and the gate reads the
+  last `findings.json` of the PR. So rewriting `STATE.md` or adding backlog rows does not start another round. A push
+  that changes a file a finding of the last review names, other than `BACKLOG.md` and `STATE.md`, is reviewed again,
+  whatever its impact, so a fixed finding does not stay on the PR. A finding in those two files that the PR fixes is
+  recorded as a `FIX-nn` row that is already `done`, so recording never starts a round. A review with a finding outside
+  the diff (ARV-19) is never kept: the next push is reviewed again.
+
+## The gate
+- **ARV-05** `scripts/risk-gate.py` gives each changed file an impact from one table at the top of the script; the
+  highest impact of any changed file counts:
+  - `high`: `subprojects/google/` (approvals, mail to members, the live loop folder), `assets/` (the church's own
+    background), `uv.lock`, `.github/`, `scripts/risk-gate.py` and its test, `CLAUDE.md`, `tests/church/` (gate 3 is
+    the owner's), any path the table does not name, and a file in `specs/` when the PR adds, removes or changes a
+    criterion line (a line that starts `- **XYZ-nn**`): gate 1 is the owner's.
+  - `medium`: `subprojects/renderer/slidegen/` and `subprojects/renderer/prompts/` (the requester sees every slide
+    before it is live), `subprojects/renderer/INTERFACE.md`, the other files in `scripts/`, `DECISIONS.md`, and a file
+    in `specs/` whose criterion lines the PR leaves as they are.
+  - `low`: `README.md`, `STATE.md`, `BACKLOG.md`, `IDEAS.md`, `docs/`, `subprojects/renderer/tests/`, `tests/` other
+    than `tests/church/` (manual runs, fixtures).
+- **ARV-06** The lane follows from the worst finding that is `confirmed` and the impact; a `plausible` finding counts
+  one severity lower:
+
+  | worst finding \ impact | low | medium | high |
+  | --- | --- | --- | --- |
+  | none | green | green | red |
+  | minor | green | amber | red |
+  | major | amber | amber | red |
+  | blocker | red | red | red |
+
+- **ARV-07** The lane is red, whatever the table says, when: a required check fails; the PR is *not reviewed*; it
+  changes more than 600 lines of code; the fix rounds are used up (ARV-11); or its title names a sub-release (a
+  version `x.y.0` or the word). Not counted as code: tests (a path with a `tests` directory or a file `test_*`),
+  `.md` files and `uv.lock`.
+- **ARV-08** The gate is Python standard library only, with no model and no network: the same paths, line count,
+  findings, checks and round always give the same lane. It prints the lane and one line per reason. Every rule above
+  has a test in `scripts/test_risk_gate.py` that carries its id.
+- **ARV-09** The gate runs as the check `risk-gate` after every review and after every push that keeps one (ARV-04).
+  Green passes; amber fails (a fix or a record is due); red passes, turns auto-merge off on the PR and labels it `risk: owner`,
+  so the owner merges as today. It keeps one comment on the PR up to date with the table, the PR's cell, the lane and
+  the reasons, and sets one label of `risk: green`, `risk: amber`, `risk: owner`.
+- **ARV-18** The gate names every finding of the last review whose `file:line` the PR's own changes to `BACKLOG.md`
+  and `STATE.md` do not contain, as the reason `not recorded: <file:line>`. A green PR with such a finding is amber,
+  so the harness records it (ARV-13) before it merges; on red the comment shows what is still to be recorded.
+- **ARV-19** A finding with no place in the PR's diff, a line below 1 or a file the PR does not change, is no defect
+  but a review that did not finish (on CMDMX #317 it was `N/A:0`, "review incomplete, re-run the review"). The PR is *not
+  reviewed* and red, with the reason `not reviewed: finding outside the diff (<file:line>), re-run the review`; such a
+  finding is never `not recorded` (ARV-18) and is not recorded (ARV-13). The harness re-runs the review
+  (`gh run rerun`) instead of recording it.
+
+## Acting on the lane
+- **ARV-10** Green: when the repository variable `AUTOMERGE` is `on`, auto-merge is switched on and GitHub merges once
+  the required checks pass: every job of `ci.yml` and `tracking.yml` and `risk-gate`. The merge
+  is made by an identity whose merge starts the workflows on `main`, not by the default `GITHUB_TOKEN`. With any
+  other value of `AUTOMERGE`, and when it is not set, the gate runs in shadow and the comment says *would merge*.
+- **ARV-11** Amber: the build session, with Auto-fix on, fixes the confirmed findings in the same PR, each fix with a
+  test that carries the id of the criterion it broke, and pushes; review and gate run again. At most two fix rounds:
+  a third review that still has findings makes the PR red. A fix that needs a criterion changed is not made; the PR
+  goes red with that question for the owner. An amber whose only reasons are `not recorded` (ARV-18) is cleared by
+  recording (ARV-13), not by a fix round.
+- **ARV-12** Red: the session first records the findings the PR leaves (ARV-13), then says so in chat with the gate's
+  reasons, and the owner reviews and merges as today. With a confirmed blocker the owner either has it fixed in the PR
+  (review and gate run again) or merges it as it is, recorded.
+- **ARV-13** Every finding of the PR's last review that the PR does not fix is recorded in that PR before it merges,
+  whatever its lane, so nothing a review found is left only in a closed PR (ARV-04 keeps that push from starting a
+  new round):
+  - a defect as a row under *Fixes from reviews* in `BACKLOG.md`: `FIX-nn`, the finding, its `file:line`, the
+    criterion it breaks, the PR, and `plausible` when that is its verdict;
+  - a finding whose fix needs a criterion changed (ARV-11) as an item under *Owner to decide* in `STATE.md`, with
+    its `file:line` and the criterion;
+  - a blocker too, marked `blocker`, so one the owner merges as it is stays known (ARV-12).
+
+  A row whose finding a later review of the same PR no longer reports is removed again in that PR.
+- **ARV-14** A fix block: the harness may build open `FIX-nn` rows without asking the owner, since they repair
+  criteria that exist and need no spec. At most three rows per build, in its own session, branch and PR, through the
+  same review and gate. It starts none while another fix block's PR is open. A `plausible` row is first checked
+  against the code; one that is no defect is closed `done (<date>, not a defect)` without a change.
+- **ARV-15** An auto-merge pushes no tag and deploys nothing to Apps Script; `subprojects/google/` is `high`, so a
+  change there is always the owner's merge, and its deploy (`clasp push`) is the owner's step.
+
+## Calibration
+- **ARV-16** `AUTOMERGE` stays off until five PRs have gone through the gate in shadow. A run file lists for each the
+  lane, what the owner did, and whether a fix to that PR followed within a week. The owner turns `AUTOMERGE` on after
+  reading it, or not.
+- **ARV-17** The `## Tracking` section of every PR names its lane, so the owner sees what merged by itself next to
+  what it records.
+
+## Not now
+- Claude's managed Code Review: Team and Enterprise plans only. The workflow of ARV-01 runs the same plugin's steps.
+- A reviewer that approves: GitHub can let Copilot's approval count toward a merge; here the review never approves,
+  the gate decides.
+- PRs from forks get no secrets on a public repo, so they are *not reviewed* and red.
+- The reviewer reads `CLAUDE.md` from the PR's own checkout. A PR that changes it is `high`, so it never merges by
+  itself.
+
+## Owner questions
+1. **Same settings as CMDMX?** Recommended: yes: medium PRs without findings merge by themselves once `AUTOMERGE` is
+   on, two fix rounds, 600 lines, the owner's subscription token (`claude setup-token`) as `CLAUDE_CODE_OAUTH_TOKEN`.
+2. **Public or private repo?** Recommended: private. The request texts in workflow logs are members' words.

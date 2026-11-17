@@ -1,0 +1,15 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # ponytail: only the harness checks until VS1-01 adds the renderer job (uv, pytest, ruff, playwright).
+  harness:
+    name: harness (stdlib Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m py_compile scripts/*.py
