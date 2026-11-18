@@ -18,13 +18,14 @@ How it works: `ARCHITECTURE.md`. How we work: `CLAUDE.md`. Where it stands: `STA
 ## Status
 Phase 1 is specified and approved; the renderer makes slides with and without an image on the church's background.
 Condense runs on Claude Code with the owner's subscription and passed its eval set on Opus 5.5 at low effort.
-Next: the render workflow VS1-05, and HAR-03 the review in shadow.
+`render.yml` turns a dispatch into a signed callback with the PNG; it waits for the Apps Script side (VS2-01, VS2-02).
+Next: HAR-03 the review in shadow, VS1-07 the weekday check, VS2-05 the image link.
 
 ## Layout
 | Path | What |
 | --- | --- |
 | `specs/` | PRD, module specs with numbered criteria, ADRs |
-| `subprojects/renderer/` | `slidegen`: condense (Claude) and render (Chromium), Python |
+| `subprojects/renderer/` | `slidegen`: condense (Claude) and render (Chromium), Python; `job.py` behind `render.yml` |
 | `subprojects/google/` | Apps Script: form, approval mails and pages, Drive folders, expiry |
 | `assets/` | The church's triple-wide background, `layout.json` and fonts |
 | `scripts/` | Tracking check and risk gate (stdlib Python, ported from CMDMX) |

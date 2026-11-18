@@ -10,12 +10,15 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
   inside the safe area, shrinking to fit, with an image beside the text when there is one (left or right by id).
 - `slidegen condense` turns a request into slide text with Claude Code (`claude -p`) on the owner's subscription,
   Opus 5.5 at low effort, budgets checked in code with one retry; the eval set passed live (2026-11-18).
+- `render.yml` turns a `slide-request` dispatch into a PNG and posts it, signed, to the Apps Script web app; every
+  failure is posted too. It waits for the secrets `CALLBACK_URL` and `CALLBACK_SECRET`, set once VS2-02 exists.
 - The loop has three sources: fixed slides (`Vast/`), approved requests, the agenda's coming week (2026-11-18).
 
 ## Next
-1. VS1-05: `render.yml` turns a dispatch into a signed callback with the PNG, condense on the repo's Claude token.
-2. HAR-03: the review and risk gate in shadow; the token is set, so the next PR is its first run.
-3. VS1-07: a weekday on a slide that does not match its date sends the request to the visual team (CND-09).
+1. HAR-03: the review and risk gate in shadow; the token is set, so the next PR is its first run.
+2. VS1-07: a weekday on a slide that does not match its date sends the request to the visual team (CND-09).
+3. VS2-01, VS2-02: the form and dispatch, then the callback and approval mail; the owner then sets the callback secrets.
+4. VS2-05: the signed image link; until then a request with an image goes to the visual team.
 
 ## Waiting on the owner
 - Renew `CLAUDE_CODE_OAUTH_TOKEN` before 2027-11-18 (`claude setup-token`); a reminder is in the owner's calendar.
@@ -34,4 +37,5 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - The repo is public: no request text, slide text or PNG in workflow logs or artifacts (INT-07).
 - Only the centre 1920×1080 of the triple-wide canvas carries text: it is also the livestream.
 - ProPresenter is reached only through the synced `Loop/` folder: its API cannot import media (research 2026-11-17).
+- The callback's signature is in the query string: Apps Script cannot read headers (DECISIONS 2026-11-18).
 - CI never calls Claude; the eval set uses the owner's subscription and runs only on the owner's word.
