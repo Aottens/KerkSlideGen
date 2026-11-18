@@ -11,7 +11,7 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - `slidegen condense` turns a request into slide text with Claude Code (`claude -p`) on the owner's subscription,
   Opus 5.5 at low effort, budgets checked in code with one retry. A weekday on the slide that does not match its
   date sends the request to the visual team, checked in code (CND-09). `line` holds only what the request says
-  (CND-03) and an activity's name stays as written (CND-10); `slidegen eval` checks both, not yet run live.
+  (CND-03) and an activity's name stays as written (CND-10); the eval set, with both, passed live (2026-11-18).
 - `render.yml` turns a `slide-request` dispatch into a PNG, fetching the request's image first over a link signed for
   15 minutes, and posts the PNG, signed, to the Apps Script web app; every failure is posted too.
 - The intake runs, on the owner's own Google account (DECISIONS 2026-11-18): a member signs in, submits the form, the
@@ -29,7 +29,6 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 3. FIX-02: the team mail's headline on deliver failures.
 
 ## Waiting on the owner
-- On the owner's word: `uv run slidegen eval` on the eval set, now with `alleen-titel` (CND-03) and `worship` (CND-10).
 - Renew `GITHUB_TOKEN` (fine-grained, one year) before it expires; the date goes in the owner's calendar.
 - Renew `CLAUDE_CODE_OAUTH_TOKEN` before 2027-11-18 (`claude setup-token`); a reminder is in the owner's calendar.
 
