@@ -11,6 +11,7 @@ Ideas the owner dropped or that came up, not yet planned. No criteria or code un
 | IDEA-05 | A weekday on a slide is checked against its date in code; a wrong one never reaches the screen. | 1 | planned (2026-11-18, CND-09, VS1-07 done) |
 | IDEA-06 | Team mails and the requester's mail come from or go to `visueel@`, though the script runs on the owner's account. | 1 | decided (2026-11-18): the owner's address for phase 1, DECISIONS |
 | IDEA-07 | Condense keeps an activity's name as written, in its own language (changes CND-02). | 1 | planned (2026-11-18, CND-10, VS1-09 done) |
+| IDEA-08 | Rotating fixed slides: one of a set shows per week, e.g. the pastoral team's messages. | 1 | confirmed (2026-11-18): with VS2-04, criteria still to write |
 
 ### IDEA-01
 Intent: members want their own image on a slide. Touches: render (image placement inside the safe area), intake (a
@@ -51,3 +52,12 @@ hold (CND-03 already says a field the request does not support is empty: that pa
 Touches: `specs/modules/condense.md` (CND-02), `subprojects/renderer/prompts/condense.md`, the eval set
 (`tests/fixtures/requests/`: a request with an English activity name), `slidegen eval` on the
 owner's word. Open: does "as written" keep the requester's capitals and `&`?
+
+### IDEA-08
+Intent: the pastoral team asked (2026-11-18, by mail to the visual team) for seven short messages ("call the pastoral
+team") on the beamer, a different one each week, with no weekly work for the team. Touches: `specs/modules/deliver.md`
+(a new DLV criterion: composition takes one PNG from a rotation folder, e.g. `Vast/Wisselend/`, by ISO week number,
+beside all of `Vast/`), VS2-04's composition in `subprojects/google/src/main.js`; the seven slides are rendered once
+with `slidegen render` and live only in Drive (INT-07). Open: one per week or a few; does the rotation reset when a
+slide is added; the photos sent along are too small for 1920×1080 (text only, or larger photos); one message is too
+long for 15 seconds and goes back to the team to shorten.
