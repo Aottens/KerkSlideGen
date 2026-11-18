@@ -8,13 +8,14 @@ Status: draft 2026-11-17; login and image upload 2026-11-18 (owner: "niet elke g
 How a request gets in: as easy as a form on a phone, but only for someone who signs in, so the church knows who asked.
 
 ## The form
-- **INT-01** One Google Form owned by the visual team's account (not in a shared drive: uploads do not work there),
+- **INT-01** One Google Form owned by the account that runs the script, the owner's (DECISIONS 2026-11-18; not in a
+  shared drive: uploads do not work there),
   fields in this order: name, the text ("Wat wil je aankondigen? Plak gerust de hele tekst."), event date, last date
   to show (optional, help text: "leeg = tot de datum van het evenement"), an image (optional, INT-08).
 - **INT-02** The form requires a Google sign-in and collects the verified mail address of whoever signs in; there is
   no typed mail field. Someone without a Google account can make one with their own mail address. Its answers go to
   the requests Sheet; the form collects no other data.
-- **INT-08** The image question accepts one file, images only, at most 10 MB. Forms stores it in the visual team's
+- **INT-08** The image question accepts one file, images only, at most 10 MB. Forms stores it in that account's
   Drive; Apps Script copies it to `KerkSlideGen/Beelden/<id>.<ext>`. JPG, PNG, WebP and HEIC (iPhone photos) are
   accepted; another type gives a mail to the requester: "Dit bestandstype kunnen we niet gebruiken, stuur een foto
   (JPG of PNG).", and the request is not dispatched; their next submit is a new request.
@@ -40,3 +41,5 @@ How a request gets in: as easy as a form on a phone, but only for someone who si
    to `visueel+slide@` stays IDEA-02.
 2. **Is `visueel@baptistengemeente.nl` a Google Workspace account?** Needed to know whether Apps Script runs as that
    account (it does on Workspace and on a plain Gmail account; only the quotas differ: 100 mails a day on Gmail).
+   Answered 2026-11-18: moot, the script runs on the owner's own account, a plain Gmail account (owner: "Dan kan ik
+   beheer houden"); the folders are shared with the visual team.

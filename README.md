@@ -21,7 +21,7 @@ How it works: `ARCHITECTURE.md`. How we work: `CLAUDE.md`. Where it stands: `STA
 Phase 1 is specified and approved; the renderer makes slides with and without an image on the church's background.
 Condense runs on Claude Code with the owner's subscription and passed its eval set on Opus 5.5 at low effort.
 `render.yml` turns a dispatch into a signed callback with the PNG; the Apps Script side receives it with VS2-02.
-The intake form, Sheet and dispatch are written; they wait for the owner's setup and manual run (VS2-01).
+The intake runs on the owner's Google account: a signed-in member's form submit becomes a run of `render.yml`.
 The Claude review and risk gate run on every PR, in shadow. Next: VS2-02 the callback, VS2-05 the image link.
 
 ## Layout

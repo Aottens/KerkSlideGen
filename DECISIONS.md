@@ -5,6 +5,21 @@ Long-form records live in `specs/ADRs/`; this log is the index.
 
 ---
 
+## 2026-11-18 — The Apps Script runs on the owner's own Google account, not on `visueel@` (INT-01)
+
+**Decision:** the script, its triggers, the form, the Sheet and the `KerkSlideGen` folders live on the owner's own
+Google account (a plain Gmail account); the folders are shared with `visueel@baptistengemeente.nl` and the church
+Mac. Mails "to the visual team" (DLV-08) go to the owner's address until IDEA-06 decides otherwise.
+
+**Alternatives considered:** the visual team's account, as planned (the owner keeps no control of it).
+
+**Why:** the owner: "Dan kan ik beheer houden." Personal data still stays in Google (INT-04).
+
+**Reversal trigger:** the owner hands the project over; then the script moves to the team's account (setup again,
+the Sheet copied over).
+
+---
+
 ## 2026-11-18 — The intake form is made by `setup()`, its image question by hand; retries by a minute trigger (INT-01, INT-05)
 
 **Decision:** `setup()` in Apps Script creates the form (verified mail addresses, which forces a Google sign-in), the

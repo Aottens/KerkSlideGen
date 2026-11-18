@@ -13,20 +13,18 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
   on the slide that does not match its date sends the request to the visual team, checked in code (CND-09).
 - `render.yml` turns a `slide-request` dispatch into a PNG and posts it, signed, to the Apps Script web app; every
   failure is posted too. It waits for the secrets `CALLBACK_URL` and `CALLBACK_SECRET`, set once VS2-02 exists.
-- `subprojects/google/` holds the intake in Apps Script: `setup()` makes the form (Google sign-in, verified address),
-  the Sheet tab `Aanvragen` and the triggers; a submit gets an id and a state and is dispatched to `render.yml`,
-  retried 3× in 10 minutes, else mailed to the visual team. It waits for the owner's setup (VS2-01).
+- The intake runs, on the owner's own Google account (DECISIONS 2026-11-18): a member signs in, submits the form, the
+  request gets an id and a row in the Sheet `Aanvragen` and is dispatched to `render.yml`; a refused file, a long
+  text or a sixth request in an hour, and a dispatch GitHub keeps refusing, end as `geweigerd` or `handwerk`.
 - The loop has three sources: fixed slides (`Vast/`), approved requests, the agenda's coming week (2026-11-18).
 
 ## Next
-1. VS2-01: the owner's setup and the manual intake run; then VS2-02, the callback and approval mail, after which the
-   owner sets the callback secrets.
+1. VS2-02: the callback and approval mail; after it the owner deploys the web app and sets `CALLBACK_URL` and
+   `CALLBACK_SECRET`.
 2. VS2-05: the signed image link; until then a request with an image goes to the visual team.
 
 ## Waiting on the owner
-- VS2-01: set up the intake as `subprojects/google/README.md` says (Apps Script API, `clasp create` and `clasp push`,
-  run `setup`, add the image question in the Forms editor, the script property `GITHUB_TOKEN`), then run
-  `tests/manual/intake.md`.
+- Renew `GITHUB_TOKEN` (fine-grained, one year) before it expires; the date goes in the owner's calendar.
 - Renew `CLAUDE_CODE_OAUTH_TOKEN` before 2027-11-18 (`claude setup-token`); a reminder is in the owner's calendar.
 
 ## Blocked
@@ -35,8 +33,8 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 ## Owner to decide
 - The owner questions in `specs/modules/render.md`, `condense.md`, `intake.md`, `deliver.md`, `autoreview.md`.
 - The allowlist (DLV-06): only known members approve their own slide; others go to the visual team.
-- Is `visueel@baptistengemeente.nl` a Google Workspace account? The intake works on both; on Workspace the form's
-  domain restriction must be off (setup step 6).
+- IDEA-06: team mails reach the owner, and VS2-02's approval mail would come from the owner's address. Fine for
+  phase 1, or via `visueel@` (a forward, or a *Send mail as* alias)?
 - Order of the loop, and is "de dienst begint zo" in the loop or cued by hand (`deliver.md`, question 4)?
 - Whether ProPresenter's Smart Playlist advances images every 15 s with a transition: VS3-01 at the church decides.
 
