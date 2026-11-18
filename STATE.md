@@ -16,9 +16,9 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - The intake runs, on the owner's own Google account (DECISIONS 2026-11-18): a member signs in, submits the form, the
   request gets an id and a row in the Sheet `Aanvragen` and is dispatched to `render.yml`; a refused file, a long
   text or a sixth request in an hour, and a dispatch GitHub keeps refusing, end as `geweigerd` or `handwerk`.
-- The web app (in code, not yet deployed) checks the callback's signature, stores the PNG in `Te keuren/`, mails the
-  approval mail from the owner's address to an allowlisted requester or else to the owner, and *Goedkeuren* moves it to
-  `Bibliotheek/`. Composing `Loop/` after an approval is a no-op hook (`composeLoop_`) until VS2-04; *Aanpassen*
+- The web app runs (run 2026-11-18): it checks the callback's signature, stores the PNG in `Te keuren/`, mails the
+  approval mail from the owner's address to an allowlisted requester or else to the owner, and *Goedkeuren* moves it
+  to `Bibliotheek/`. Composing `Loop/` after an approval is a no-op hook (`composeLoop_`) until VS2-04; *Aanpassen*
   shows a placeholder until VS2-03.
 - The loop has three sources: fixed slides (`Vast/`), approved requests, the agenda's coming week (2026-11-18).
 
@@ -27,9 +27,6 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 2. VS2-03: the *Aanpassen* round trip, the 7-day expiry, every failure mailed.
 
 ## Waiting on the owner
-- VS2-02 and VS2-05: `clasp push`, `setup` again, deploy the web app, set `CALLBACK_URL`/`CALLBACK_SECRET` in GitHub
-  and `CALLBACK_SECRET`/`WEB_APP_URL` in the script, fill `Toegestaan`, then run `tests/manual/approve.md`
-  (`subprojects/google/README.md` steps 10–14).
 - Renew `GITHUB_TOKEN` (fine-grained, one year) before it expires; the date goes in the owner's calendar.
 - Renew `CLAUDE_CODE_OAUTH_TOKEN` before 2027-11-18 (`claude setup-token`); a reminder is in the owner's calendar.
 
@@ -38,6 +35,8 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 
 ## Owner to decide
 - The owner questions in `specs/modules/render.md`, `condense.md`, `intake.md`, `deliver.md`, `autoreview.md`.
+- IDEA-07: keep an activity's name as written and fill `line` only from the request (owner's answers in
+  `IDEAS.md`); which phase?
 - Order of the loop, and is "de dienst begint zo" in the loop or cued by hand (`deliver.md`, question 4)?
 - Whether ProPresenter's Smart Playlist advances images every 15 s with a transition: VS3-01 at the church decides.
 
