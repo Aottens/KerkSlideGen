@@ -22,7 +22,7 @@ Phase 1 is specified and approved; the renderer makes slides with and without an
 Condense runs on Claude Code with the owner's subscription; it keeps an activity's name and invents no line.
 The intake runs on the owner's Google account: a signed-in member's form submit becomes a run of `render.yml`.
 The web app receives the slide, mails the approval mail and moves an approved slide to the library.
-`Loop/` is composed after each approval and every night; its first run on Google is the owner's.
+`Loop/` is filled on Google at each approval and every night; the first night run is still to check.
 The Claude review and risk gate run on every PR, in shadow. Next: VS2-03 *Aanpassen*, FIX-02..04, VS3-01.
 
 ## Layout
