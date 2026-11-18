@@ -24,7 +24,8 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - The loop has three sources: fixed slides (`Vast/`), approved requests, the agenda's coming week (2026-11-18).
 
 ## Next
-1. VS2-04: compose `Loop/` at night and in the `composeLoop_` hook after each approval.
+1. VS2-04: compose `Loop/` at night and in the `composeLoop_` hook after each approval, with one rotating slide
+   from `Vast/Wisselend/` per week (DLV-16).
 2. VS2-03: the *Aanpassen* round trip, the 7-day expiry, every failure mailed.
 3. FIX-02: the team mail's headline on deliver failures.
 
