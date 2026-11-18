@@ -73,6 +73,9 @@ _MEASURE = """() => [...document.querySelectorAll('[data-block]')].map(el => {
 })"""
 
 
+CHROMIUM_ARGS = ["--font-render-hinting=none", "--disable-font-subpixel-positioning", "--disable-lcd-text"]
+
+
 def _scales(min_scale: float) -> list[float]:
     steps, i = [], 0
     while (v := round(1 - i * 0.05, 2)) >= min_scale:
@@ -87,7 +90,8 @@ def render(slide: SlideText, assets: Path, out: Path, guides: bool = False) -> R
         raise FontMissing(f"font file not found: {geo.font_file}")
     with tempfile.TemporaryDirectory() as tmp, sync_playwright() as pw:
         page_file = Path(tmp) / "slide.html"
-        browser = pw.chromium.launch(headless=True)
+        # REN-09: the same glyph rasterising on macOS and Linux (no hinting, no LCD subpixels).
+        browser = pw.chromium.launch(headless=True, args=CHROMIUM_ARGS)
         try:
             page = browser.new_page(viewport={"width": geo.canvas_w, "height": geo.canvas_h}, device_scale_factor=1)
             checked = False
