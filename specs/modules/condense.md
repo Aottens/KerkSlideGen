@@ -18,6 +18,11 @@ read in three seconds.
   place and a request without a time; their outputs have `where` and the time part of `when` empty.
 - **CND-04** `show_until` is the form's last show date when given, else the event date, else 14 days after the
   request.
+- **CND-09** A weekday in `when` (`maandag`..`zondag` or `ma`..`zo`, any case) is the weekday of the date it stands
+  with: day and month from `when`, else the form's event date; the year from the form's event date, else the first
+  such date on or after the request. A mismatch, from the request or from the model, sends the request to the visual
+  team (DLV-08) with the reason "weekday does not match the date", without a retry: the code cannot tell which of the
+  two is wrong. Checked in code, not by the model (owner's choice 2026-11-18, IDEA-05).
 
 ## The call
 - **CND-05** One call to Claude through Claude Code in print mode (`claude -p`), signed in with the owner's Claude

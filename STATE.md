@@ -15,6 +15,7 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 ## Next
 1. VS1-05: `render.yml` turns a dispatch into a signed callback with the PNG, condense on the repo's Claude token.
 2. HAR-03: the review and risk gate in shadow; the token is set, so the next PR is its first run.
+3. VS1-07: a weekday on a slide that does not match its date sends the request to the visual team (CND-09).
 
 ## Waiting on the owner
 - Renew `CLAUDE_CODE_OAUTH_TOKEN` before 2027-11-18 (`claude setup-token`); a reminder is in the owner's calendar.
@@ -24,7 +25,6 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 
 ## Owner to decide
 - The owner questions in `specs/modules/render.md`, `condense.md`, `intake.md`, `deliver.md`, `autoreview.md`.
-- IDEA-05: check a weekday on a slide against its date (eval run 2026-11-18); which phase, and what on a mismatch?
 - The allowlist (DLV-06): only known members approve their own slide; others go to the visual team.
 - Is `visueel@baptistengemeente.nl` a Google Workspace account, and may Apps Script run as that account?
 - Order of the loop, and is "de dienst begint zo" in the loop or cued by hand (`deliver.md`, question 4)?
