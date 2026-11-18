@@ -9,16 +9,16 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - The specs are approved (gate 1, 2026-11-18). The renderer puts slide text on the church's background in Montserrat,
   inside the safe area, shrinking to fit, with an image beside the text when there is one (left or right by id).
 - `slidegen condense` turns a request into slide text with Claude Code (`claude -p`) on the owner's subscription,
-  Opus 5.5 at low effort, budgets checked in code with one retry; tested only offline so far (DECISIONS 2026-11-18).
+  Opus 5.5 at low effort, budgets checked in code with one retry; the eval set passed live (2026-11-18).
 - The loop has three sources: fixed slides (`Vast/`), approved requests, the agenda's coming week (2026-11-18).
 
 ## Next
-1. VS1-04: `slidegen eval` on the eval set, once, on the owner's word, with a fresh `claude` login on their Mac.
-2. VS1-05: `render.yml` turns a dispatch into a signed callback with the PNG.
-3. HAR-03: the review and risk gate in shadow; `risk-gate` becomes a required check after it.
+1. VS1-05: `render.yml` turns a dispatch into a signed callback with the PNG, condense on the repo's Claude token.
+2. HAR-03: the review and risk gate in shadow; the token is set, so the next PR is its first run.
+3. VS1-07: a weekday on a slide that does not match its date sends the request to the visual team (CND-09).
 
 ## Waiting on the owner
-- Set the repo secret `CLAUDE_CODE_OAUTH_TOKEN` (`claude setup-token`): the review (HAR-03) and condense (VS1-05).
+- Renew `CLAUDE_CODE_OAUTH_TOKEN` before 2027-11-18 (`claude setup-token`); a reminder is in the owner's calendar.
 
 ## Blocked
 - VS4-01: which system holds the church's agenda; the owner has asked at the church.
