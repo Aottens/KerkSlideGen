@@ -33,8 +33,12 @@ the dispatch to GitHub carries only id, round, text, change, dates and an image 
    *Goedkeuren* and *Aanpassen* to the requester if the address is on the tab `Toegestaan`, otherwise to this account
    and "Je aanvraag is ontvangen en wordt bekeken." to the requester (DLV-01..03, 06). A failed render: `handwerk`
    and a mail to this account.
-7. *Goedkeuren* moves the PNG to `Bibliotheek/` and sets `goedgekeurd` (DLV-04). Composing `Loop/` is VS2-04: the
-   hook `composeLoop_()` does nothing yet. *Aanpassen* shows a placeholder until VS2-03.
+7. *Goedkeuren* moves the PNG to `Bibliotheek/` and sets `goedgekeurd` (DLV-04), then composes `Loop/` at once.
+   *Aanpassen* shows a placeholder until VS2-03.
+8. `Loop/` is composed after every approval and every night (DLV-09): every PNG in `Vast/`, one from
+   `Vast/Wisselend/` by ISO week (DLV-16), and every approved request up to its last day. Missing copies are made in
+   `Loop (opbouw)/` first, then moved in; a failed run leaves `Loop/` as it was and mails this account (DLV-08).
+   Requests past their last day move to `Archief/` as `gearchiveerd` (DLV-13).
 
 ## Setup (the owner, once)
 Do every step signed in as the account that will own the script: the owner's own Google account (DECISIONS
@@ -101,6 +105,16 @@ Mails "to the visual team" go to this account (`Session.getEffectiveUser()`).
 13. **The allowlist.** In the Sheet tab `Toegestaan`, one mail address per row in column A: these members approve
     their own slide (DLV-06). Everyone else's slide goes to this account first.
 14. **Test it** with `tests/manual/approve.md`.
+
+### The loop (VS2-04)
+15. **Push, run `setup` again, new web app version.** `clasp push`, run `setup` in the editor and allow what it asks.
+    It adds the folders `Vast`, `Loop` and `Archief` and the trigger `composeLoop` (every night between 03:00 and
+    04:00, Apps Script's day timer). Then *Deploy → Manage deployments → Edit → Version: New version*.
+16. **Fixed slides.** The visual team puts its fixed slides as PNGs in `KerkSlideGen/Vast/` and the rotating ones in
+    `KerkSlideGen/Vast/Wisselend/` (make that folder by hand). `Loop/` is never edited by hand.
+17. **Share.** Share the folder `KerkSlideGen` with `visueel@` as *Editor* and with the church Mac's Google account as
+    *Viewer*; on the church Mac, Drive for Desktop mirrors `KerkSlideGen/Loop/` (DLV-10, VS3-01).
+18. **Test it** with `tests/manual/loop.md`.
 
 The approval mail, the "ontvangen" mail and the team mails come from this account's address (DECISIONS 2026-11-18).
 

@@ -48,7 +48,7 @@ function makeId(ymd, random, taken) {
 }
 
 const STATE = { NEW: 'nieuw', SENT: 'verzonden', RETRY: 'opnieuw', MANUAL: 'handwerk', REFUSED: 'geweigerd',
-  TO_APPROVE: 'te keuren', APPROVED: 'goedgekeurd' };
+  TO_APPROVE: 'te keuren', APPROVED: 'goedgekeurd', ARCHIVED: 'gearchiveerd' };
 
 const COLUMNS = ['id', 'status', 'ronde', 'aangemaakt', 'naam', 'mail', 'tekst', 'datum', 'tot', 'afbeelding',
   'pogingen', 'volgende poging', 'reden', 'token', 'png'];

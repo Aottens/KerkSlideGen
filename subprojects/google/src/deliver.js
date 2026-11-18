@@ -3,6 +3,11 @@
 const TO_APPROVE_FOLDER = 'Te keuren';
 const LIBRARY_FOLDER = 'Bibliotheek';
 const ALLOWLIST_TAB = 'Toegestaan';
+const LOOP_FOLDER = 'Loop';
+const FIXED_FOLDER = 'Vast';
+const ROTATING_FOLDER = 'Wisselend';
+const ARCHIVE_FOLDER = 'Archief';
+const LOOP_TEMP_FOLDER = 'Loop (opbouw)';
 
 function dlvState_() { return typeof STATE !== 'undefined' ? STATE : require('./intake.js').STATE; }
 
@@ -115,10 +120,63 @@ function imageAnswer(fileName, base64) {
   return JSON.stringify(ext ? { ext, base64 } : { error: 'bestandstype' });
 }
 
+// The loop (DLV-09/12/13/16).
+function isoWeek(day) {
+  const [y, m, d] = day.split('-').map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d));
+  t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7)); // the Thursday of this ISO week
+  return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 86400000 + 1) / 7);
+}
+
+function amsterdamDay(v) {
+  if (typeof v === 'string') return v.slice(0, 10);
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit',
+    day: '2-digit' }).format(v);
+}
+
+const isPng_ = (f) => /\.png$/i.test(f.name);
+
+function rotatingPick(files, today) {
+  const l = files.filter(isPng_).sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  return l.length ? l[isoWeek(today) % l.length] : null;
+}
+
+function loopPlan({ fixed, rotating, requests, current, today }) {
+  const S = dlvState_();
+  const wanted = [];
+  const archive = [];
+  const asItem = (f) => ({ sourceId: f.id, name: f.name, key: `${f.id}:${f.updated}` });
+  fixed.filter(isPng_).forEach((f) => wanted.push(asItem(f)));
+  const pick = rotatingPick(rotating, today);
+  if (pick) wanted.push(asItem(pick));
+  for (const r of requests) {
+    if (r.state !== S.APPROVED) continue;
+    const inDate = amsterdamDay(r.show_until || r.event_date) >= today;
+    if (inDate) wanted.push({ sourceId: r.png, name: pngName(r.id), key: r.png });
+    else archive.push(r.id);
+  }
+  const keys = new Set(wanted.map((w) => w.key));
+  const have = new Set(current.map((c) => c.key));
+  return {
+    add: wanted.filter((w) => !have.has(w.key)),
+    remove: current.filter((c) => !keys.has(c.key)).map((c) => c.id),
+    archive,
+  };
+}
+
+function loopFailMail(reason) {
+  return {
+    subject: `Loop niet bijgewerkt: ${reason}`,
+    body: 'Het samenstellen van de loop is mislukt. Loop/ staat er zoals hij was, tenzij de reden met "archiveren" ' +
+      `begint: dan is de loop wel bijgewerkt en is alleen het archiveren mislukt.\n\nReden: ${reason}`,
+  };
+}
+
 if (typeof module !== 'undefined') {
   module.exports = {
     hex, sameHex, checkCallback, TO_APPROVE_FOLDER, LIBRARY_FOLDER, ALLOWLIST_TAB, pngName, afterCallback, afterError, makeToken,
     approvalLinks, approvalMail, RECEIVED_MAIL, recipients, approveDecision, PAGES, approvedPage, imageMessage,
-    checkImageRequest, imageAnswer,
+    checkImageRequest, imageAnswer, LOOP_FOLDER, FIXED_FOLDER, ROTATING_FOLDER, ARCHIVE_FOLDER, LOOP_TEMP_FOLDER,
+    isoWeek, amsterdamDay, rotatingPick, loopPlan, loopFailMail,
   };
 }

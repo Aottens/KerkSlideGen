@@ -37,7 +37,7 @@ Builds (proposed): VS1-01 + VS1-02 (render); VS1-03 + VS1-04 (condense); VS1-05 
 | VS2-05 | The signed image link: the render job fetches a request's image for 15 minutes, nothing with a wrong or old signature. | DLV-14 | S | done (2026-11-18, #12) |
 | VS2-02 | Callback, `Te keuren/` and the approval mail with *Goedkeuren* and *Aanpassen*, signed bodies and tokens checked. | DLV-01..04, 06 | M | done (2026-11-18, #12) |
 | VS2-03 | *Aanpassen* round trip (3 rounds max), 7-day expiry of unanswered requests, every failure mailed to the visual team. | DLV-05, 07, 08 | M | todo |
-| VS2-04 | Loop composition at night and after each approval: `Vast/` + one rotating slide from `Vast/Wisselend/` + approved requests in date, swapped in atomically; expired requests archived; `KerkSlideGen` shared with `visueel@` and the church Mac's account. | DLV-09, 12, 13, 16 | M | todo |
+| VS2-04 | Loop composition at night and after each approval: `Vast/` + one rotating slide from `Vast/Wisselend/` + approved requests in date, swapped in atomically; expired requests archived; `KerkSlideGen` shared with `visueel@` and the church Mac's account. | DLV-09, 12, 13, 16 | M | done (2026-11-18, #18) |
 
 ## Vertical slice 4 — the agenda
 | Id | Task (one sentence, verifiable) | Spec ids | Size | Status |
