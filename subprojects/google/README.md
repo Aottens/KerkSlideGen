@@ -1,7 +1,7 @@
 # subprojects/google — Apps Script
 
-The Google side of KerkSlideGen, on the owner's Google account (DECISIONS 2026-11-18; folders are shared with the
-visual team): the form, the requests Sheet, mail, Drive folders and,
+The Google side of KerkSlideGen, on the owner's Google account (DECISIONS 2026-11-18; the folders are to be
+shared with the visual team once `Loop/` exists, VS2-04): the form, the requests Sheet, mail, Drive folders and,
 later, the callback and approvals. It holds no slide logic (`CLAUDE.md`). Names and mail addresses never leave Google:
 the dispatch to GitHub carries only id, round, text, change, dates and an image flag (INT-04,
 `subprojects/renderer/INTERFACE.md`).
