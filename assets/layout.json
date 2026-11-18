@@ -1,0 +1,47 @@
+{
+  "_doc": "Slide geometry (specs/modules/render.md). Pixels are canvas pixels of background.png; boxes are fractions of the title-safe area.",
+  "centre": "auto",
+  "safe_margin": 0.1,
+  "font_px": {
+    "title": 78,
+    "when": 40,
+    "where": 40,
+    "line": 36
+  },
+  "min_scale": 0.6,
+  "layouts": {
+    "text": {
+      "text": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0
+      },
+      "align": "center"
+    },
+    "with_image": {
+      "_doc": "Boxes as for an image on the left; REN-14 mirrors them when the side is right.",
+      "image": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 0.42,
+        "h": 1.0,
+        "radius_px": 18
+      },
+      "text": {
+        "x": 0.47,
+        "y": 0.0,
+        "w": 0.53,
+        "h": 1.0
+      },
+      "side": "by_id"
+    }
+  },
+  "font": {
+    "family": "Montserrat",
+    "title": 700,
+    "when": 600,
+    "where": 600,
+    "line": 400
+  }
+}
