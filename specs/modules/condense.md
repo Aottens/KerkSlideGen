@@ -14,8 +14,11 @@ read in three seconds.
 - **CND-02** All text is Dutch, whatever language the request is in, in the church's tone: plain, warm, no
   exclamation marks, no emoji, no capitals for emphasis.
 - **CND-03** Condense invents nothing: every date, time, place, name and amount in the output appears in the request
-  or in the form's date field. A field the request does not support is empty. The eval set has a request without a
-  place and a request without a time; their outputs have `where` and the time part of `when` empty.
+  or in the form's date field. A field the request does not support is empty; `line` holds only what the request
+  says, condensed so it still covers it. The eval set has a request without a place, a request without a time and a
+  request with only a title and a date; their outputs have `where`, the time part of `when`, and `line`, `where` and
+  the time part of `when` empty. An eval case names the fields that must be empty in an `empty:` header line, and
+  `slidegen eval` checks them.
 - **CND-04** `show_until` is the form's last show date when given, else the event date, else 14 days after the
   request.
 - **CND-09** A weekday in `when` (`maandag`..`zondag` or `ma`..`zo`, any case) is the weekday of the date it stands

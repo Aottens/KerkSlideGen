@@ -1,4 +1,5 @@
 event_date: 2027-01-18
 show_until:
+empty: time
 ---
 In januari start er weer een nieuwe Alpha-cursus in de bovenzaal! Tien avonden over de basis van het christelijk geloof, met een maaltijd, een korte inleiding en een gesprek in kleine groepjes. Je hoeft niks te weten en niks te geloven, iedereen is welkom. De eerste avond is op maandag 18 januari. Opgeven kan bij de Alpha-tafel in de hal of via de website.
