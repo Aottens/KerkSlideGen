@@ -17,11 +17,21 @@ this repo only, stored in the script property `GITHUB_TOKEN`.
     "text": "<the request text, at most 5000 characters>",
     "change": "",
     "event_date": "2026-12-24",
-    "show_until": "2026-12-24"
+    "show_until": "2026-12-24",
+    "image": true
   }
 }
 ```
 `change` is the requester's *Aanpassen* text for round 2 and 3 (DLV-05), else `""`. `show_until` may be `""`.
+`image` says whether the request has one; the job then fetches it with
+`GET <web app URL>?image=<id>&exp=<unix time + 900>&sig=<hex HMAC-SHA256 of "<id>.<exp>">` (DLV-14).
+
+Agenda (`specs/modules/agenda.md`) uses the same event with a `kind` (absent means `request`):
+- `"kind": "activity"`: the first slide of an agenda activity (AGD-04). `id` is the activity id (`A` + series id
+  hash), `text` is the event's title and description, and `when` and `where` come along filled from the agenda;
+  condense fills only `title` and `line`.
+- `"kind": "occurrence"`: one date of an approved activity (AGD-05). `id` is `<activity id>-<yyyy-mm-dd>`, and
+  `slide` carries the full `SlideText`; there is no `text`, and the renderer does not call Claude.
 
 ## 2. SlideText (inside the renderer)
 ```json

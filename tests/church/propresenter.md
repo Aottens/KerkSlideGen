@@ -7,7 +7,8 @@ Make a run file `tests/church/runs/<date>-VS3-01.md` with the ticked list and `#
 - [ ] Google Drive for Desktop on the church Mac, signed in to the visual team's account; `KerkSlideGen/Loop` set to
       *Mirror files* (available offline).
 - [ ] ProPresenter 7: Media Bin → new Smart Playlist linked to the mirrored `Loop` folder.
-- [ ] The announcement loop uses that playlist: 8 s per slide, loops, fills the full triple-wide output.
+- [ ] The intro slideshow is that playlist: 15 s per slide with the church's transition, loops, fills the full
+      triple-wide output, starts with one click.
 
 ## Checks
 - [ ] A test PNG dropped in `Loop/` from another computer appears in the playlist within 5 minutes, without a click.
@@ -15,4 +16,5 @@ Make a run file `tests/church/runs/<date>-VS3-01.md` with the ticked list and `#
 - [ ] With the network unplugged, the loop keeps playing what was synced.
 - [ ] On the beamers: the background spans all three screens without stretching; the text sits on the centre screen.
 - [ ] On the livestream output: no text is cut off or under the stream's overlay (`--guides` render as reference).
-- [ ] The text reads from the back row.
+- [ ] The text reads from the back row, also on a slide with an image (text beside it is smaller).
+- [ ] On Sunday the volunteer only starts the Mac mini and clicks the slideshow: no slide enabled or disabled by hand.

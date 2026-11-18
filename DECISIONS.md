@@ -5,6 +5,55 @@ Long-form records live in `specs/ADRs/`; this log is the index.
 
 ---
 
+## 2026-11-18 — Montserrat, the image's side varies, the intro slideshow is the composed folder
+
+**Decision:** Slides are set in Montserrat (REN-08). A slide with an image puts it left or right by its id (REN-14).
+The intro slideshow in ProPresenter becomes the Smart Playlist on `Loop/`, 15 s per slide with a transition; the
+fixed slides of today's slideshow move to `Vast/` (DLV-11, DLV-15).
+
+**Alternatives considered:** Roboto, or an own choice of font; the image always left; alternating strictly by
+position in the loop (needs both mirrored renders of every slide); keeping the hand-made presentation and only
+adding slides to it.
+
+**Why:** owner: the church's slides use Montserrat or Roboto, and a new font would mean restyling everything; "soms
+links, soms rechts, anders is het vrij eentonig"; the volunteer now disables slides by hand each week, which should
+go. A side chosen by id is stable through *Aanpassen* and needs one render.
+
+**Reversal trigger:** several image slides in a row end up on the same side often enough to look monotonous; then
+render both sides and let the composition alternate.
+
+---
+
+## 2026-11-18 — Two layouts: text only, or image beside the text
+
+**Decision:** A slide without image has its text centred in the title-safe area of the centre screen; a slide with an
+image has the image on the left and the text on the right, both inside that area (REN-11, `assets/layout.json`).
+
+**Alternatives considered:** the image behind the text with a dark veil; the image on the left side screen, out of
+the livestream. All four were rendered on the church's background and shown to the owner.
+
+**Why:** owner: "0 of A, afhankelijk van of er een afbeelding is meegestuurd". The image stays in the livestream; a
+veil over a busy photo hurt legibility.
+
+**Reversal trigger:** text with an image shrinks too often to read from the back row (VS3-01).
+
+---
+
+## 2026-11-18 — Requesters sign in with Google; a request may carry an image
+
+**Decision:** The form requires a Google sign-in and records the verified mail address (INT-02); it has an optional
+image upload (INT-08). The allowlist (DLV-06) checks that verified address.
+
+**Alternatives considered:** a form without login (anyone with the link can ask); an own Apps Script form page or
+Tally, which allow uploads without login.
+
+**Why:** owner: "niet elke gek moet een aanvraag kunnen doen" and "er moet ook een plaatje in kunnen". A Google Form
+with an upload question requires sign-in anyway, so both wishes give the simplest form.
+
+**Reversal trigger:** members without a Google account give up rather than make one.
+
+---
+
 ## 2026-11-17 — The GitHub repo is public
 
 **Decision:** `Aottens/KerkSlideGen` is public. Workflow logs and artifacts never hold request text, slide text or a
