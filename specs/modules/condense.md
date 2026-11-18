@@ -2,7 +2,7 @@
 
 Owner: `subprojects/renderer/slidegen/condense.py` and `subprojects/renderer/prompts/condense.md`.
 Tests: `subprojects/renderer/tests/` (offline), `tests/fixtures/requests/` (the eval set, run by hand: it costs money).
-Status: draft 2026-11-17, waits for gate 1.
+Status: approved (gate 1) 2026-11-18; CND-10 approved 2026-11-18.
 
 Turns a request, as long and as messy as members write them, into a `SlideText`: a few words that someone in a pew can
 read in three seconds.
