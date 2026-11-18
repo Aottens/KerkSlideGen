@@ -40,7 +40,8 @@ _WEEKDAY = re.compile(
     r"\b(" + "|".join(_DAYS + tuple(d[:2] for d in _DAYS)) + r")(?:ochtend|morgen|middag|avond|nacht)?\b\.?"
 )
 _DATE = re.compile(
-    r"\b(\d{1,2})(?:\s*[-/]\s*(\d{1,2})\b|\.?\s+(" + "|".join(sorted(_MONTH, key=len, reverse=True)) + r")\b\.?)"
+    r"(?<![\w.:])(\d{1,2})(?:\s*[-/]\s*(\d{1,2})\b|\.?\s+("
+    + "|".join(sorted(_MONTH, key=len, reverse=True)) + r")\b\.?)"
 )
 
 

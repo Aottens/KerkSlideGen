@@ -438,3 +438,21 @@ def test_cnd_09_any_case(when, ok):
     else:
         with pytest.raises(WeekdayMismatch):
             weekday(when)
+
+
+@pytest.mark.parametrize(
+    "when, ok",
+    [
+        ("Zaterdag, 19.00-21.00 uur", True),
+        ("Zaterdag, 19:00-21:00 uur", True),
+        ("za 5 dec, 19.00-21.00 uur", True),
+        ("Zondag, 19.00-21.00 uur", False),
+    ],
+)
+def test_cnd_09_time_range_is_not_a_date(when, ok):
+    # 5 December 2026 is a Saturday; `00-21` inside a time range is no date (review on #7).
+    if ok:
+        weekday(when, event_date="2026-12-05")
+    else:
+        with pytest.raises(WeekdayMismatch):
+            weekday(when, event_date="2026-12-05")
