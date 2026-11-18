@@ -253,3 +253,21 @@ test('dlv_08_an_accepted_callback_that_throws_sets_handwerk', () => {
   assert.equal(after.reason, 'fout in het script: WEB_APP_URL ontbreekt');
   assert.equal(after.token, '', 'no approval link works for it');
 });
+
+// Review of #12, round 2. main.js is Google glue: these read its source, the behaviour is in tests/manual/approve.md.
+const MAIN = fs.readFileSync(path.join(__dirname, '..', 'src', 'main.js'), 'utf8');
+const fnBody = (name) => {
+  const start = MAIN.indexOf(`function ${name}(`);
+  const next = MAIN.indexOf('\nfunction ', start + 1);
+  return MAIN.slice(start, next < 0 ? undefined : next);
+};
+
+test('dlv_08_a_failed_goedkeuren_mails_the_team', () => {
+  const get = fnBody('doGet');
+  const c = get.slice(get.lastIndexOf('catch (err)'));
+  assert.match(c, /mailTeam_\(/, 'the catch of doGet mails the team');
+});
+
+test('dlv_01_a_post_without_body_is_refused_before_anything_can_throw', () => {
+  assert.match(fnBody('doPost'), /e && e\.postData && e\.postData\.contents\) \|\| ''/);
+});

@@ -237,7 +237,7 @@ function doPost(e) {
     lock.waitLock(30000);
     // DLV-08: a missing setting is mailed, not silently refused.
     if (!props_().getProperty('CALLBACK_SECRET')) throw new Error('CALLBACK_SECRET ontbreekt');
-    const raw = e.postData.contents;
+    const raw = (e && e.postData && e.postData.contents) || '';
     let id = '';
     try { id = String(JSON.parse(raw).id); } catch (x) {}
     const found = rowById_(id);
@@ -297,9 +297,12 @@ function doGet(e) {
   }
   if (q.a !== 'goedkeuren' && q.a !== 'aanpassen') return page_(PAGES.badToken);
   const lock = LockService.getScriptLock();
+  let row;
   try {
     lock.waitLock(30000);
-    const { row, rowNumber } = rowById_(String(q.id || ''));
+    const found = rowById_(String(q.id || ''));
+    row = found.row;
+    const rowNumber = found.rowNumber;
     const d = approveDecision(row, q.t);
     if (d === 'bad-token') return page_(PAGES.badToken);
     if (q.a === 'aanpassen') return page_(PAGES.changeLater);
@@ -311,6 +314,8 @@ function doGet(e) {
     composeLoop_();
     return page_(approvedPage(row));
   } catch (err) {
+    const reason = 'goedkeuren mislukt: ' + String((err && err.message) || err).slice(0, 200);
+    try { mailTeam_(row || { id: String(q.id || '(onbekend)'), name: '', email: '', text: '', event_date: '', show_until: '' }, reason); } catch (x) {}
     return page_(PAGES.error);
   } finally {
     try { lock.releaseLock(); } catch (x) {}
