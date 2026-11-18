@@ -169,6 +169,7 @@ function tryDispatch_(req, rowNumber) {
   req.attempts += 1;
   if (!why) {
     req.state = STATE.SENT;
+    req.since = new Date();
     req.next = '';
     req.reason = '';
     writeRow_(rowNumber, req);
@@ -277,7 +278,65 @@ function composeLoop_() {
 function composeLoop() {
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
-  try { composeLoop_(); } finally { lock.releaseLock(); }
+  try { composeLoop_(); expireStale_(); } finally { lock.releaseLock(); }
+}
+
+// Called by the change form via google.script.run (DLV-05). Returns the Dutch message to show.
+function submitChange(id, token, text) {
+  const lock = LockService.getScriptLock();
+  let row;
+  try {
+    lock.waitLock(30000);
+    const found = rowById_(String(id || ''));
+    row = found.row;
+    const d = approveDecision(row, token);
+    if (d === 'bad-token') return PAGES.badToken;
+    if (d === 'already') return PAGES.already;
+    if (d === 'not-open') return PAGES.notOpen;
+    const after = afterChange(row, text, new Date());
+    if (!after) return PAGES.changeEmpty;
+    if (row.png) DriveApp.getFileById(row.png).setTrashed(true);
+    writeRow_(found.rowNumber, after.row);
+    if (after.toTeam) {
+      mailTeam_(after.row, after.row.reason);
+      return PAGES.changeToTeam;
+    }
+    tryDispatch_(after.row, found.rowNumber);
+    return PAGES.changeSent;
+  } catch (err) {
+    const reason = 'aanpassen mislukt: ' + String((err && err.message) || err).slice(0, 200);
+    try { mailTeam_(row || { id: String(id || '(onbekend)'), name: '', email: '', text: '', event_date: '', show_until: '' }, reason); } catch (x) {}
+    return PAGES.error;
+  } finally {
+    try { lock.releaseLock(); } catch (x) {}
+  }
+}
+
+// Expires requests nobody approved in 7 days and hands renders without an answer to the team (DLV-07/08). Never throws.
+function expireStale_() {
+  try {
+    const rows = rows_();
+    const plan = stalePlan(rows, new Date());
+    const archive = DriveApp.getFolderById(props_().getProperty('ARCHIVE_FOLDER_ID'));
+    rows.forEach((row, i) => {
+      if (plan.expire.includes(row.id)) {
+        if (row.png) DriveApp.getFileById(row.png).moveTo(archive);
+        row.state = STATE.EXPIRED;
+        writeRow_(i + 2, row);
+      } else if (plan.stuck.includes(row.id)) {
+        row.state = STATE.MANUAL;
+        row.reason = NO_RENDER_REASON;
+        row.token = '';
+        writeRow_(i + 2, row);
+        mailTeam_(row, row.reason);
+      }
+    });
+  } catch (err) {
+    try {
+      mailTeam_({ id: '(nachtrun)', name: '', email: '', text: '', event_date: '', show_until: '' },
+        'verlopen/wachtende aanvragen: ' + String((err && err.message) || err).slice(0, 200));
+    } catch (x) {}
+  }
 }
 
 // The render job's callback (DLV-01/02/06). Never logs request data, tokens or secrets.
@@ -313,7 +372,7 @@ function doPost(e) {
     const file = DriveApp.getFolderById(props_().getProperty('TO_APPROVE_FOLDER_ID')).createFile(blob);
     const token = makeToken(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,
       Utilities.getUuid() + Utilities.getUuid()));
-    const after = afterCallback(row, body, token, file.getId());
+    const after = afterCallback(row, body, token, file.getId(), new Date());
     writeRow_(rowNumber, after);
     const team = Session.getEffectiveUser().getEmail();
     const al = SpreadsheetApp.openById(props_().getProperty('SHEET_ID')).getSheetByName(ALLOWLIST_TAB);
@@ -358,9 +417,12 @@ function doGet(e) {
     const rowNumber = found.rowNumber;
     const d = approveDecision(row, q.t);
     if (d === 'bad-token') return page_(PAGES.badToken);
-    if (q.a === 'aanpassen') return page_(PAGES.changeLater);
     if (d === 'already') return page_(PAGES.already);
     if (d === 'not-open') return page_(PAGES.notOpen);
+    if (q.a === 'aanpassen') {
+      return HtmlService.createHtmlOutput(changeForm(row.id, q.t))
+        .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+    }
     DriveApp.getFileById(row.png).moveTo(DriveApp.getFolderById(props_().getProperty('LIBRARY_FOLDER_ID')));
     row.state = STATE.APPROVED;
     writeRow_(rowNumber, row);

@@ -180,7 +180,7 @@ test('int_05_only_a_2xx_answer_is_a_dispatch', () => {
 test('int_05_states_shown_in_the_sheet', () => {
   assert.deepEqual(I.STATE, {
     NEW: 'nieuw', SENT: 'verzonden', RETRY: 'opnieuw', MANUAL: 'handwerk', REFUSED: 'geweigerd',
-    TO_APPROVE: 'te keuren', APPROVED: 'goedgekeurd', ARCHIVED: 'gearchiveerd',
+    TO_APPROVE: 'te keuren', APPROVED: 'goedgekeurd', ARCHIVED: 'gearchiveerd', EXPIRED: 'verlopen',
   });
 });
 

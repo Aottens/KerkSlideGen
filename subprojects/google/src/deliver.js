@@ -36,9 +36,9 @@ function checkCallback({ raw, sig, expected, row }) {
 
 const pngName = (id) => `${id}.png`;
 
-function afterCallback(row, body, token, pngId) {
+function afterCallback(row, body, token, pngId, now) {
   const S = dlvState_();
-  if (body.ok) return { ...row, state: S.TO_APPROVE, token, png: pngId, reason: '' };
+  if (body.ok) return { ...row, state: S.TO_APPROVE, token, png: pngId, reason: '', since: now };
   return { ...row, state: S.MANUAL, token: '', reason: ('render: ' + (body.reason || '')).slice(0, 200) };
 }
 
@@ -94,9 +94,49 @@ const PAGES = {
   badToken: 'Deze link klopt niet (meer). Vraag het kerkteam om hulp.',
   already: 'Deze slide is al goedgekeurd.',
   notOpen: 'Deze aanvraag wacht niet op goedkeuring.',
-  changeLater: 'Aanpassen komt binnenkort. Stuur het kerkteam intussen een mail.',
+  changeSent: 'Je aanpassing is verstuurd. Je krijgt binnen een paar minuten een nieuw voorbeeld per mail.',
+  changeToTeam: 'Het kerkteam maakt je slide verder af en neemt contact met je op.',
+  changeEmpty: 'Schrijf eerst wat er anders moet.',
   error: 'Er ging iets mis. Het kerkteam is op de hoogte.',
 };
+
+const MAX_CHANGE = 1500;
+const NO_RENDER_REASON = 'geen antwoord van de render';
+
+// Never mutates the row. Null: nothing written.
+function afterChange(row, text, now) {
+  const add = String(text == null ? '' : text).trim().slice(0, MAX_CHANGE);
+  if (!add) return null;
+  const S = dlvState_();
+  const change = row.change ? row.change + '\n\n' + add : add;
+  if (row.round >= 3) return { toTeam: true, row: { ...row, change, state: S.MANUAL, reason: '3 rondes aangepast', token: '' } };
+  return { toTeam: false, row: { ...row, change, round: row.round + 1, state: S.SENT, token: '', png: '', attempts: 0,
+    reason: '', next: '', since: now } };
+}
+
+function stalePlan(requests, now) {
+  const S = dlvState_();
+  const age = (r) => now - (r.since || r.created);
+  return {
+    expire: requests.filter((r) => r.state === S.TO_APPROVE && age(r) >= 7 * 24 * 3600e3).map((r) => r.id),
+    stuck: requests.filter((r) => r.state === S.SENT && age(r) >= 2 * 3600e3).map((r) => r.id),
+  };
+}
+
+function changeForm(id, token) {
+  const js = (v) => JSON.stringify(v).replace(/</g, '\\u003c');
+  return '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<div id="f" style="font-family:sans-serif;font-size:18px;margin:2em">' +
+    '<p><label for="t">Wat moet er anders?</label></p>' +
+    '<p><textarea id="t" maxlength="1500" rows="6" style="width:100%;font-size:18px"></textarea></p>' +
+    '<p><button id="b" style="font-size:18px;padding:8px 20px">Versturen</button></p></div>' +
+    '<script>const id=' + js(id) + ',token=' + js(token) + ';' +
+    'const show=(m)=>{const p=document.createElement("p");p.style.cssText="font-family:sans-serif;font-size:18px;margin:2em";' +
+    'p.textContent=m;document.getElementById("f").replaceWith(p);};' +
+    'document.getElementById("b").onclick=function(){this.disabled=true;' +
+    'google.script.run.withSuccessHandler(show).withFailureHandler(()=>show("Er ging iets mis. Het kerkteam is op de hoogte."))' +
+    '.submitChange(id,token,document.getElementById("t").value);};</script>';
+}
 
 const MONTHS = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober',
   'november', 'december'];
@@ -178,5 +218,6 @@ if (typeof module !== 'undefined') {
     approvalLinks, approvalMail, RECEIVED_MAIL, recipients, approveDecision, PAGES, approvedPage, imageMessage,
     checkImageRequest, imageAnswer, LOOP_FOLDER, FIXED_FOLDER, ROTATING_FOLDER, ARCHIVE_FOLDER, LOOP_TEMP_FOLDER,
     isoWeek, amsterdamDay, rotatingPick, loopPlan, loopFailMail,
+    MAX_CHANGE, NO_RENDER_REASON, afterChange, stalePlan, changeForm,
   };
 }
