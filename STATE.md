@@ -19,17 +19,21 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
   text or a sixth request in an hour, and a dispatch GitHub keeps refusing, end as `geweigerd` or `handwerk`.
 - The web app runs (run 2026-11-18): it checks the callback's signature, stores the PNG in `Te keuren/`, mails the
   approval mail from the owner's address to an allowlisted requester or else to the owner, and *Goedkeuren* moves it
-  to `Bibliotheek/`. *Aanpassen* shows a placeholder until VS2-03.
+  to `Bibliotheek/`. *Aanpassen* asks what must change and renders again, at most 3 rounds, then the team takes over.
+- The night run also expires a slide nobody approved in 7 days (`verlopen`) and hands a render without answer after
+  2 hours to the team. In code and tests; its run on Google waits on the owner (`tests/manual/approve.md`).
 - `Loop/` is composed in code after each approval and every night: every PNG in `Vast/`, one from `Vast/Wisselend/`
   by ISO week, approved requests up to their last day; expired ones go to `Archief/`. It runs on Google, and
   *Goedkeuren* puts the slide in `Loop/` at once (run of 2026-11-18). The agenda in the loop waits on VS4-01.
 
 ## Next
-1. VS2-03: the *Aanpassen* round trip, the 7-day expiry, every failure mailed.
-2. FIX-02, FIX-03, FIX-04: the team mails on deliver and loop failures, as one fix block.
+1. FIX-02, FIX-03, FIX-04: the team mails on deliver and loop failures, as one fix block.
+2. FIX-05: the change page must not reach the script's other functions.
 3. VS3-01: the Smart Playlist on the church Mac plays `Loop/` (gate 3).
 
 ## Waiting on the owner
+- `clasp push`, a new web app version and `setup` once (Sheet columns `aanpassing`, `sinds`), then the *Aanpassen*,
+  expiry and watchdog steps of `tests/manual/approve.md`.
 - Share `KerkSlideGen` with `visueel@` and the church Mac's account; check the night run of `composeLoop` in
   *Executions* (`tests/manual/loop.md`, run of 2026-11-18).
 - The owner's Drive is nearly full: a full Drive stops every copy into `Loop/`. Free space or buy storage.

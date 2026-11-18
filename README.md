@@ -21,9 +21,9 @@ How it works: `ARCHITECTURE.md`. How we work: `CLAUDE.md`. Where it stands: `STA
 Phase 1 is specified and approved; the renderer makes slides with and without an image on the church's background.
 Condense runs on Claude Code with the owner's subscription; it keeps an activity's name and invents no line.
 The intake runs on the owner's Google account: a signed-in member's form submit becomes a run of `render.yml`.
-The web app receives the slide, mails the approval mail and moves an approved slide to the library.
-`Loop/` is filled on Google at each approval and every night; the first night run is still to check.
-The Claude review and risk gate run on every PR, in shadow. Next: VS2-03 *Aanpassen*, FIX-02..04, VS3-01.
+The web app mails the approval mail; *Goedkeuren* fills `Loop/`, *Aanpassen* renders again up to 3 rounds.
+Unapproved slides expire after 7 days; its run on Google waits on the owner. Next: FIX-02..05, VS3-01.
+The Claude review and risk gate run on every PR, in shadow.
 
 ## Layout
 | Path | What |
