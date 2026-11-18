@@ -73,30 +73,47 @@ _MEASURE = """() => [...document.querySelectorAll('[data-block]')].map(el => {
 })"""
 
 
+def _scales(min_scale: float) -> list[float]:
+    steps, i = [], 0
+    while (v := round(1 - i * 0.05, 2)) >= min_scale:
+        steps.append(v)
+        i += 1
+    return steps
+
+
 def render(slide: SlideText, assets: Path, out: Path, guides: bool = False) -> RenderResult:
     geo = Geometry.load(assets)
     if not geo.font_file.is_file():
         raise FontMissing(f"font file not found: {geo.font_file}")
-    scale = 1.0
     with tempfile.TemporaryDirectory() as tmp, sync_playwright() as pw:
         page_file = Path(tmp) / "slide.html"
-        page_file.write_text(build_html(slide, geo, scale, guides), encoding="utf-8")
         browser = pw.chromium.launch(headless=True)
         try:
             page = browser.new_page(viewport={"width": geo.canvas_w, "height": geo.canvas_h}, device_scale_factor=1)
-            page.goto(page_file.as_uri())
-            page.evaluate("document.fonts.ready")
-            ok = page.evaluate(
-                "document.fonts.check('700 40px Montserrat') && "
-                "[...document.fonts].some(f => f.family.includes('Montserrat') && f.status === 'loaded')"
-            )
-            if not ok:
-                raise FontMissing(f"font did not load: {geo.font_file}")
-            blocks = [
-                Block(m["name"], Rect(m["x"], m["y"], m["w"], m["h"]), m["px"], m["weight"])
-                for m in page.evaluate(_MEASURE)
-            ]
-            page.screenshot(path=str(out), type="png")
+            checked = False
+            for scale in _scales(geo.min_scale):
+                page_file.write_text(build_html(slide, geo, scale, guides), encoding="utf-8")
+                page.goto(page_file.as_uri())
+                page.evaluate("document.fonts.ready")
+                if not checked:
+                    ok = page.evaluate(
+                        "document.fonts.check('700 40px Montserrat') && "
+                        "[...document.fonts].some(f => f.family.includes('Montserrat') && f.status === 'loaded')"
+                    )
+                    if not ok:
+                        raise FontMissing(f"font did not load: {geo.font_file}")
+                    checked = True
+                blocks = [
+                    Block(m["name"], Rect(m["x"], m["y"], m["w"], m["h"]), m["px"], m["weight"])
+                    for m in page.evaluate(_MEASURE)
+                ]
+                overflow = page.evaluate(
+                    "(() => { const t = document.getElementById('text');"
+                    " return t.scrollHeight > t.clientHeight || t.scrollWidth > t.clientWidth; })()"
+                )
+                if not overflow and all(geo.safe.contains(b.rect) for b in blocks):
+                    page.screenshot(path=str(out), type="png")
+                    return RenderResult(scale=scale, blocks=blocks)
         finally:
             browser.close()
-    return RenderResult(scale=scale, blocks=blocks)
+    raise DoesNotFit(f"does not fit the safe area at the minimum scale {geo.min_scale}")
