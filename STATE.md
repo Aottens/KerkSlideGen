@@ -9,16 +9,16 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - The specs are approved (gate 1, 2026-11-18). The renderer puts slide text on the church's background in Montserrat,
   inside the safe area, shrinking to fit, with an image beside the text when there is one (left or right by id).
 - `slidegen condense` turns a request into slide text with Claude Code (`claude -p`) on the owner's subscription,
-  Opus 5.5 at low effort, budgets checked in code with one retry; the eval set passed live (2026-11-18).
+  Opus 5.5 at low effort, budgets checked in code with one retry; the eval set passed live (2026-11-18). A weekday
+  on the slide that does not match its date sends the request to the visual team, checked in code (CND-09).
 - `render.yml` turns a `slide-request` dispatch into a PNG and posts it, signed, to the Apps Script web app; every
   failure is posted too. It waits for the secrets `CALLBACK_URL` and `CALLBACK_SECRET`, set once VS2-02 exists.
 - The loop has three sources: fixed slides (`Vast/`), approved requests, the agenda's coming week (2026-11-18).
 
 ## Next
-1. VS1-07: a weekday on a slide that does not match its date sends the request to the visual team (CND-09).
-2. VS2-01, VS2-02: the form and dispatch, then the callback and approval mail; the owner then sets the callback secrets.
-3. VS2-05: the signed image link; until then a request with an image goes to the visual team.
-4. FIX-01: a fix block for the review's finding on the render job.
+1. VS2-01, VS2-02: the form and dispatch, then the callback and approval mail; the owner then sets the callback secrets.
+2. VS2-05: the signed image link; until then a request with an image goes to the visual team.
+3. FIX-01: a fix block for the review's finding on the render job.
 
 ## Waiting on the owner
 - Add the check `risk-gate` to the ruleset's required checks on `main`: the review ran in shadow on #6 (ARV-10).
