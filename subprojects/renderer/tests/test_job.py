@@ -11,6 +11,7 @@ import hashlib
 import hmac
 import json
 import re
+import sys
 import threading
 from datetime import date
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -330,6 +331,18 @@ def test_dlv_08_every_failure_posts_id_round_and_reason(callback, tmp_path, run,
     assert set(body) == {"id", "round", "ok", "reason"}
     assert body["id"] == "R20261117-K7Q" and body["round"] == 3 and body["ok"] is False
     assert reason in body["reason"] and TEXT not in body["reason"]
+
+
+@pytest.mark.parametrize("module", ["slidegen.cli", "slidegen.condense", "slidegen.render"])
+def test_dlv_08_import_error_is_posted(callback, tmp_path, capsys, monkeypatch, module):
+    """FIX-01: a slidegen import that fails (Playwright, a missing wheel) inside the job step still posts a failure."""
+    monkeypatch.setitem(sys.modules, module, None)  # the next import of it raises ImportError
+    assert go(callback, tmp_path, render_fn=None) == 0
+    check_sig(callback.posts[0])
+    body = callback.json()
+    assert set(body) == {"id", "round", "ok", "reason"} and body["ok"] is False
+    assert body["reason"].startswith("internal error: ") and "Error" in body["reason"]
+    assert TEXT not in capsys.readouterr().err
 
 
 def test_dlv_08_setup_failure_posts_a_reason(callback, tmp_path):

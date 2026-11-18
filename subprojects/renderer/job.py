@@ -69,12 +69,16 @@ def parse(p: dict) -> tuple[dict | None, str]:
 
 
 def work(f: dict, run, render_fn, today: date) -> dict:
-    """The success body, or {"reason": ...}. Lazy slidegen import: --setup-failed runs without it."""
-    from slidegen.cli import ASSETS
-    from slidegen.condense import CondenseError, Request, condense
-    from slidegen.layout import LayoutError
-    from slidegen.render import DoesNotFit, RenderError
-    from slidegen.render import render as default_render
+    """The success body, or {"reason": ...}. Lazy slidegen import: --setup-failed runs without it.
+    A failing import is posted too (DLV-08); only the class name, never the message (INT-07)."""
+    try:
+        from slidegen.cli import ASSETS
+        from slidegen.condense import CondenseError, Request, condense
+        from slidegen.layout import LayoutError
+        from slidegen.render import DoesNotFit, RenderError
+        from slidegen.render import render as default_render
+    except ImportError as e:
+        return {"reason": f"internal error: {type(e).__name__}"}
 
     try:
         render_fn = render_fn or default_render
