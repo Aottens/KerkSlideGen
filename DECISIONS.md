@@ -5,6 +5,24 @@ Long-form records live in `specs/ADRs/`; this log is the index.
 
 ---
 
+## 2026-11-18 — `Loop/` keeps its folder: the swap moves staged copies in, file by file (DLV-09)
+
+**Decision:** a composition copies only the files `Loop/` lacks into a temporary folder `Loop (opbouw)/`, then moves
+them into `Loop/` and trashes the files that no longer belong. Each copy carries its source's id (and, for fixed slides,
+its last change) in its description, so an unchanged slide is never re-copied and a replaced one is.
+
+**Alternatives considered:** build a whole new folder and rename it to `Loop` (the literal swap), so every night the
+church Mac sees a new folder and every file again.
+
+**Why:** Drive for Desktop on the church Mac and ProPresenter's Smart Playlist watch the folder `Loop/`; replacing it
+risks the watch and makes every slide reappear at 03:00. The part that fails (copying) happens in the temporary folder,
+so a failed copy leaves `Loop/` as it was (DLV-09); the moves after it are quick and rarely fail.
+
+**Reversal trigger:** VS3-01 shows the Smart Playlist handles a replaced folder well, or a run ends with `Loop/` half
+moved.
+
+---
+
 ## 2026-11-18 — Approval and team mails come from the owner's own account for phase 1 (IDEA-06, DLV-03)
 
 **Decision:** the approval mail (DLV-03), the "ontvangen" mail (DLV-06) and every mail to the visual team (DLV-08) are

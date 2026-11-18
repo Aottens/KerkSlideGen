@@ -37,15 +37,19 @@ function setup() {
   const root = DriveApp.getFolderById(p.getProperty('IMAGES_FOLDER_ID')).getParents().next();
   p.setProperty('TO_APPROVE_FOLDER_ID', findOrCreateFolder_(root, TO_APPROVE_FOLDER).getId());
   p.setProperty('LIBRARY_FOLDER_ID', findOrCreateFolder_(root, LIBRARY_FOLDER).getId());
+  p.setProperty('LOOP_FOLDER_ID', findOrCreateFolder_(root, LOOP_FOLDER).getId());
+  p.setProperty('FIXED_FOLDER_ID', findOrCreateFolder_(root, FIXED_FOLDER).getId());
+  p.setProperty('ARCHIVE_FOLDER_ID', findOrCreateFolder_(root, ARCHIVE_FOLDER).getId());
   const ss = SpreadsheetApp.openById(p.getProperty('SHEET_ID'));
   sheet_().getRange(1, 1, 1, COLUMNS.length).setValues([COLUMNS]);
   if (!ss.getSheetByName(ALLOWLIST_TAB)) ss.insertSheet(ALLOWLIST_TAB);
   const form = FormApp.openById(formId);
   for (const t of ScriptApp.getProjectTriggers()) {
-    if (['onSubmit', 'retryDispatches'].includes(t.getHandlerFunction())) ScriptApp.deleteTrigger(t);
+    if (['onSubmit', 'retryDispatches', 'composeLoop'].includes(t.getHandlerFunction())) ScriptApp.deleteTrigger(t);
   }
   ScriptApp.newTrigger('onSubmit').forForm(form).onFormSubmit().create();
   ScriptApp.newTrigger('retryDispatches').timeBased().everyMinutes(1).create();
+  ScriptApp.newTrigger('composeLoop').timeBased().atHour(3).everyDays(1).create();
   Logger.log('Form: ' + form.getPublishedUrl());
   Logger.log('Edit: ' + form.getEditUrl());
 }
@@ -224,8 +228,57 @@ function page_(text) {
     String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</p>');
 }
 
-// No-op hook: VS2-04 (DLV-09) composes Loop/ here.
-function composeLoop_() {}
+// Builds Loop/ (DLV-09/12/13/16). Copies go into a temp folder first; Loop/ itself stays, since Drive for Desktop and
+// ProPresenter watch it. Never throws: a failure mails the team and leaves Loop/ as it was.
+function composeLoop_() {
+  let temp = null;
+  let step = '';
+  try {
+    const p = props_();
+    const root = DriveApp.getFolderById(p.getProperty('LOOP_FOLDER_ID')).getParents().next();
+    const fixedFolder = DriveApp.getFolderById(p.getProperty('FIXED_FOLDER_ID'));
+    const list = (it, f) => { const a = []; while (it.hasNext()) a.push(f(it.next())); return a; };
+    const info = (f) => ({ id: f.getId(), name: f.getName(), updated: f.getLastUpdated().toISOString() });
+    const rot = fixedFolder.getFoldersByName(ROTATING_FOLDER);
+    const loop = DriveApp.getFolderById(p.getProperty('LOOP_FOLDER_ID'));
+    const plan = loopPlan({
+      fixed: list(fixedFolder.getFiles(), info),
+      rotating: rot.hasNext() ? list(rot.next().getFiles(), info) : [],
+      requests: rows_(),
+      current: list(loop.getFiles(), (f) => ({ id: f.getId(), key: f.getDescription() || '' })),
+      today: amsterdamDay(new Date()),
+    });
+    for (const old of list(root.getFoldersByName(LOOP_TEMP_FOLDER), (f) => f)) old.setTrashed(true);
+    temp = root.createFolder(LOOP_TEMP_FOLDER);
+    for (const a of plan.add) DriveApp.getFileById(a.sourceId).makeCopy(a.name, temp).setDescription(a.key);
+    for (const f of list(temp.getFiles(), (x) => x)) f.moveTo(loop);
+    for (const id of plan.remove) DriveApp.getFileById(id).setTrashed(true);
+    temp.setTrashed(true);
+    temp = null;
+    step = 'archiveren: ';
+    const archive = DriveApp.getFolderById(p.getProperty('ARCHIVE_FOLDER_ID'));
+    for (const id of plan.archive) {
+      const { row, rowNumber } = rowById_(id);
+      if (!row) continue;
+      DriveApp.getFileById(row.png).moveTo(archive);
+      row.state = STATE.ARCHIVED;
+      writeRow_(rowNumber, row);
+    }
+  } catch (err) {
+    try { if (temp) temp.setTrashed(true); } catch (e) {}
+    try {
+      const m = loopFailMail((step + String((err && err.message) || err)).slice(0, 200));
+      MailApp.sendEmail(Session.getEffectiveUser().getEmail(), m.subject, m.body);
+    } catch (e) {}
+  }
+}
+
+// Daily trigger (setup): also expires requests past their last day.
+function composeLoop() {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try { composeLoop_(); } finally { lock.releaseLock(); }
+}
 
 // The render job's callback (DLV-01/02/06). Never logs request data, tokens or secrets.
 function doPost(e) {
