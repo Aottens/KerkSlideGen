@@ -20,22 +20,24 @@ read in three seconds.
   request.
 
 ## The call
-- **CND-05** One call to the Claude API with a structured output (`output_config.format`, JSON schema of `SlideText`),
-  model and effort from `subprojects/renderer/slidegen/config.py` (default `claude-opus-5-5`, effort `low`). The
-  request text goes in as data inside tags, never as instructions: a request that says "ignore the rules" gives a
-  normal slide (eval case `injectie.txt`).
+- **CND-05** One call to Claude through Claude Code in print mode (`claude -p`), signed in with the owner's Claude
+  subscription (the token from `claude setup-token`, in `CLAUDE_CODE_OAUTH_TOKEN`); no API key. Structured output via
+  `--json-schema` (JSON schema of `SlideText` without `show_until`); model and effort from
+  `subprojects/renderer/slidegen/config.py` (`claude-opus-5-5`, effort `low`, owner's choice 2026-11-18). Claude gets
+  no tools, no settings, no MCP servers and no saved session. The request text goes in on stdin as data inside tags,
+  never as instructions: a request that says "ignore the rules" gives a normal slide (eval case `injectie.txt`).
 - **CND-06** The character limits are checked in code after the call. A field over its limit, or a render that does not
   fit (REN-07), gives one more call with the violations named. Still over: the request goes to the visual team
   (DLV-08) with the reason.
-- **CND-07** An API error is retried by the SDK (its default retries); after that the request goes to the visual team
-  with the error. A `refusal` stop reason does the same.
-- **CND-08** Offline tests use recorded API responses; CI never calls the API. `slidegen eval` runs the eval set
-  against the live API and prints per case the output and whether CND-01..04 hold.
+- **CND-07** An error from Claude Code after its own retries (a non-zero exit, `is_error`, no structured output, a
+  missing or expired token, or no answer within 5 minutes) sends the request to the visual team with the reason. A
+  refusal does the same.
+- **CND-08** Offline tests use recorded `claude -p` results; CI never calls Claude. `slidegen eval` runs the eval set
+  against live Claude (the owner's subscription, on the owner's word) and prints per case the output and whether
+  CND-01..04 hold.
 
 ## Owner questions
-1. **Model?** Recommended: `claude-opus-5-5` at effort `low`: best Dutch and least invention, about $0.02 per slide,
-   so about €2 a month at 20 requests a week. `claude-haiku-5-5` costs about 1/40 of that; the eval set shows whether
-   it holds the quality. The owner picks; the code makes it one line.
-2. **Whose API key?** Recommended: a key in an Anthropic account of the church or the owner, stored as the GitHub
-   secret `ANTHROPIC_API_KEY`, with a monthly spend limit of $10 set in the console.
+1. **Model?** Decided 2026-11-18: `claude-opus-5-5` at effort `low`. The code makes a switch one line.
+2. **Whose account?** Decided 2026-11-18: the owner's Claude subscription through Claude Code, the same
+   `CLAUDE_CODE_OAUTH_TOKEN` secret the review uses; no API key (DECISIONS 2026-11-18).
 3. **Four fields enough?** Recommended: yes for phase 1 (title, when, where, one line). More text means smaller text.

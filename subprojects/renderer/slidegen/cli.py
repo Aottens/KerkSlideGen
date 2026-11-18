@@ -1,5 +1,6 @@
 """`slidegen render SLIDE.json -o OUT.png [--guides] [--assets DIR] [--image PATH] [--id ID]`,
-`slidegen condense REQUEST.txt [-o slide.json]` and `slidegen eval [DIR]` (CND-08; both call the live API).
+`slidegen condense REQUEST.txt [-o slide.json]` and `slidegen eval [DIR]` (CND-08; both call Claude Code,
+the owner's subscription, and cost subscription usage).
 
 Exit codes: 0 ok, 1 error, 2 usage, 3 does not fit (REN-07).
 """
@@ -69,10 +70,10 @@ def main(argv: list[str]) -> int:
     r.add_argument("--assets", type=Path, default=ASSETS)
     r.add_argument("--image", type=Path)
     r.add_argument("--id", default="")
-    c = sub.add_parser("condense", help="request text to slide JSON (calls the live Claude API)")
+    c = sub.add_parser("condense", help="request text to slide JSON (calls Claude Code, owner's subscription)")
     c.add_argument("request", type=Path)
     c.add_argument("-o", "--out", type=Path)
-    e = sub.add_parser("eval", help="run the eval set against the live Claude API (costs money)")
+    e = sub.add_parser("eval", help="run the eval set via Claude Code (costs subscription usage)")
     e.add_argument("dir", type=Path, nargs="?", default=REQUESTS)
     a = ap.parse_args(argv)
     if a.cmd == "eval":

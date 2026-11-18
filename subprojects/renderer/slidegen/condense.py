@@ -1,11 +1,12 @@
-"""Request text to SlideText with one structured Claude call (CND-01, CND-04..07)."""
+"""Request text to SlideText with one structured call to Claude Code (`claude -p`, the owner's subscription;
+CND-01, CND-04..07). The token comes from CLAUDE_CODE_OAUTH_TOKEN in the environment; it is never passed or printed."""
 import json
+import subprocess
+import tempfile
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
-
-import anthropic
 
 from . import config
 from .slide import SlideText
@@ -44,39 +45,47 @@ def violations(data: dict) -> list[str]:
     return (["title is empty"] if not data["title"].strip() else []) + out
 
 
-def _call(client, content: str) -> dict:
+def _call(run, content: str) -> dict:
+    """Errors carry fixed phrases, field names and codes only: never Claude's or the request's text (INT-07)."""
+    args = [
+        "claude", "-p", "--model", config.MODEL, "--effort", config.EFFORT, "--output-format", "json",
+        "--json-schema", json.dumps(SCHEMA), "--system-prompt", PROMPT.read_text(encoding="utf-8"),
+        "--tools", "", "--setting-sources", "", "--strict-mcp-config", "--no-session-persistence",
+    ]
     try:
-        msg = client.messages.create(
-            model=config.MODEL,
-            max_tokens=16000,
-            system=PROMPT.read_text(encoding="utf-8"),
-            output_config={"effort": config.EFFORT, "format": {"type": "json_schema", "schema": SCHEMA}},
-            messages=[{"role": "user", "content": content}],
-        )
-    except anthropic.APIError as e:
-        raise CondenseError(f"API error: {type(e).__name__}") from e
-    if msg.stop_reason == "refusal":
-        category = getattr(msg.stop_details, "category", None)
-        raise CondenseError("Claude refused the request" + (f" ({category})" if category else ""))
-    if msg.stop_reason != "end_turn":
-        raise CondenseError(f"Claude stopped early: {msg.stop_reason}")
-    text = next((b.text for b in msg.content if b.type == "text"), None)
+        with tempfile.TemporaryDirectory() as cwd:  # away from the repo, so its CLAUDE.md is not read
+            proc = run(args, input=content, capture_output=True, text=True, timeout=300, cwd=cwd)
+    except subprocess.TimeoutExpired as e:
+        raise CondenseError("no answer from Claude Code within 300 s") from e
+    except FileNotFoundError as e:
+        raise CondenseError("Claude Code (claude) is not installed") from e
     try:
-        data = json.loads(text)
-        return {k: str(data[k]) for k in LIMITS}
-    except (TypeError, ValueError, KeyError) as e:
-        raise CondenseError("reply was not the expected JSON") from e
+        out = json.loads(proc.stdout)
+    except (TypeError, ValueError):
+        out = None
+    if not isinstance(out, dict):
+        raise CondenseError(f"Claude Code gave no result (exit {proc.returncode})")
+    if out.get("is_error") or proc.returncode != 0:
+        if "authenticat" in str(out.get("result", "")).lower():
+            raise CondenseError("Claude login failed: the CLAUDE_CODE_OAUTH_TOKEN is missing or expired")
+        raise CondenseError(f"Claude Code error: {out.get('terminal_reason') or f'exit {proc.returncode}'}")
+    if out.get("stop_reason") == "refusal":
+        raise CondenseError("Claude refused the request")
+    data = out.get("structured_output")
+    if not isinstance(data, dict) or not all(k in data for k in LIMITS):
+        raise CondenseError("Claude Code gave no structured output")
+    return {k: str(data[k]) for k in LIMITS}
 
 
 def condense(
     req: Request,
     today: date,
-    client=None,
+    run=None,
     previous: SlideText | None = None,
     feedback: Sequence[str] = (),
 ) -> SlideText:
     """One call; one more with the problems named if a limit is broken (CND-06). `feedback` counts as that retry."""
-    client = client or anthropic.Anthropic()
+    run = run or subprocess.run
     text = req.text.replace("<", "&lt;").replace(">", "&gt;")
     content = f"<event_date>{req.event_date}</event_date>\n<request>\n{text}\n</request>"
 
@@ -88,14 +97,14 @@ def condense(
 
     if previous or feedback:
         prev = {k: getattr(previous, k, "") for k in LIMITS}
-        data = _call(client, retry_content(prev, feedback))
+        data = _call(run, retry_content(prev, feedback))
         retried = True
     else:
-        data = _call(client, content)
+        data = _call(run, content)
         retried = False
     bad = violations(data)
     if bad and not retried:
-        data = _call(client, retry_content(data, bad))
+        data = _call(run, retry_content(data, bad))
         bad = violations(data)
     if bad:
         raise CondenseError("; ".join(bad))

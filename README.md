@@ -12,12 +12,12 @@ How it works: `ARCHITECTURE.md`. How we work: `CLAUDE.md`. Where it stands: `STA
 - The renderer: `slidegen render slide.json -o out.png [--guides]` puts a slide's title, when, where and line in
   Montserrat on the church's triple-wide background, inside the centre's safe area, shrinking the text to fit;
   `--image photo.jpg --id <id>` puts the image beside the text, left or right by the id (JPG, PNG, WebP, HEIC).
-- Condense: `slidegen condense request.txt [-o slide.json]` asks Claude for the slide text within the character
-  budgets; `slidegen eval` runs the eval set against the live API (costs money, owner's word only).
+- Condense: `slidegen condense request.txt [-o slide.json]` asks Claude (`claude -p`, the owner's subscription) for
+  the slide text within the character budgets; `slidegen eval` runs the eval set live (owner's word only).
 
 ## Status
 Phase 1 is specified and approved; the renderer makes slides with and without an image on the church's background.
-Condense with Claude is built and tested offline; its live eval run (VS1-04) waits for the owner's model and key.
+Condense runs on Claude Code with the owner's subscription, tested offline; the live eval run VS1-04 waits on the owner.
 Next: the render workflow VS1-05, and HAR-03 the review in shadow.
 
 ## Layout

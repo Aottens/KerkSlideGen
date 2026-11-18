@@ -5,6 +5,24 @@ Long-form records live in `specs/ADRs/`; this log is the index.
 
 ---
 
+## 2026-11-18 — Condense through Claude Code on the owner's subscription, not the API (CND-05)
+
+**Decision:** `slidegen condense` calls `claude -p` (Claude Code in print mode) with `--json-schema`, `--model
+claude-opus-5-5` and `--effort low`, signed in with the owner's Claude subscription through `CLAUDE_CODE_OAUTH_TOKEN`
+(`claude setup-token`), the secret the review already uses. Claude gets no tools (`--tools ""`), no settings, no MCP
+servers and no saved session. The `anthropic` Python SDK is not a dependency.
+
+**Alternatives considered:** the Claude API with an `ANTHROPIC_API_KEY` and a spend limit (the spec's first draft):
+the owner does not want a separate API account and bill.
+
+**Why:** no API key and no second bill; one secret for review and condense, as in CMDMX. About 20 requests a week fit
+easily in the subscription.
+
+**Reversal trigger:** the subscription's limits stop requests, or the token's yearly renewal is missed too often; then
+an API key with a spend limit after all.
+
+---
+
 ## 2026-11-18 — Smaller before hyphenated (REN-06)
 
 **Decision:** The text shrinks as far as 60 % before any word is hyphenated; Dutch hyphenation is the fallback only

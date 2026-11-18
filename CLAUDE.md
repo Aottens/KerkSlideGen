@@ -41,8 +41,8 @@ Use the `project-orchestrator` agent in `.claude/agents/` for pre-flight and pos
 
 ## Gates (run before every PR)
 - `scripts/test_tracking.py`, `scripts/test_risk_gate.py`, `scripts/check-tracking.py` (stdlib only).
-- Renderer: in `subprojects/renderer`, `uv run pytest` and `uv run ruff check`. CI never calls the Claude API
-  (CND-08): tests use recorded responses. `uv run slidegen eval` costs money and runs only on the owner's word.
+- Renderer: in `subprojects/renderer`, `uv run pytest` and `uv run ruff check`. CI never calls Claude
+  (CND-08): tests use recorded results. `uv run slidegen eval` uses the owner's subscription; only on the owner's word.
 - Google: `node --test subprojects/google/tests/`.
 
 ## Builds: what goes together
@@ -93,7 +93,8 @@ questions) and ask the owner to confirm the phase. No criteria or code for an id
 
 ## Toolchain notes
 - Python 3.12+ with `uv`; Playwright with its bundled Chromium (`uv run playwright install chromium`).
-- Anthropic Python SDK; structured outputs via `output_config.format`. Model and effort live in one place,
+- Claude Code in print mode (`claude -p --json-schema`) on the owner's subscription (`CLAUDE_CODE_OAUTH_TOKEN`), no
+  API key and no tools (DECISIONS 2026-11-18). Model and effort live in one place,
   `subprojects/renderer/slidegen/config.py`.
 - Apps Script deployed with `clasp`; `clasp push` and the web app deploy are the owner's steps.
 

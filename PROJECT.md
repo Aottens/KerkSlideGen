@@ -44,8 +44,8 @@ before the service, and it leaves the loop by itself after the event.
 - Song lyrics, sermon slides, anything live during the service.
 
 ## Stack
-- `subprojects/renderer/`: Python. Condense with the Anthropic SDK (structured outputs), render HTML/CSS to PNG with
-  headless Chromium via Playwright. Runs as a GitHub Actions job; runs locally the same way.
+- `subprojects/renderer/`: Python. Condense with Claude Code (`claude -p`, structured output), render HTML/CSS to PNG
+  with headless Chromium via Playwright. Runs as a GitHub Actions job; runs locally the same way.
 - `subprojects/google/`: Google Apps Script bound to the visual team's account: form trigger, approval pages, mail,
   Drive folders, the daily expiry.
 - CI and review: GitHub Actions; the review and risk gate are ported from CMDMX (`specs/modules/autoreview.md`).
