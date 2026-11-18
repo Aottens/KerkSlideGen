@@ -40,8 +40,10 @@ Agenda (`specs/modules/agenda.md`) uses the same event with a `kind` (absent mea
 Limits: title 32, when 40, where 40, line 70 characters (CND-01).
 
 ## 3. Callback (GitHub → Apps Script)
-`POST <web app URL>` (secret `CALLBACK_URL`), header `X-Signature: sha256=<hex HMAC-SHA256 of the body>` under the
-shared secret (`CALLBACK_SECRET` in GitHub, the same value in the script property `CALLBACK_SECRET`).
+`POST <web app URL>?sig=<hex HMAC-SHA256 of the body>` (secret `CALLBACK_URL`), `Content-Type: application/json`,
+signed under the shared secret (`CALLBACK_SECRET` in GitHub, the same value in the script property `CALLBACK_SECRET`).
+The signature is in the query string, not a header: an Apps Script `doPost(e)` cannot read request headers
+(DECISIONS 2026-11-18). The job follows the web app's redirect; a non-2xx answer or no answer fails the run.
 
 ```json
 {"id": "R20261117-K7Q", "round": 1, "ok": true, "slide": {"…": "SlideText"}, "png_base64": "<PNG>"}

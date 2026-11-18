@@ -13,7 +13,7 @@ Status (the first word of the Status cell, checked by `scripts/check-tracking.py
 | --- | --- | --- | --- | --- |
 | HAR-01 | The harness is in place: meta-layer, specs with criteria, tracking and risk-gate scripts green locally. | TRK, ARV | M | done (2026-11-17) |
 | HAR-02 | The public GitHub repo exists with this history, CI and Tracking are green on `main`, a ruleset on `main` requires them. | TRK-01..09 | S | done (2026-11-17) |
-| HAR-03 | Review and risk gate run on a first PR in shadow: `CLAUDE_CODE_OAUTH_TOKEN` set, `findings.json` and the lane comment appear, then `risk-gate` joins the required checks. | ARV-01..09 | S | todo |
+| HAR-03 | Review and risk gate run on a first PR in shadow: `CLAUDE_CODE_OAUTH_TOKEN` set, `findings.json` and the lane comment appear, then `risk-gate` joins the required checks. | ARV-01..09 | S | done (2026-11-18, #6) |
 
 ## Vertical slice 1 — text in, PNG out, on a laptop
 Builds (proposed): VS1-01 + VS1-02 (render); VS1-03 + VS1-04 (condense); VS1-05 alone (Actions).
@@ -26,7 +26,7 @@ Builds (proposed): VS1-01 + VS1-02 (render); VS1-03 + VS1-04 (condense); VS1-05 
 | VS1-04 | The eval set (`tests/fixtures/requests/`) passes CND-01..04 on the chosen model, run once on the owner's word. | CND-02, 03, 05 | S | done (2026-11-18, #5) |
 | VS1-07 | Condense sends a request whose slide names a weekday that does not match its date to the visual team, checked in code. | CND-09 | S | todo |
 | VS1-06 | `--image`: the *with image* layout, the image left or right by id, cropped to its box, upright by EXIF, HEIC read. | REN-11..14 | S | done (2026-11-18, #3) |
-| VS1-05 | `render.yml` turns a `repository_dispatch` `slide-request` into a PNG and posts it, signed, to a URL from a secret. | INT-04, DLV-01 | S | todo |
+| VS1-05 | `render.yml` turns a `repository_dispatch` `slide-request` into a PNG and posts it, signed, to a URL from a secret. | INT-04, 07, DLV-01, 08, CND-06 | S | done (2026-11-18, #6) |
 
 ## Vertical slice 2 — Google: form, approval, folders
 | Id | Task (one sentence, verifiable) | Spec ids | Size | Status |
@@ -54,6 +54,7 @@ Builds (proposed): VS1-01 + VS1-02 (render); VS1-03 + VS1-04 (condense); VS1-05 
 ### Fixes from reviews (ARV-13, ARV-14)
 | Id | Task (one sentence, verifiable) | Spec ids | Size | Status |
 | --- | --- | --- | --- | --- |
+| FIX-01 | A failing slidegen import in the render job still posts `internal error` (`subprojects/renderer/job.py:73`, imports outside the try; #6). | DLV-08 | S | todo (plausible) |
 
 ## Open questions
 - See *Owner to decide* in `STATE.md`.
