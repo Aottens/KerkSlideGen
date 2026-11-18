@@ -25,6 +25,7 @@ Builds (proposed): VS1-01 + VS1-02 (render); VS1-03 + VS1-04 (condense); VS1-05 
 | VS1-03 | `slidegen condense request.txt` returns a `SlideText` within the budgets via structured output, with one retry on violations; offline tests on recorded responses. | CND-01, 04..08 | M | done (2026-11-18, #4) |
 | VS1-04 | The eval set (`tests/fixtures/requests/`) passes CND-01..04 on the chosen model, run once on the owner's word. | CND-02, 03, 05 | S | done (2026-11-18, #5) |
 | VS1-07 | Condense sends a request whose slide names a weekday that does not match its date to the visual team, checked in code. | CND-09 | S | done (2026-11-18, #7) |
+| VS1-08 | Condense leaves `line` empty when the request holds no such line (found in run 2026-11-18-VS2-02), with an eval case for it. | CND-03 | S | todo |
 | VS1-06 | `--image`: the *with image* layout, the image left or right by id, cropped to its box, upright by EXIF, HEIC read. | REN-11..14 | S | done (2026-11-18, #3) |
 | VS1-05 | `render.yml` turns a `repository_dispatch` `slide-request` into a PNG and posts it, signed, to a URL from a secret. | INT-04, 07, DLV-01, 08, CND-06 | S | done (2026-11-18, #6) |
 
@@ -32,8 +33,8 @@ Builds (proposed): VS1-01 + VS1-02 (render); VS1-03 + VS1-04 (condense); VS1-05 
 | Id | Task (one sentence, verifiable) | Spec ids | Size | Status |
 | --- | --- | --- | --- | --- |
 | VS2-01 | Form with sign-in and image, requests Sheet and dispatch: a submit shows up as a run of `render.yml` with only id, text, dates and the image flag. | INT-01..08 | M | done (2026-11-18, #10) |
-| VS2-05 | The signed image link: the render job fetches a request's image for 15 minutes, nothing with a wrong or old signature. | DLV-14 | S | doing: in code; the owner deploys the web app and runs `tests/manual/approve.md` |
-| VS2-02 | Callback, `Te keuren/` and the approval mail with *Goedkeuren* and *Aanpassen*, signed bodies and tokens checked. | DLV-01..04, 06 | M | doing: in code; the owner deploys the web app, sets the secrets and runs `tests/manual/approve.md` |
+| VS2-05 | The signed image link: the render job fetches a request's image for 15 minutes, nothing with a wrong or old signature. | DLV-14 | S | done (2026-11-18, #12) |
+| VS2-02 | Callback, `Te keuren/` and the approval mail with *Goedkeuren* and *Aanpassen*, signed bodies and tokens checked. | DLV-01..04, 06 | M | done (2026-11-18, #12) |
 | VS2-03 | *Aanpassen* round trip (3 rounds max), 7-day expiry of unanswered requests, every failure mailed to the visual team. | DLV-05, 07, 08 | M | todo |
 | VS2-04 | Loop composition at night and after each approval: `Vast/` + approved requests in date, swapped in atomically; expired requests archived; `KerkSlideGen` shared with `visueel@` and the church Mac's account. | DLV-09, 12, 13 | M | todo |
 
