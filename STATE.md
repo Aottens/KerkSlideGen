@@ -25,6 +25,7 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 ## Next
 1. VS2-04: compose `Loop/` at night and in the `composeLoop_` hook after each approval.
 2. VS2-03: the *Aanpassen* round trip, the 7-day expiry, every failure mailed.
+3. VS1-08: condense invented a `line` the request did not hold (CND-03).
 
 ## Waiting on the owner
 - Renew `GITHUB_TOKEN` (fine-grained, one year) before it expires; the date goes in the owner's calendar.
@@ -35,8 +36,7 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 
 ## Owner to decide
 - The owner questions in `specs/modules/render.md`, `condense.md`, `intake.md`, `deliver.md`, `autoreview.md`.
-- IDEA-07: keep an activity's name as written and fill `line` only from the request (owner's answers in
-  `IDEAS.md`); which phase?
+- IDEA-07: keep an activity's name as written, in its own language (owner's answers in `IDEAS.md`); which phase?
 - Order of the loop, and is "de dienst begint zo" in the loop or cued by hand (`deliver.md`, question 4)?
 - Whether ProPresenter's Smart Playlist advances images every 15 s with a transition: VS3-01 at the church decides.
 

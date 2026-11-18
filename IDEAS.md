@@ -10,7 +10,7 @@ Ideas the owner dropped or that came up, not yet planned. No criteria or code un
 | IDEA-04 | A live dashboard like CMDMX's `scripts/dashboard.py` (TRK-05..08). | later | open |
 | IDEA-05 | A weekday on a slide is checked against its date in code; a wrong one never reaches the screen. | 1 | planned (2026-11-18, CND-09, VS1-07 done) |
 | IDEA-06 | Team mails and the requester's mail come from or go to `visueel@`, though the script runs on the owner's account. | 1 | decided (2026-11-18): the owner's address for phase 1, DECISIONS |
-| IDEA-07 | Condense keeps an activity's name as written and fills `line` only from the request, else leaves it empty. | 1? | open |
+| IDEA-07 | Condense keeps an activity's name as written, in its own language (changes CND-02). | 1? | open |
 
 ### IDEA-01
 Intent: members want their own image on a slide. Touches: render (image placement inside the safe area), intake (a
@@ -43,10 +43,11 @@ phase 1 (DECISIONS). Found in run `tests/manual/runs/2026-11-18-VS2-01.md`.
 ### IDEA-07
 Intent: the slide says what the requester wrote. In run `tests/manual/runs/2026-11-18-VS2-02.md` an English activity
 name was translated (CND-02: "All text is Dutch, whatever language") and `line` got an invitation the request did not
-hold (CND-03 forbids only invented dates, times, places, names and amounts). Owner, 2026-11-18:
+hold (CND-03 already says a field the request does not support is empty: that part is a defect, VS1-08). Owner,
+2026-11-18:
 1. the name or title of an activity stays as written, in its own language; the rest of the slide is Dutch;
 2. `line` holds only what the request says, condensed so it still covers it; nothing in the request, then empty;
 3. a weekday derived from the date (CND-09) stays: "netjes zelfs".
-Touches: `specs/modules/condense.md` (CND-02, CND-03), `subprojects/renderer/prompts/condense.md`, the eval set
-(`tests/fixtures/requests/`: a request with an English activity name, one without a line), `slidegen eval` on the
+Touches: `specs/modules/condense.md` (CND-02), `subprojects/renderer/prompts/condense.md`, the eval set
+(`tests/fixtures/requests/`: a request with an English activity name), `slidegen eval` on the
 owner's word. Open: does "as written" keep the requester's capitals and `&`?
