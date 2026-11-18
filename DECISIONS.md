@@ -5,6 +5,21 @@ Long-form records live in `specs/ADRs/`; this log is the index.
 
 ---
 
+## 2026-11-18 — Approval and team mails come from the owner's own account for phase 1 (IDEA-06, DLV-03)
+
+**Decision:** the approval mail (DLV-03), the "ontvangen" mail (DLV-06) and every mail to the visual team (DLV-08) are
+sent by the script's account, the owner's own address, and team mails go to that address. A `visueel@` alias or
+forward can follow later without a spec change.
+
+**Alternatives considered:** a Gmail forward to `visueel@`; `GmailApp` with `visueel@` as a verified *Send mail as*
+alias.
+
+**Why:** the owner: "iedereen kent mij in de kerk"; no extra setup for phase 1.
+
+**Reversal trigger:** the owner hands the project over, or members distrust a mail from a personal address.
+
+---
+
 ## 2026-11-18 — The Apps Script runs on the owner's own Google account, not on `visueel@` (INT-01)
 
 **Decision:** the script, its triggers, the form, the Sheet and the `KerkSlideGen` folders live on the owner's own

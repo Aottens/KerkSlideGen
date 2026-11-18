@@ -1,17 +1,18 @@
 # subprojects/google — Apps Script
 
 The Google side of KerkSlideGen, on the owner's Google account (DECISIONS 2026-11-18; the folders are to be
-shared with the visual team once `Loop/` exists, VS2-04): the form, the requests Sheet, mail, Drive folders and,
-later, the callback and approvals. It holds no slide logic (`CLAUDE.md`). Names and mail addresses never leave Google:
+shared with the visual team once `Loop/` exists, VS2-04): the form, the requests Sheet, mail, Drive folders, the
+callback and approvals. It holds no slide logic (`CLAUDE.md`). Names and mail addresses never leave Google:
 the dispatch to GitHub carries only id, round, text, change, dates and an image flag (INT-04,
 `subprojects/renderer/INTERFACE.md`).
 
 | File | What |
 | --- | --- |
 | `src/intake.js` | Pure: the form's fields, ids, Sheet rows, the dispatch body, the guard, retries, mail texts |
-| `src/main.js` | The thin Google layer: `setup()`, `onSubmit(e)`, `retryDispatches()` |
+| `src/deliver.js` | Pure: callback and image signatures, tokens, the allowlist, the approval mail and pages |
+| `src/main.js` | The thin Google layer: `setup()`, `onSubmit(e)`, `retryDispatches()`, the web app `doPost`/`doGet` |
 | `src/appsscript.json` | The manifest (V8, Europe/Amsterdam) |
-| `tests/` | Node tests of `src/intake.js`: `node --test subprojects/google/tests/*.test.js` |
+| `tests/` | Node tests of `src/intake.js` and `src/deliver.js`: `node --test subprojects/google/tests/*.test.js` |
 
 `.clasp.json` holds the script id and is git-ignored; `clasp push` and deploying are the owner's steps.
 
@@ -24,6 +25,16 @@ the dispatch to GitHub carries only id, round, text, change, dates and an image 
    a mail and the row says `handwerk` (INT-06).
 4. Otherwise a `repository_dispatch` goes to GitHub: `verzonden`. GitHub refusing or not answering: `opnieuw`, retried
    by the minute trigger after 2, 5 and 10 minutes; after that `handwerk` and a mail to the visual team (INT-05).
+
+## After the render (VS2-02, VS2-05)
+5. The render job fetches the image, if any, from the web app with a link signed for 15 minutes (DLV-14).
+6. It posts the PNG back, signed. The web app checks the signature, the id and that the request waits for this round,
+   stores `KerkSlideGen/Te keuren/<id>.png`, sets `te keuren` and a random token, and mails the approval mail with
+   *Goedkeuren* and *Aanpassen* to the requester if the address is on the tab `Toegestaan`, otherwise to this account
+   and "Je aanvraag is ontvangen en wordt bekeken." to the requester (DLV-01..03, 06). A failed render: `handwerk`
+   and a mail to this account.
+7. *Goedkeuren* moves the PNG to `Bibliotheek/` and sets `goedgekeurd` (DLV-04). Composing `Loop/` is VS2-04: the
+   hook `composeLoop_()` does nothing yet. *Aanpassen* shows a placeholder until VS2-03.
 
 ## Setup (the owner, once)
 Do every step signed in as the account that will own the script: the owner's own Google account (DECISIONS
@@ -74,8 +85,24 @@ Mails "to the visual team" go to this account (`Session.getEffectiveUser()`).
    *Time-driven – Every minute*, both owned by the account from step 1.
 9. **Test it** with `tests/manual/intake.md`.
 
-Later, with VS2-02: the script property `CALLBACK_SECRET` (the same value as the GitHub secret) and the web app
-deploy.
+### The callback and approvals (VS2-02, VS2-05)
+10. **Push and run `setup` again.** `clasp push`, then run `setup` once more in the editor and allow the new scopes.
+    It adds the folders `Te keuren` and `Bibliotheek`, the new Sheet columns `token` and `png`, and the tab
+    `Toegestaan`; nothing else changes.
+11. **Deploy the web app.** Editor → *Deploy → New deployment*, type *Web app*, *Execute as: Me*, *Who has access:
+    Anyone* (GitHub and members open it without a Google sign-in; every request is checked by its signature or token).
+    Copy the *Web app URL* (ends in `/exec`). After a later `clasp push`, use *Deploy → Manage deployments → Edit →
+    Version: New version* so the URL stays the same.
+12. **The shared secret and the URL.** Make a secret once: `openssl rand -hex 32`. Put it, and nowhere else, in:
+    - GitHub → the repo → *Settings → Secrets and variables → Actions*: `CALLBACK_SECRET` = the secret,
+      `CALLBACK_URL` = the web app URL;
+    - the script properties: `CALLBACK_SECRET` = the same secret, `WEB_APP_URL` = the web app URL (the buttons in the
+      approval mail point there).
+13. **The allowlist.** In the Sheet tab `Toegestaan`, one mail address per row in column A: these members approve
+    their own slide (DLV-06). Everyone else's slide goes to this account first.
+14. **Test it** with `tests/manual/approve.md`.
+
+The approval mail, the "ontvangen" mail and the team mails come from this account's address (DECISIONS 2026-11-18).
 
 ## Gmail or Workspace
 The script runs as the account that installed the triggers, on either kind of account. Only the quotas differ: on

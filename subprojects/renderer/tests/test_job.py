@@ -48,16 +48,25 @@ class Callback:
 
     def __init__(self):
         self.posts: list[dict] = []
+        self.gets: list[str] = []
         self.status = 200
+        self.answer = b'{"ok":true}'
+        self.image: bytes = b'{"error": "no image"}'  # what a GET ?image= answers (DLV-14)
         outer = self
 
         class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):  # noqa: N802
+                outer.gets.append(self.path)
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(outer.image)
+
             def do_POST(self):  # noqa: N802
                 body = self.rfile.read(int(self.headers["Content-Length"]))
                 outer.posts.append({"path": self.path, "headers": dict(self.headers), "body": body})
                 self.send_response(outer.status)
                 self.end_headers()
-                self.wfile.write(b'{"ok":true}')
+                self.wfile.write(outer.answer)
 
             def log_message(self, *a):
                 pass
@@ -317,7 +326,7 @@ def test_dlv_05_change_text_goes_with_the_original_request(callback, tmp_path):
         (FakeRun(reply(), reply()), FakeRender(DoesNotFit("a"), DoesNotFit("b")), {}, "does not fit"),  # CND-06
         (None, FakeRender(FontMissing("font file not found")), {}, "font"),  # REN-08
         (None, FakeRender(RuntimeError(TEXT)), {}, "RuntimeError"),  # anything else, its message withheld
-        (None, None, {"image": True}, "image fetch not built yet"),  # DLV-14 comes with VS2-05
+        (None, None, {"image": True}, "image fetch failed"),  # DLV-14: the web app gave no image
         (None, None, {"kind": "activity"}, "not built yet"),  # agenda comes with VS4
         (None, None, {"text": ""}, "text"),  # INT-04
     ],
@@ -358,3 +367,86 @@ def test_dlv_08_workflow_posts_when_a_setup_step_fails():
     text = RENDER_YML.read_text(encoding="utf-8")
     assert re.search(r"if: failure\(\) && steps\.job\.outcome == 'skipped'\s*\n\s*run: python3 job\.py --setup-failed",
                      text)
+
+
+# DLV-14 ---------------------------------------------------------------------------------------------------------------
+
+IMAGE = b"\xff\xd8\xff\xe0fake-jpeg"
+
+
+class ImageRender(FakeRender):
+    """Records the image it got and its bytes while the job still holds it."""
+
+    def __call__(self, slide, assets, out, *a, **kw):
+        self.kw = kw
+        img = kw.get("image")
+        self.image_bytes = Path(img).read_bytes() if img else None
+        super().__call__(slide, assets, out, *a, **kw)
+
+
+def serve_image(cb, ext="jpg", data=IMAGE):
+    cb.image = json.dumps({"ext": ext, "base64": base64.b64encode(data).decode()}).encode()
+
+
+def test_dlv_14_image_is_fetched_with_a_signed_url_valid_15_minutes(callback, tmp_path, monkeypatch):
+    serve_image(callback)
+    monkeypatch.setattr(job.time, "time", lambda: 1_800_000_000.5)
+    render = ImageRender()
+    assert go(callback, tmp_path, render_fn=render, image=True) == 0
+    assert len(callback.gets) == 1
+    u = urlsplit(callback.gets[0])
+    assert u.path == "/exec"
+    q = parse_qs(u.query)
+    assert q["image"] == ["R20261117-K7Q"]
+    exp = int(q["exp"][0])
+    assert exp == 1_800_000_000 + 900
+    assert q["sig"][0] == hmac.new(SECRET.encode(), f"R20261117-K7Q.{exp}".encode(), hashlib.sha256).hexdigest()
+
+
+def test_dlv_14_request_with_image_renders_with_it(callback, tmp_path):
+    serve_image(callback, ext="heic")
+    render = ImageRender()
+    assert go(callback, tmp_path, render_fn=render, image=True) == 0
+    assert render.image_bytes == IMAGE
+    assert Path(render.kw["image"]).suffix == ".heic"
+    assert render.kw["slide_id"] == "R20261117-K7Q"  # REN-12: the id decides the side
+    body = callback.json()
+    assert body["ok"] is True, body.get("reason")
+    assert not Path(render.kw["image"]).exists(), "the image stays only on the runner, only for the run"
+
+
+def test_dlv_14_request_without_image_fetches_nothing(callback, tmp_path):
+    render = ImageRender()
+    assert go(callback, tmp_path, render_fn=render, image=False) == 0
+    assert callback.gets == [] and render.kw.get("image") is None
+
+
+@pytest.mark.parametrize(
+    "answer",
+    [b'{"error": "wrong signature"}', b"<html>not json</html>", b'{"ext": "pdf", "base64": "AAAA"}',
+     b'{"ext": "jpg", "base64": "***"}', b'{"ext": "jpg", "base64": ""}'],
+    ids=["error", "not-json", "ext", "not-base64", "empty"],
+)
+def test_dlv_14_failed_fetch_is_posted_without_rendering(callback, tmp_path, answer):
+    callback.image = answer
+    render = ImageRender()
+    assert go(callback, tmp_path, render_fn=render, image=True) == 0
+    assert render.slides == []
+    body = callback.json()
+    assert body["ok"] is False and body["reason"] == "image fetch failed"
+
+
+def test_dlv_14_image_is_never_logged(callback, tmp_path, capsys):
+    serve_image(callback, data=b"SECRET-IMAGE-BYTES")
+    assert go(callback, tmp_path, render_fn=ImageRender(), image=True) == 0
+    out = capsys.readouterr()
+    b64 = base64.b64encode(b"SECRET-IMAGE-BYTES").decode()
+    for s in (out.out, out.err):
+        assert "SECRET-IMAGE-BYTES" not in s and b64 not in s and "sig=" not in s
+
+
+def test_dlv_01_a_refused_callback_fails_the_run(callback, tmp_path, capsys):
+    """The web app answers 200 even when it refuses (INTERFACE.md section 3): the job reads the answer."""
+    callback.answer = b'{"ok": false, "error": "handtekening klopt niet"}'
+    assert go(callback, tmp_path) == 1
+    assert "callback refused" in capsys.readouterr().err

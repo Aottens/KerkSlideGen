@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import tempfile
+import time
 import urllib.error
 import urllib.request
 from dataclasses import asdict
@@ -29,14 +30,38 @@ def post(url: str, secret: str, body: dict) -> bool:
     url = urlunsplit(u._replace(query=urlencode([*parse_qsl(u.query), ("sig", sig)])))
     req = urllib.request.Request(url, data, {"Content-Type": "application/json"})
     try:
-        urllib.request.urlopen(req, timeout=60).close()
+        with urllib.request.urlopen(req, timeout=60) as r:
+            answer = r.read()
     except urllib.error.HTTPError as e:
         print(f"callback failed: HTTP {e.code}", file=sys.stderr)
     except (urllib.error.URLError, OSError) as e:  # the URL is a secret: name the class only
         print(f"callback failed: {type(e).__name__}", file=sys.stderr)
     else:
-        return True
+        try:  # the web app answers 200 even when it refuses, or on a script error (INTERFACE.md section 3)
+            if json.loads(answer).get("ok") is True:
+                return True
+        except (ValueError, AttributeError):
+            pass
+        print("callback refused", file=sys.stderr)
     return False
+
+
+def fetch_image(url: str, secret: str, rid: str) -> tuple[str, bytes] | None:
+    """DLV-14: GET the uploaded image from the web app with a signed 15-minute URL. None on any failure.
+    The URL is a secret and the image is request data (INT-07): print nothing."""
+    exp = str(int(time.time()) + 900)
+    sig = hmac.new(secret.encode(), f"{rid}.{exp}".encode(), hashlib.sha256).hexdigest()
+    u = urlsplit(url)
+    q = urlencode([*parse_qsl(u.query), ("image", rid), ("exp", exp), ("sig", sig)])
+    try:
+        with urllib.request.urlopen(urlunsplit(u._replace(query=q)), timeout=60) as r:
+            a = json.loads(r.read())
+        data = base64.b64decode(a["base64"], validate=True)
+        if a["ext"] not in ("jpg", "png", "webp", "heic") or not data:
+            return None
+        return a["ext"], data
+    except (OSError, ValueError, KeyError, TypeError):  # URLError is an OSError; JSON and base64 errors are ValueErrors
+        return None
 
 
 def parse(p: dict) -> tuple[dict | None, str]:
@@ -62,13 +87,11 @@ def parse(p: dict) -> tuple[dict | None, str]:
         return None, "agenda kinds not built yet"
     if kind != "request":
         return None, "unknown kind (not built yet)"
-    if p.get("image"):
-        return None, "image fetch not built yet"
     return {"text": text, "change": change, "event_date": p.get("event_date", ""),
-            "show_until": p.get("show_until", "")}, ""
+            "show_until": p.get("show_until", ""), "image": p.get("image", False)}, ""
 
 
-def work(f: dict, run, render_fn, today: date) -> dict:
+def work(f: dict, run, render_fn, today: date, image: tuple[str, bytes] | None = None) -> dict:
     """The success body, or {"reason": ...}. Lazy slidegen import: --setup-failed runs without it.
     A failing import is posted too (DLV-08); only the class name, never the message (INT-07)."""
     try:
@@ -88,13 +111,18 @@ def work(f: dict, run, render_fn, today: date) -> dict:
         req = Request(text, f["event_date"], f["show_until"])
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "slide.png"
+            kw = {}
+            if image:  # DLV-14: lives in tmp only, gone after the run
+                path = Path(tmp) / f"image.{image[0]}"
+                path.write_bytes(image[1])
+                kw = {"image": path, "slide_id": f["id"]}
             slide = condense(req, today, run=run)
             try:
-                render_fn(slide, ASSETS, out)
+                render_fn(slide, ASSETS, out, **kw)
             except DoesNotFit:  # CND-06
                 slide = condense(req, today, run=run, previous=slide, feedback=[NOT_FIT])
                 try:
-                    render_fn(slide, ASSETS, out)
+                    render_fn(slide, ASSETS, out, **kw)
                 except DoesNotFit:
                     return {"reason": "does not fit"}
             png = base64.b64encode(out.read_bytes()).decode()
@@ -126,7 +154,14 @@ def main(argv, env, run=None, render_fn=None, today=None) -> int:
         send({**head, "ok": False, "reason": "render job setup failed"})
         return 1
     fields, reason = parse(p)
-    res = work(fields, run, render_fn, today or date.today()) if fields else {"reason": reason}
+    image = None
+    if fields and fields["image"]:
+        image = fetch_image(env["CALLBACK_URL"], env["CALLBACK_SECRET"], rid)
+        if not image:
+            fields, reason = None, "image fetch failed"
+    if fields:
+        fields["id"] = rid
+    res = work(fields, run, render_fn, today or date.today(), image) if fields else {"reason": reason}
     ok = "reason" not in res
     if not send({**head, "ok": ok, **res}):
         return 1
