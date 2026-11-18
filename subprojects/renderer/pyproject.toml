@@ -1,0 +1,34 @@
+[project]
+name = "slidegen"
+version = "0.1.0"
+description = "KerkSlideGen renderer: slide text in, PNG on the church's background out"
+requires-python = ">=3.12"
+dependencies = [
+    "playwright>=1.48",
+    "pillow>=11",
+]
+
+[project.scripts]
+slidegen = "slidegen.cli:entry"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff>=0.8",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["slidegen"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
