@@ -27,3 +27,11 @@ jobs:
       - run: uv run ruff check
       # CND-08: no step here calls the Claude API. INT-07: no step prints slide text or uploads a PNG.
       - run: uv run pytest -q
+
+  google:
+    name: google (Node)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: for f in subprojects/google/src/*.js; do node --check "$f"; done
+      - run: node --test subprojects/google/tests/*.test.js

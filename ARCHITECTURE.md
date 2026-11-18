@@ -3,7 +3,7 @@
 ## Data flow
 
 ```
- requester ──► Google Form (no login)        church agenda (system to be named, AGD-01)
+ requester ──► Google Form (Google sign-in) church agenda (system to be named, AGD-01)
                    │ onFormSubmit                 │ nightly: the coming week
                    ▼                              ▼
  ┌──────────────────────────────────────┐   repository_dispatch    ┌───────────────────────────────────────┐

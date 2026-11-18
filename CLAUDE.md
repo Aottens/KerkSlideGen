@@ -43,7 +43,7 @@ Use the `project-orchestrator` agent in `.claude/agents/` for pre-flight and pos
 - `scripts/test_tracking.py`, `scripts/test_risk_gate.py`, `scripts/check-tracking.py` (stdlib only).
 - Renderer: in `subprojects/renderer`, `uv run pytest` and `uv run ruff check`. CI never calls Claude
   (CND-08): tests use recorded results. `uv run slidegen eval` uses the owner's subscription; only on the owner's word.
-- Google: `node --test subprojects/google/tests/`.
+- Google: `node --test subprojects/google/tests/*.test.js` (Node 22+ takes files or globs, not a folder).
 
 ## Builds: what goes together
 A build is one session, one branch and one PR, with at most three tasks and at most one of them M; an L is a build of

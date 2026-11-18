@@ -14,13 +14,15 @@ How it works: `ARCHITECTURE.md`. How we work: `CLAUDE.md`. Where it stands: `STA
   `--image photo.jpg --id <id>` puts the image beside the text, left or right by the id (JPG, PNG, WebP, HEIC).
 - Condense: `slidegen condense request.txt [-o slide.json]` asks Claude (`claude -p`, the owner's subscription) for
   the slide text within the character budgets; `slidegen eval` runs the eval set live (owner's word only).
+- The intake in Apps Script (`subprojects/google/`, set up once by the owner as its README says): a form with Google
+  sign-in and an optional image, a row per request in the Sheet, and the dispatch to `render.yml` with retries.
 
 ## Status
 Phase 1 is specified and approved; the renderer makes slides with and without an image on the church's background.
 Condense runs on Claude Code with the owner's subscription and passed its eval set on Opus 5.5 at low effort.
-A weekday on a slide that does not match its date sends the request to the visual team, checked in code.
-`render.yml` turns a dispatch into a signed callback with the PNG; it waits for the Apps Script side (VS2-01, VS2-02).
-The Claude review and risk gate run on every PR, in shadow. Next: VS2-01 the form, VS2-05 the image link, FIX-01.
+`render.yml` turns a dispatch into a signed callback with the PNG; the Apps Script side receives it with VS2-02.
+The intake form, Sheet and dispatch are written; they wait for the owner's setup and manual run (VS2-01).
+The Claude review and risk gate run on every PR, in shadow. Next: VS2-02 the callback, VS2-05 the image link, FIX-01.
 
 ## Layout
 | Path | What |

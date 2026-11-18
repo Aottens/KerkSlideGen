@@ -5,6 +5,26 @@ Long-form records live in `specs/ADRs/`; this log is the index.
 
 ---
 
+## 2026-11-18 — The intake form is made by `setup()`, its image question by hand; retries by a minute trigger (INT-01, INT-05)
+
+**Decision:** `setup()` in Apps Script creates the form (verified mail addresses, which forces a Google sign-in), the
+Sheet tab `Aanvragen` and the triggers; the owner adds the file-upload question in the Forms editor
+(`subprojects/google/README.md`). A failed dispatch is retried 2, 5 and 10 minutes after the submit by a trigger that
+runs every minute and returns at once unless a retry is waiting. The Sheet shows `nieuw`, `verzonden`, `opnieuw`,
+`handwerk` or `geweigerd`. The form does not use `setRequireLogin(true)`: on Workspace that admits only the church's
+own domain.
+
+**Alternatives considered:** the whole form by hand (more owner steps, no record of its fields in the repo); one-off
+`after()` triggers per retry (more triggers to clean up); a 5-minute trigger (the third retry would fall after 10
+minutes).
+
+**Why:** FormApp cannot create a file-upload question; everything else it can, so the fields and texts live in
+`src/intake.js` where the tests check them.
+
+**Reversal trigger:** FormApp learns file uploads, or the minute trigger shows up in the quota.
+
+---
+
 ## 2026-11-18 — The callback's signature goes in the query string, not a header (DLV-01)
 
 **Decision:** the render job POSTs its callback to `<CALLBACK_URL>?sig=<hex HMAC-SHA256 of the body>`, not with an
