@@ -1,4 +1,5 @@
 event_date: 2026-12-05
 show_until: 2026-12-04
+empty: where
 ---
 Op zaterdag 5 december houden we een inzameling voor de voedselbank. Neem houdbare producten mee zoals pasta, rijst, blikgroente, koffie en thee. Ook verzorgingsproducten zijn heel welkom. Inleveren kan tussen 10.00 en 12.00 uur. Alvast hartelijk dank namens de diaconie!

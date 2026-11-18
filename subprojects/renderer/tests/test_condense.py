@@ -97,6 +97,116 @@ def test_cnd_01_field_at_its_limit_is_accepted(field):
     assert len(run.calls) == 1
 
 
+# CND-03 ---------------------------------------------------------------------------------------------------------------
+# VS1-08: in run 2026-11-18-VS2-02 condense filled `line` with an invitation the request did not hold.
+
+TITLE_ONLY = {"title": "Gemeentevergadering", "when": "Donderdag 10 december", "where": "", "line": ""}
+
+
+def eval_case(tmp_path, empty: str, slide: dict, monkeypatch, capsys) -> str:
+    """Run `slidegen eval` on one case with this `empty:` header against a recorded slide; return the CND-03 line."""
+    (tmp_path / "case.txt").write_text(
+        f"event_date: 2026-12-10\nshow_until:\nempty: {empty}\n---\nGemeentevergadering op donderdag 10 december.\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(subprocess, "run", FakeRun(reply(slide)))
+    cli.main(["eval", str(tmp_path)])
+    return next(line for line in capsys.readouterr().out.splitlines() if line.startswith("CND-03"))
+
+
+def test_cnd_03_prompt_says_line_holds_only_what_the_request_says():
+    prompt = (RENDERER / "prompts" / "condense.md").read_text(encoding="utf-8")
+    assert "line: only what the request itself says" in prompt
+    assert 'Nothing to say beyond title, when and where: line is ""' in prompt
+
+
+def test_cnd_03_eval_set_has_a_request_with_only_a_title_and_a_date():
+    raw = (REQUESTS / "alleen-titel.txt").read_text(encoding="utf-8")
+    assert "empty: where, line, time" in raw.partition("\n---\n")[0]
+    assert Request.parse(raw).event_date == "2026-12-10"
+
+
+def test_cnd_03_eval_cases_name_their_empty_fields():
+    for case, empty in (("zonder-plaats", "where"), ("zonder-tijd", "time")):
+        head = (REQUESTS / f"{case}.txt").read_text(encoding="utf-8").partition("\n---\n")[0]
+        assert f"empty: {empty}" in head
+
+
+def test_cnd_03_eval_passes_a_title_only_slide(tmp_path, monkeypatch, capsys):
+    assert eval_case(tmp_path, "where, line, time", TITLE_ONLY, monkeypatch, capsys) == "CND-03 ok"
+
+
+@pytest.mark.parametrize(
+    "field, value",
+    [
+        ("line", "Iedereen is van harte welkom"),  # the invented invitation of run 2026-11-18-VS2-02
+        ("where", "Grote zaal"),
+        ("when", "Donderdag 10 december, 20.00 uur"),
+        ("when", "Donderdag 10 december om 8 uur"),
+    ],
+)
+def test_cnd_03_eval_flags_a_field_that_must_stay_empty(tmp_path, monkeypatch, capsys, field, value):
+    line = eval_case(tmp_path, "where, line, time", {**TITLE_ONLY, field: value}, monkeypatch, capsys)
+    assert line.startswith("CND-03 FAIL") and ("time" if field == "when" else field) in line
+    assert value not in line  # INT-07: names the field, never the slide text
+
+
+def test_cnd_03_title_only_slide_is_accepted():
+    req = Request(text="Gemeentevergadering op donderdag 10 december.", event_date="2026-12-10")
+    slide = condense(req, TODAY, run=FakeRun(reply(TITLE_ONLY)))
+    assert (slide.line, slide.where, slide.when) == ("", "", "Donderdag 10 december")
+
+
+# CND-10 ---------------------------------------------------------------------------------------------------------------
+# IDEA-07: in run 2026-11-18-VS2-02 an English activity name was translated.
+
+WORSHIP = {"title": "Worship & Prayer", "when": "Vrijdag 4 december, 20.00 uur", "where": "Kapel", "line": ""}
+
+
+def eval_keep(tmp_path, slide: dict, monkeypatch, capsys) -> list[str]:
+    """Run `slidegen eval` on one case with a `keep:` header against a recorded slide; return its CND-10 lines."""
+    (tmp_path / "case.txt").write_text(
+        "event_date: 2026-12-04\nshow_until:\nkeep: Worship & Prayer\n---\n"
+        "Vrijdag 4 december is er Worship & Prayer om 20.00 uur in de kapel.\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(subprocess, "run", FakeRun(reply(slide)))
+    cli.main(["eval", str(tmp_path)])
+    return [line for line in capsys.readouterr().out.splitlines() if line.startswith("CND-10")]
+
+
+def test_cnd_10_prompt_keeps_an_activitys_name_as_written():
+    prompt = (RENDERER / "prompts" / "condense.md").read_text(encoding="utf-8")
+    assert "All other text is Dutch" in prompt
+    assert "The name or title of an activity stays as the request writes it" in prompt
+    assert "Worship & Prayer" in prompt  # the example: language, capitals and signs kept
+    assert "all in capitals" in prompt  # gets normal capitals (owner 2026-11-18)
+
+
+def test_cnd_10_eval_set_has_an_english_activity_name():
+    raw = (REQUESTS / "worship.txt").read_text(encoding="utf-8")
+    head, _, body = raw.partition("\n---\n")
+    assert "keep: Worship & Prayer" in head and "Worship & Prayer" in body
+
+
+def test_cnd_10_eval_passes_a_title_that_keeps_the_name(tmp_path, monkeypatch, capsys):
+    assert eval_keep(tmp_path, WORSHIP, monkeypatch, capsys) == ["CND-10 ok"]
+
+
+@pytest.mark.parametrize("title", ["Aanbidding en gebed", "Worship en Prayer", "worship & prayer"])
+def test_cnd_10_eval_flags_a_title_that_changes_the_name(tmp_path, monkeypatch, capsys, title):
+    lines = eval_keep(tmp_path, {**WORSHIP, "title": title}, monkeypatch, capsys)
+    assert len(lines) == 1 and lines[0].startswith("CND-10 FAIL")
+    assert title not in lines[0] and "Worship" not in lines[0]  # INT-07: no slide or request text
+
+
+def test_cnd_10_eval_without_keep_header_prints_no_cnd_10(tmp_path, monkeypatch, capsys):
+    (tmp_path / "case.txt").write_text("event_date: 2026-12-04\nshow_until:\n---\nIets.\n", encoding="utf-8")
+    monkeypatch.setattr(subprocess, "run", FakeRun(reply(WORSHIP)))
+    cli.main(["eval", str(tmp_path)])
+    assert "CND-10" not in capsys.readouterr().out
+
+
 # CND-04 ---------------------------------------------------------------------------------------------------------------
 
 @pytest.mark.parametrize(
@@ -281,10 +391,11 @@ def test_cnd_08_eval_prints_each_case_and_checks(offline, capsys):
     # The same recorded reply for every case: right for kerstnacht, invented numbers for the other three.
     assert cli.main(["eval", str(REQUESTS)]) == 1
     out = capsys.readouterr().out
-    for case in ("kerstnacht", "zonder-plaats", "zonder-tijd", "injectie"):
+    for case in ("kerstnacht", "zonder-plaats", "zonder-tijd", "alleen-titel", "worship", "injectie"):
         assert case in out
-    assert out.count("CND-01 ok") == 4
-    assert out.count("CND-03 ok") == 1 and out.count("CND-03 FAIL") == 3
+    assert out.count("CND-01 ok") == 6
+    assert out.count("CND-03 ok") == 1 and out.count("CND-03 FAIL") == 5
+    assert out.count("CND-10 FAIL") == 1 and "CND-10 ok" not in out  # only worship has a `keep:` header
 
 
 # CND-09 ---------------------------------------------------------------------------------------------------------------

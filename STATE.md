@@ -9,8 +9,9 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - The specs are approved (gate 1, 2026-11-18). The renderer puts slide text on the church's background in Montserrat,
   inside the safe area, shrinking to fit, with an image beside the text when there is one (left or right by id).
 - `slidegen condense` turns a request into slide text with Claude Code (`claude -p`) on the owner's subscription,
-  Opus 5.5 at low effort, budgets checked in code with one retry; the eval set passed live (2026-11-18). A weekday
-  on the slide that does not match its date sends the request to the visual team, checked in code (CND-09).
+  Opus 5.5 at low effort, budgets checked in code with one retry. A weekday on the slide that does not match its
+  date sends the request to the visual team, checked in code (CND-09). `line` holds only what the request says
+  (CND-03) and an activity's name stays as written (CND-10); the eval set, with both, passed live (2026-11-18).
 - `render.yml` turns a `slide-request` dispatch into a PNG, fetching the request's image first over a link signed for
   15 minutes, and posts the PNG, signed, to the Apps Script web app; every failure is posted too.
 - The intake runs, on the owner's own Google account (DECISIONS 2026-11-18): a member signs in, submits the form, the
@@ -25,8 +26,7 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 ## Next
 1. VS2-04: compose `Loop/` at night and in the `composeLoop_` hook after each approval.
 2. VS2-03: the *Aanpassen* round trip, the 7-day expiry, every failure mailed.
-3. VS1-08: condense invented a `line` the request did not hold (CND-03); with it IDEA-07 (phase 1): an
-   activity's name stays as written, a CND-02 change for the owner's approval.
+3. FIX-02: the team mail's headline on deliver failures.
 
 ## Waiting on the owner
 - Renew `GITHUB_TOKEN` (fine-grained, one year) before it expires; the date goes in the owner's calendar.

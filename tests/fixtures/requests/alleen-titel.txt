@@ -1,0 +1,5 @@
+event_date: 2026-12-10
+show_until:
+empty: where, line, time
+---
+Gemeentevergadering op donderdag 10 december.
