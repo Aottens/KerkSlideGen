@@ -55,6 +55,7 @@ Builds (proposed): VS1-01 + VS1-02 (render); VS1-03 + VS1-04 (condense); VS1-05 
 | Id | Task (one sentence, verifiable) | Spec ids | Size | Status |
 | --- | --- | --- | --- | --- |
 | FIX-01 | A failing slidegen import in the render job still posts `internal error` (`subprojects/renderer/job.py:73`, imports outside the try; #6). | DLV-08 | S | done (2026-11-18, #9) |
+| FIX-02 | The team mail on a failed render callback, a failed callback and a failed *Goedkeuren* says "niet naar GitHub gestuurd" (`subprojects/google/src/main.js:254`, reuses `teamMail` of `intake.js`; #12, plausible): give these paths their own Dutch headline, with a test. | DLV-08 | S | todo |
 
 ## Open questions
 - See *Owner to decide* in `STATE.md`.
