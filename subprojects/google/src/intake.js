@@ -47,10 +47,11 @@ function makeId(ymd, random, taken) {
   }
 }
 
-const STATE = { NEW: 'nieuw', SENT: 'verzonden', RETRY: 'opnieuw', MANUAL: 'handwerk', REFUSED: 'geweigerd' };
+const STATE = { NEW: 'nieuw', SENT: 'verzonden', RETRY: 'opnieuw', MANUAL: 'handwerk', REFUSED: 'geweigerd',
+  TO_APPROVE: 'te keuren', APPROVED: 'goedgekeurd' };
 
 const COLUMNS = ['id', 'status', 'ronde', 'aangemaakt', 'naam', 'mail', 'tekst', 'datum', 'tot', 'afbeelding',
-  'pogingen', 'volgende poging', 'reden'];
+  'pogingen', 'volgende poging', 'reden', 'token', 'png'];
 
 // A leading apostrophe makes Sheets store literal text: no formula, no date conversion. Sheets does not return it.
 const lit = (v) => (typeof v === 'string' && v !== '' ? "'" + v : v);
@@ -58,7 +59,7 @@ const lit = (v) => (typeof v === 'string' && v !== '' ? "'" + v : v);
 function toRow(r) {
   return [
     r.id, r.state || STATE.NEW, r.round || 1, r.created, r.name, r.email, r.text, r.event_date, r.show_until,
-    r.image === undefined || r.image === null ? '' : r.image, r.attempts || 0, r.next || '', r.reason || '',
+    r.image === undefined || r.image === null ? '' : r.image, r.attempts || 0, r.next || '', r.reason || '', r.token || '', r.png || '',
   ].map(lit);
 }
 
@@ -68,7 +69,8 @@ function fromRow(row) {
   return {
     id: row[0], state: row[1], round: num(row[2], 1), created: date(row[3]), name: row[4], email: row[5],
     text: row[6], event_date: row[7], show_until: row[8], image: row[9], attempts: num(row[10], 0),
-    next: date(row[11]), reason: row[12],
+    next: date(row[11]), reason: row[12], token: row[13] == null ? '' : row[13],
+    png: row[14] == null ? '' : row[14],
   };
 }
 

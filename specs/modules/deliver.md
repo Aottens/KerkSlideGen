@@ -2,23 +2,26 @@
 
 Owner: `subprojects/google/` (callback, mail, approval pages, folders, loop composition), `.github/workflows/render.yml` (the
 call back). Tests: `subprojects/google/tests/`, `tests/manual/approve.md`, the church run `tests/church/propresenter.md`.
-Status: draft 2026-11-17, loop composition and `Vast/` added 2026-11-18 (owner: agenda, fixed slides). Waits for gate 1.
+Status: draft 2026-11-17, loop composition and `Vast/` added 2026-11-18 (owner: agenda, fixed slides); approved at gate 1
+(2026-11-18, `STATE.md`). DLV-03 sender and the allowlist tab set with VS2-02 (DECISIONS 2026-11-18).
 
 From a rendered PNG to a slide in the loop, with the requester as the one who says yes. The loop holds three kinds of
 slide: requests (this spec and `intake.md`), the agenda's coming week (`agenda.md`) and the visual team's fixed slides.
 
 ## Back to Google
 - **DLV-01** The render job POSTs the PNG, the `SlideText` and the request id to the Apps Script web app, signed with
-  an HMAC-SHA256 of the body under a shared secret. Apps Script refuses a body with a missing or wrong signature or an
-  unknown request id, and changes nothing.
+  an HMAC-SHA256 of the body under a shared secret (in the query string, DECISIONS 2026-11-18). Apps Script refuses a
+  body with a missing or wrong signature, an unknown request id, or a request that is not waiting for its render (state
+  `verzonden` or `opnieuw`, same round), and changes nothing.
 - **DLV-02** Apps Script stores the PNG in Drive `KerkSlideGen/Te keuren/` as `<id>.png` and sets the state `te keuren`.
 - **DLV-14** The render job fetches a request's image from the Apps Script web app (`?image=<id>&exp=<unix time>&sig=`),
-  signed with the shared secret and valid for 15 minutes; a wrong or expired signature gives nothing. The job keeps
-  the image only on the runner and never logs or uploads it (INT-07).
+  signed with the shared secret and valid for 15 minutes; a wrong or expired signature, or an `exp` more than 15
+  minutes ahead, gives nothing. The job keeps the image only on the runner and never logs or uploads it (INT-07); a
+  request with an image is rendered with it (REN-11), and a failed fetch is posted as a failure (DLV-08).
 
 ## Approval
-- **DLV-03** The requester gets one mail from the visual team's account with the slide inline, its text, and two
-  buttons: *Goedkeuren* and *Aanpassen*. The links carry the request id and a random token of 128 bits stored in the
+- **DLV-03** The requester gets one mail from the script's account (the owner's, DECISIONS 2026-11-18) with the slide
+  inline, its text, and two buttons: *Goedkeuren* and *Aanpassen*. The links carry the request id and a random token of 128 bits stored in the
   Sheet; a link with a wrong token does nothing and says so.
 - **DLV-04** *Goedkeuren* moves the PNG to `KerkSlideGen/Bibliotheek/` as `<id>.png`, sets state `goedgekeurd`, runs
   the loop composition (DLV-09) at once, and shows a page "Je slide staat in de loop tot <datum>." A second click says
@@ -28,7 +31,8 @@ slide: requests (this spec and `intake.md`), the agenda's coming week (`agenda.m
   request goes to the visual team.
 - **DLV-06** A sender (the verified mail address of the sign-in, INT-02) who is not on the allowlist tab of the Sheet
   does not approve: the mail with the buttons goes to the visual team, and the requester gets "Je aanvraag is ontvangen
-  en wordt bekeken." The visual team adds trusted members to the allowlist.
+  en wordt bekeken." The visual team adds trusted members to the allowlist: one address per row in column A of the
+  Sheet tab `Toegestaan`, compared without case.
 - **DLV-07** A request in `te keuren` for 7 days is archived with state `verlopen`; the requester is not mailed again.
 
 ## Failure

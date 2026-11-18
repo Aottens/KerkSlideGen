@@ -34,6 +34,12 @@ function setup() {
     p.setProperty('FORM_ID', form.getId());
     formId = form.getId();
   }
+  const root = DriveApp.getFolderById(p.getProperty('IMAGES_FOLDER_ID')).getParents().next();
+  p.setProperty('TO_APPROVE_FOLDER_ID', findOrCreateFolder_(root, TO_APPROVE_FOLDER).getId());
+  p.setProperty('LIBRARY_FOLDER_ID', findOrCreateFolder_(root, LIBRARY_FOLDER).getId());
+  const ss = SpreadsheetApp.openById(p.getProperty('SHEET_ID'));
+  sheet_().getRange(1, 1, 1, COLUMNS.length).setValues([COLUMNS]);
+  if (!ss.getSheetByName(ALLOWLIST_TAB)) ss.insertSheet(ALLOWLIST_TAB);
   const form = FormApp.openById(formId);
   for (const t of ScriptApp.getProjectTriggers()) {
     if (['onSubmit', 'retryDispatches'].includes(t.getHandlerFunction())) ScriptApp.deleteTrigger(t);
@@ -196,5 +202,111 @@ function retryDispatches() {
     if (!rows.some((r) => r.state === STATE.RETRY)) props_().deleteProperty('RETRY_PENDING');
   } finally {
     lock.releaseLock();
+  }
+}
+
+function rowById_(id) {
+  const rows = rows_();
+  const i = rows.findIndex((r) => r.id === id);
+  return i < 0 ? { row: undefined, rowNumber: 0 } : { row: rows[i], rowNumber: i + 2 };
+}
+
+function hmacHex_(msg) {
+  return hex(Utilities.computeHmacSha256Signature(msg, props_().getProperty('CALLBACK_SECRET')));
+}
+
+function json_(o) {
+  return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function page_(text) {
+  return HtmlService.createHtmlOutput('<p style="font-family:sans-serif;font-size:18px;margin:2em">' +
+    String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</p>');
+}
+
+// No-op hook: VS2-04 (DLV-09) composes Loop/ here.
+function composeLoop_() {}
+
+// The render job's callback (DLV-01/02/06). Never logs request data, tokens or secrets.
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  let req = null;
+  try {
+    lock.waitLock(30000);
+    // DLV-08: a missing setting is mailed, not silently refused.
+    if (!props_().getProperty('CALLBACK_SECRET')) throw new Error('CALLBACK_SECRET ontbreekt');
+    const raw = e.postData.contents;
+    let id = '';
+    try { id = String(JSON.parse(raw).id); } catch (x) {}
+    const { row, rowNumber } = rowById_(id);
+    const c = checkCallback({ raw, sig: e.parameter && e.parameter.sig,
+      expected: hmacHex_(raw), row });
+    if (c.error) return json_({ ok: false, error: c.error });
+    req = row;
+    const body = c.body;
+    if (!body.ok) {
+      const after = afterCallback(row, body, '', '');
+      writeRow_(rowNumber, after);
+      mailTeam_(after, after.reason);
+      return json_({ ok: true });
+    }
+    const base = props_().getProperty('WEB_APP_URL');
+    if (!base) throw new Error('WEB_APP_URL ontbreekt');
+    const blob = Utilities.newBlob(Utilities.base64Decode(body.png_base64), 'image/png', pngName(row.id));
+    const file = DriveApp.getFolderById(props_().getProperty('TO_APPROVE_FOLDER_ID')).createFile(blob);
+    const token = makeToken(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,
+      Utilities.getUuid() + Utilities.getUuid()));
+    const after = afterCallback(row, body, token, file.getId());
+    writeRow_(rowNumber, after);
+    const team = Session.getEffectiveUser().getEmail();
+    const al = SpreadsheetApp.openById(props_().getProperty('SHEET_ID')).getSheetByName(ALLOWLIST_TAB);
+    const list = al && al.getLastRow() > 0 ? al.getRange(1, 1, al.getLastRow(), 1).getValues() : [];
+    const to = recipients(row.email, list, team);
+    const m = approvalMail(row, body.slide || {}, approvalLinks(base, row.id, token));
+    MailApp.sendEmail({ to: to.approval, subject: m.subject, body: m.body, htmlBody: m.htmlBody,
+      inlineImages: { slide: file.getBlob() } });
+    if (to.received) MailApp.sendEmail(to.received, RECEIVED_MAIL.subject, RECEIVED_MAIL.body);
+    return json_({ ok: true });
+  } catch (err) {
+    const reason = 'fout in het script: ' + String((err && err.message) || err).slice(0, 200);
+    try { mailTeam_(req || { id: '(onbekend)', name: '', email: '', text: '', event_date: '', show_until: '' }, reason); } catch (x) {}
+    return json_({ ok: false });
+  } finally {
+    try { lock.releaseLock(); } catch (x) {}
+  }
+}
+
+// Image link (DLV-14) and the approval links (DLV-03/04/05).
+function doGet(e) {
+  const q = (e && e.parameter) || {};
+  if (q.image) {
+    if (!props_().getProperty('CALLBACK_SECRET')) return json_({ error: 'geen toegang' });
+    const bad = checkImageRequest({ id: q.image, exp: q.exp, sig: q.sig, nowSec: Math.floor(Date.now() / 1000),
+      expected: hmacHex_(imageMessage(q.image, q.exp)) });
+    const { row } = bad ? {} : rowById_(q.image);
+    if (bad || !row || !row.image) return json_({ error: 'geen afbeelding' });
+    const file = DriveApp.getFileById(row.image);
+    return ContentService.createTextOutput(imageAnswer(file.getName(), Utilities.base64Encode(file.getBlob().getBytes())))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  if (q.a !== 'goedkeuren' && q.a !== 'aanpassen') return page_(PAGES.badToken);
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(30000);
+    const { row, rowNumber } = rowById_(String(q.id || ''));
+    const d = approveDecision(row, q.t);
+    if (d === 'bad-token') return page_(PAGES.badToken);
+    if (q.a === 'aanpassen') return page_(PAGES.changeLater);
+    if (d === 'already') return page_(PAGES.already);
+    if (d === 'not-open') return page_(PAGES.notOpen);
+    DriveApp.getFileById(row.png).moveTo(DriveApp.getFolderById(props_().getProperty('LIBRARY_FOLDER_ID')));
+    row.state = STATE.APPROVED;
+    writeRow_(rowNumber, row);
+    composeLoop_();
+    return page_(approvedPage(row));
+  } catch (err) {
+    return page_(PAGES.error);
+  } finally {
+    try { lock.releaseLock(); } catch (x) {}
   }
 }
