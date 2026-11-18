@@ -1,0 +1,31 @@
+name: Golden images
+
+# REN-09: renders the test fixture on Linux and commits it as the Linux golden image, on a push to a branch whose
+# commit message contains "[golden]". Only the fixture is rendered: no request, no member's text (INT-07).
+on:
+  push:
+    branches-ignore: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  golden:
+    if: contains(github.event.head_commit.message, '[golden]')
+    name: golden (Linux)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: subprojects/renderer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2  # v10.3.3
+      - run: uv sync --locked
+      - run: uv run playwright install --with-deps chromium
+      - run: uv run slidegen render tests/fixtures/kerstnacht.json -o tests/golden/kerstnacht-linux.png
+      - name: commit the Linux golden
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/golden/kerstnacht-linux.png
+          git diff --cached --quiet || { git commit -m "render: Linux golden image (REN-09)"; git push; }

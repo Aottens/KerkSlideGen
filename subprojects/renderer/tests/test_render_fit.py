@@ -1,5 +1,6 @@
 """VS1-02: REN-06, REN-07, REN-09, REN-10 (specs/modules/render.md)."""
 import json
+import sys
 import time
 from pathlib import Path
 
@@ -11,7 +12,10 @@ from slidegen.layout import Geometry
 from slidegen.render import DoesNotFit, build_html, render
 from slidegen.slide import SlideText
 
-GOLDEN = Path(__file__).parent / "golden" / "kerstnacht.png"
+# One golden per platform: macOS and Linux Chromium rasterise glyph edges differently (REN-09 "between Chromium
+# builds"). Make them with `slidegen render tests/fixtures/kerstnacht.json -o <golden>`; the Linux one comes from
+# .github/workflows/golden.yml.
+GOLDEN = Path(__file__).parent / "golden" / f"kerstnacht-{sys.platform}.png"
 
 # The longest slide condense may return (CND-01: title 32, when 40, where 40, line 70 characters).
 MAX = SlideText(
