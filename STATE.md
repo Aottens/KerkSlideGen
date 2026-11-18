@@ -7,12 +7,12 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 ## Now
 - Phase 1: a member's request becomes an approved slide in the ProPresenter loop without a volunteer (`specs/PRD.md`).
 - The specs are approved (gate 1, 2026-11-18). The renderer puts slide text on the church's background in Montserrat,
-  inside the safe area, shrinking to fit; `slidegen render slide.json -o out.png --guides`.
+  inside the safe area, shrinking to fit, with an image beside the text when there is one (left or right by id).
 - The loop has three sources: fixed slides (`Vast/`), approved requests, the agenda's coming week (2026-11-18).
 
 ## Next
-1. VS1-06, the image beside the text, left or right by id.
-2. VS1-03 + VS1-04, condense with Claude, once the model and the API key are chosen (below).
+1. VS1-03 + VS1-04, condense with Claude, once the model and the API key are chosen (below).
+2. VS1-05: `render.yml` turns a dispatch into a signed callback with the PNG.
 3. HAR-03: the review and risk gate in shadow; `risk-gate` becomes a required check after it.
 
 ## Waiting on the owner

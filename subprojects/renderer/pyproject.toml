@@ -6,6 +6,7 @@ requires-python = ">=3.12"
 dependencies = [
     "playwright>=1.48",
     "pillow>=11",
+    "pillow-heif>=1.8.1",
 ]
 
 [project.scripts]

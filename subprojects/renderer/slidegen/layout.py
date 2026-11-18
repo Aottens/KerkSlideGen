@@ -38,6 +38,14 @@ class Geometry:
     min_scale: float
     background: Path
     font_file: Path
+    layouts: dict  # raw boxes from layout.json, fractions of the safe area; validated at load (REN-11)
+
+    def box(self, layout: str, name: str, mirror: bool = False) -> Rect:
+        """A layout box in canvas pixels; mirror=True flips it horizontally within the safe area (REN-14)."""
+        b = self.layouts[layout][name]
+        x = 1 - b["x"] - b["w"] if mirror else b["x"]
+        sf = self.safe
+        return Rect(sf.x + x * sf.w, sf.y + b["y"] * sf.h, b["w"] * sf.w, b["h"] * sf.h)
 
     @classmethod
     def load(cls, assets: Path) -> "Geometry":
@@ -59,6 +67,12 @@ class Geometry:
             )
         m = layout["safe_margin"]
         safe = Rect(centre.x + m * centre.w, centre.y + m * centre.h, centre.w * (1 - 2 * m), centre.h * (1 - 2 * m))
+        for lname, lay in layout["layouts"].items():
+            for bname, b in lay.items():
+                if isinstance(b, dict) and not (
+                    b["x"] >= 0 and b["y"] >= 0 and b["x"] + b["w"] <= 1 and b["y"] + b["h"] <= 1
+                ):
+                    raise LayoutError(f"layout {lname!r} box {bname!r} lies outside the title-safe area")
         fonts = layout["font"]
         return cls(
             canvas_w=w,
@@ -70,4 +84,5 @@ class Geometry:
             min_scale=layout["min_scale"],
             background=background,
             font_file=assets / "fonts" / "Montserrat-wght.ttf",
+            layouts=layout["layouts"],
         )
