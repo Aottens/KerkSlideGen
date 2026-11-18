@@ -21,6 +21,11 @@ so a failed copy leaves `Loop/` as it was (DLV-09); the moves after it are quick
 **Reversal trigger:** VS3-01 shows the Smart Playlist handles a replaced folder well, or a run ends with `Loop/` half
 moved.
 
+**Follow-up (owner, 2026-11-18):** the review on #18 found that a failure while moving leaves `Loop/` partly updated,
+against DLV-09's "leaves the loop as it was". The owner chose to reword DLV-09 rather than undo the moves: a failure
+while copying leaves the loop as it was, a failure while moving may leave it partly updated until the next run, and
+the team mail says which (FIX-03).
+
 ---
 
 ## 2026-11-18 — Approval and team mails come from the owner's own account for phase 1 (IDEA-06, DLV-03)

@@ -2,7 +2,7 @@
 
 Owner: `subprojects/google/` (callback, mail, approval pages, folders, loop composition), `.github/workflows/render.yml` (the
 call back). Tests: `subprojects/google/tests/`, `tests/manual/approve.md`, the church run `tests/church/propresenter.md`.
-Status: draft 2026-11-17, loop composition and `Vast/` added 2026-11-18 (owner: agenda, fixed slides); DLV-16 added and approved 2026-11-18
+Status: draft 2026-11-17, loop composition and `Vast/` added 2026-11-18 (owner: agenda, fixed slides); DLV-16 added and approved 2026-11-18; DLV-09's failure rule reworded 2026-11-18 (owner)
 (IDEA-08); approved at gate 1
 (2026-11-18, `STATE.md`). DLV-03 sender and the allowlist tab set with VS2-02 (DECISIONS 2026-11-18).
 
@@ -48,8 +48,11 @@ slide: requests (this spec and `intake.md`), the agenda's coming week (`agenda.m
   - every approved request whose `show_until` is today or later (from its approval on);
   - every agenda occurrence of the coming week (AGD-02, AGD-05).
 
-  A file in `Loop/` that is none of these is removed; a file that should be there and is not is added. A run that fails
-  halfway leaves the loop as it was (it composes in a temporary folder and swaps), and mails the visual team (DLV-08).
+  A file in `Loop/` that is none of these is removed; a file that should be there and is not is added. The `Loop/`
+  folder itself stays (the church Mac and ProPresenter watch it): missing copies are made in a temporary folder first,
+  then moved in. A run that fails while copying leaves the loop as it was; one that fails while moving may leave it
+  partly updated, and the next run completes it. Either way it mails the visual team which of the two it was (DLV-08)
+  (owner, 2026-11-18).
 - **DLV-12** The visual team keeps its fixed slides (welkom, collecte, "de dienst begint zo") as PNGs in
   `KerkSlideGen/Vast/`: a file there is in the loop, a file taken out is gone after the next composition. A fixed slide
   for a period goes through the form, with its last date (owner, 2026-11-18).
