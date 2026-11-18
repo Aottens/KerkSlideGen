@@ -38,27 +38,39 @@ _MONTH = {m: i + 1 for i, m in enumerate(_MONTHS)} | {m[:3]: i + 1 for i, m in e
 _MONTH |= {"sept": 9, "mrt": 3}
 _WEEKDAY = re.compile(
     r"\b(" + "|".join(_DAYS + tuple(d[:2] for d in _DAYS)) + r")(?:ochtend|morgen|middag|avond|nacht)?\b\.?"
-    r"(?:\s*(\d{1,2})(?:\s*[-/]\s*(\d{1,2})\b|\s+([a-z]+)\b))?"
+)
+_DATE = re.compile(
+    r"\b(\d{1,2})(?:\s*[-/]\s*(\d{1,2})\b|\.?\s+(" + "|".join(sorted(_MONTH, key=len, reverse=True)) + r")\b\.?)"
 )
 
 
 def weekday_mismatch(when: str, event_date: str, today: date) -> bool:
-    """CND-09: every weekday in `when` must be the weekday of the date it stands with."""
+    """CND-09: every weekday in `when` must be the weekday of the date it stands with (else the event date)."""
     try:
         event = date.fromisoformat(event_date)
     except ValueError:
         event = None
-    return any(_wrong(m, event, today) for m in _WEEKDAY.finditer(when.lower()))
+    when = when.lower()
+    dates = list(_DATE.finditer(when))
+    for w in _WEEKDAY.finditer(when):
+        weekday = [d[:2] for d in _DAYS].index(w.group(1)[:2])
+        if not dates:
+            if event is not None and event.weekday() != weekday:
+                return True
+            continue
+        # ponytail: a bare day without month (`vrijdag 11 t/m zondag 13 december`) pairs with the nearest full date
+        # and goes to the visual team.
+        d = min(dates, key=lambda d: (max(0, d.start() - w.end(), w.start() - d.end()), d.start() < w.start()))
+        if _wrong(d, weekday, event, today):
+            return True
+    return False
 
 
-def _wrong(m: re.Match, event: date | None, today: date) -> bool:
-    weekday = [d[:2] for d in _DAYS].index(m.group(1)[:2])
-    day, month = m.group(2), m.group(3) or _MONTH.get(m.group(4) or "")
-    if not (day and month):
-        return event is not None and event.weekday() != weekday
+def _wrong(m: re.Match, weekday: int, event: date | None, today: date) -> bool:
+    day, month = int(m.group(1)), int(m.group(2) or _MONTH[m.group(3)])
     for year in [event.year] if event else range(today.year, today.year + 9):
         try:
-            d = date(year, int(month), int(day))
+            d = date(year, month, day)
         except ValueError:
             continue
         if event or d >= today:

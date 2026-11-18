@@ -361,7 +361,11 @@ def test_cnd_09_abbreviations(when, ok):
 
 
 @pytest.mark.parametrize(
-    "when, ok", [("zaterdag 5 en zondag 6 december", True), ("zaterdag 5 en maandag 6 december", False)]
+    "when, ok",
+    [
+        ("za 5 december en zo 6 december", True),
+        ("za 5 december en ma 6 december", False),
+    ],
 )
 def test_cnd_09_every_weekday_is_checked(when, ok):
     if ok:
@@ -369,6 +373,26 @@ def test_cnd_09_every_weekday_is_checked(when, ok):
     else:
         with pytest.raises(WeekdayMismatch):
             weekday(when)
+
+
+@pytest.mark.parametrize(
+    "when, ok",
+    [
+        ("zaterdag, 12 december", True),
+        ("12 december (zaterdag)", True),
+        ("12 december, zaterdagavond", True),
+        ("zaterdag, 13 december", False),
+        ("13 december (zaterdag)", False),
+        ("13 dec, za 19.00 uur", False),
+    ],
+)
+def test_cnd_09_date_set_off_or_before_the_weekday_is_the_one_checked(when, ok):
+    # The event date (19 December, a Saturday) is only the fallback when `when` has no date (review on #7).
+    if ok:
+        weekday(when, event_date="2026-12-19")
+    else:
+        with pytest.raises(WeekdayMismatch):
+            weekday(when, event_date="2026-12-19")
 
 
 @pytest.mark.parametrize(
