@@ -245,3 +245,11 @@ test('dlv_14_image_answer_names_the_extension', () => {
   assert.deepEqual(JSON.parse(D.imageAnswer('R1.heic', 'AAAA')), { ext: 'heic', base64: 'AAAA' });
   assert.deepEqual(Object.keys(JSON.parse(D.imageAnswer('R1.pdf', 'AAAA'))), ['error']);
 });
+
+// DLV-08: an accepted callback that then throws ends as handwerk, not stuck in verzonden (review of #12).
+test('dlv_08_an_accepted_callback_that_throws_sets_handwerk', () => {
+  const after = D.afterError({ ...ROW, token: 'e'.repeat(32) }, 'fout in het script: WEB_APP_URL ontbreekt');
+  assert.equal(after.state, I.STATE.MANUAL);
+  assert.equal(after.reason, 'fout in het script: WEB_APP_URL ontbreekt');
+  assert.equal(after.token, '', 'no approval link works for it');
+});

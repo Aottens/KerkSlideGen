@@ -231,6 +231,8 @@ function composeLoop_() {}
 function doPost(e) {
   const lock = LockService.getScriptLock();
   let req = null;
+  let rowNumber = 0;
+  let mailed = false;
   try {
     lock.waitLock(30000);
     // DLV-08: a missing setting is mailed, not silently refused.
@@ -238,11 +240,13 @@ function doPost(e) {
     const raw = e.postData.contents;
     let id = '';
     try { id = String(JSON.parse(raw).id); } catch (x) {}
-    const { row, rowNumber } = rowById_(id);
+    const found = rowById_(id);
+    const row = found.row;
     const c = checkCallback({ raw, sig: e.parameter && e.parameter.sig,
       expected: hmacHex_(raw), row });
     if (c.error) return json_({ ok: false, error: c.error });
     req = row;
+    rowNumber = found.rowNumber;
     const body = c.body;
     if (!body.ok) {
       const after = afterCallback(row, body, '', '');
@@ -265,10 +269,12 @@ function doPost(e) {
     const m = approvalMail(row, body.slide || {}, approvalLinks(base, row.id, token));
     MailApp.sendEmail({ to: to.approval, subject: m.subject, body: m.body, htmlBody: m.htmlBody,
       inlineImages: { slide: file.getBlob() } });
+    mailed = true;
     if (to.received) MailApp.sendEmail(to.received, RECEIVED_MAIL.subject, RECEIVED_MAIL.body);
     return json_({ ok: true });
   } catch (err) {
     const reason = 'fout in het script: ' + String((err && err.message) || err).slice(0, 200);
+    if (req && rowNumber && !mailed) { req = afterError(req, reason); try { writeRow_(rowNumber, req); } catch (e2) {} }
     try { mailTeam_(req || { id: '(onbekend)', name: '', email: '', text: '', event_date: '', show_until: '' }, reason); } catch (x) {}
     return json_({ ok: false });
   } finally {

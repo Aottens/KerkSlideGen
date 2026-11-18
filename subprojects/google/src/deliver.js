@@ -37,6 +37,8 @@ function afterCallback(row, body, token, pngId) {
   return { ...row, state: S.MANUAL, token: '', reason: ('render: ' + (body.reason || '')).slice(0, 200) };
 }
 
+function afterError(row, reason) { return { ...row, state: dlvState_().MANUAL, reason, token: '' }; }
+
 function makeToken(bytes) {
   if (bytes.length < 16) throw new Error('too few bytes for a token');
   return hex(Array.from(bytes).slice(0, 16));
@@ -115,7 +117,7 @@ function imageAnswer(fileName, base64) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    hex, sameHex, checkCallback, TO_APPROVE_FOLDER, LIBRARY_FOLDER, ALLOWLIST_TAB, pngName, afterCallback, makeToken,
+    hex, sameHex, checkCallback, TO_APPROVE_FOLDER, LIBRARY_FOLDER, ALLOWLIST_TAB, pngName, afterCallback, afterError, makeToken,
     approvalLinks, approvalMail, RECEIVED_MAIL, recipients, approveDecision, PAGES, approvedPage, imageMessage,
     checkImageRequest, imageAnswer,
   };
