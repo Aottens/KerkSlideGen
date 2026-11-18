@@ -1,0 +1,13 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 4210,
+  "num_turns": 1,
+  "result": "{\"title\": \"Kerstnachtdienst\", \"when\": \"24 december, 22.00 uur\", \"where\": \"Grote zaal\", \"line\": \"Iedereen welkom, neem gerust iemand mee\"}",
+  "stop_reason": "end_turn",
+  "session_id": "00000000-0000-4000-8000-000000000000",
+  "total_cost_usd": 0,
+  "usage": {"input_tokens": 812, "output_tokens": 64},
+  "structured_output": {"title": "Kerstnachtdienst", "when": "24 december, 22.00 uur", "where": "Grote zaal", "line": "Iedereen welkom, neem gerust iemand mee"}
+}

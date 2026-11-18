@@ -8,22 +8,23 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - Phase 1: a member's request becomes an approved slide in the ProPresenter loop without a volunteer (`specs/PRD.md`).
 - The specs are approved (gate 1, 2026-11-18). The renderer puts slide text on the church's background in Montserrat,
   inside the safe area, shrinking to fit, with an image beside the text when there is one (left or right by id).
+- `slidegen condense` turns a request into slide text with Claude Code (`claude -p`) on the owner's subscription,
+  Opus 5.5 at low effort, budgets checked in code with one retry; tested only offline so far (DECISIONS 2026-11-18).
 - The loop has three sources: fixed slides (`Vast/`), approved requests, the agenda's coming week (2026-11-18).
 
 ## Next
-1. VS1-03 + VS1-04, condense with Claude, once the model and the API key are chosen (below).
+1. VS1-04: `slidegen eval` on the eval set, once, on the owner's word, with a fresh `claude` login on their Mac.
 2. VS1-05: `render.yml` turns a dispatch into a signed callback with the PNG.
 3. HAR-03: the review and risk gate in shadow; `risk-gate` becomes a required check after it.
 
 ## Waiting on the owner
-- Set the repo secret `CLAUDE_CODE_OAUTH_TOKEN` (`claude setup-token`) for the review (HAR-03).
+- Set the repo secret `CLAUDE_CODE_OAUTH_TOKEN` (`claude setup-token`): the review (HAR-03) and condense (VS1-05).
 
 ## Blocked
 - VS4-01: which system holds the church's agenda; the owner has asked at the church.
 
 ## Owner to decide
 - The owner questions in `specs/modules/render.md`, `condense.md`, `intake.md`, `deliver.md`, `autoreview.md`.
-- Model and API key for condense (CND, question 1 and 2): Opus 5.5 at low effort or Haiku 5.5; whose account.
 - The allowlist (DLV-06): only known members approve their own slide; others go to the visual team.
 - Is `visueel@baptistengemeente.nl` a Google Workspace account, and may Apps Script run as that account?
 - Order of the loop, and is "de dienst begint zo" in the loop or cued by hand (`deliver.md`, question 4)?
@@ -33,4 +34,4 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - The repo is public: no request text, slide text or PNG in workflow logs or artifacts (INT-07).
 - Only the centre 1920×1080 of the triple-wide canvas carries text: it is also the livestream.
 - ProPresenter is reached only through the synced `Loop/` folder: its API cannot import media (research 2026-11-17).
-- CI never calls the Claude API; the eval set costs money and runs only on the owner's word.
+- CI never calls Claude; the eval set uses the owner's subscription and runs only on the owner's word.
