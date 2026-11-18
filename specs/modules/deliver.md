@@ -2,7 +2,8 @@
 
 Owner: `subprojects/google/` (callback, mail, approval pages, folders, loop composition), `.github/workflows/render.yml` (the
 call back). Tests: `subprojects/google/tests/`, `tests/manual/approve.md`, the church run `tests/church/propresenter.md`.
-Status: draft 2026-11-17, loop composition and `Vast/` added 2026-11-18 (owner: agenda, fixed slides); approved at gate 1
+Status: draft 2026-11-17, loop composition and `Vast/` added 2026-11-18 (owner: agenda, fixed slides); DLV-16 added and approved 2026-11-18
+(IDEA-08); approved at gate 1
 (2026-11-18, `STATE.md`). DLV-03 sender and the allowlist tab set with VS2-02 (DECISIONS 2026-11-18).
 
 From a rendered PNG to a slide in the loop, with the requester as the one who says yes. The loop holds three kinds of
@@ -43,6 +44,7 @@ slide: requests (this spec and `intake.md`), the agenda's coming week (`agenda.m
 - **DLV-09** `KerkSlideGen/Loop/` is composed, never edited by hand: every night at 03:00 and after every approval,
   Apps Script makes it hold exactly
   - every PNG in `KerkSlideGen/Vast/` (DLV-12);
+  - one PNG from `KerkSlideGen/Vast/Wisselend/` (DLV-16);
   - every approved request whose `show_until` is today or later (from its approval on);
   - every agenda occurrence of the coming week (AGD-02, AGD-05).
 
@@ -51,6 +53,11 @@ slide: requests (this spec and `intake.md`), the agenda's coming week (`agenda.m
 - **DLV-12** The visual team keeps its fixed slides (welkom, collecte, "de dienst begint zo") as PNGs in
   `KerkSlideGen/Vast/`: a file there is in the loop, a file taken out is gone after the next composition. A fixed slide
   for a period goes through the form, with its last date (owner, 2026-11-18).
+- **DLV-16** The visual team keeps rotating slides as PNGs in `KerkSlideGen/Vast/Wisselend/`; they are not part of
+  "every PNG in `Vast/`" (DLV-12). Each composition adds exactly one of them: sorted by file name, the one at index
+  `ISO week number of the composition date mod their count`. Monday to Sunday is one week, so Saturday night and
+  Sunday give the same slide. An empty or missing folder adds nothing. Adding or removing a slide may shift the
+  rotation once (owner, 2026-11-18).
 - **DLV-13** A request past its `show_until` moves from `Bibliotheek/` to `KerkSlideGen/Archief/` with state
   `gearchiveerd`.
 
