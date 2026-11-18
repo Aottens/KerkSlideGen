@@ -22,13 +22,11 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 1. VS2-01: the owner's setup and the manual intake run; then VS2-02, the callback and approval mail, after which the
    owner sets the callback secrets.
 2. VS2-05: the signed image link; until then a request with an image goes to the visual team.
-3. FIX-01: a fix block for the review's finding on the render job.
 
 ## Waiting on the owner
 - VS2-01: set up the intake as `subprojects/google/README.md` says (Apps Script API, `clasp create` and `clasp push`,
   run `setup`, add the image question in the Forms editor, the script property `GITHUB_TOKEN`), then run
   `tests/manual/intake.md`.
-- Add the check `risk-gate` to the ruleset's required checks on `main`: the review ran in shadow on #6 (ARV-10).
 - Renew `CLAUDE_CODE_OAUTH_TOKEN` before 2027-11-18 (`claude setup-token`); a reminder is in the owner's calendar.
 
 ## Blocked
