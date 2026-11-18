@@ -1,0 +1,36 @@
+# INT-07: this repo is public. The dispatch payload is read from $GITHUB_EVENT_PATH inside job.py and never
+# appears in an expression, a log line or an artifact.
+name: Render
+
+on:
+  repository_dispatch:
+    types: [slide-request]
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: subprojects/renderer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2  # v10.3.3
+      - run: uv sync --locked --no-dev
+      - run: uv run playwright install --with-deps chromium
+      - run: npm install -g @anthropic-ai/claude-code@2.1.284
+      - id: job
+        run: uv run python job.py
+        env:
+          CALLBACK_URL: ${{ secrets.CALLBACK_URL }}
+          CALLBACK_SECRET: ${{ secrets.CALLBACK_SECRET }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      - name: tell Apps Script a setup step failed (DLV-08)
+        if: failure() && steps.job.outcome == 'skipped'
+        run: python3 job.py --setup-failed
+        env:
+          CALLBACK_URL: ${{ secrets.CALLBACK_URL }}
+          CALLBACK_SECRET: ${{ secrets.CALLBACK_SECRET }}

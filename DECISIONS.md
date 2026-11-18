@@ -5,6 +5,21 @@ Long-form records live in `specs/ADRs/`; this log is the index.
 
 ---
 
+## 2026-11-18 — The callback's signature goes in the query string, not a header (DLV-01)
+
+**Decision:** the render job POSTs its callback to `<CALLBACK_URL>?sig=<hex HMAC-SHA256 of the body>`, not with an
+`X-Signature` header (`subprojects/renderer/INTERFACE.md` §3), the same form as the image link's `sig=` (DLV-14).
+
+**Alternatives considered:** the `X-Signature: sha256=<hex>` header of the first interface draft.
+
+**Why:** an Apps Script web app's `doPost(e)` gets the body, the query and the content type, but no request headers,
+so it could never check that header. The body is what is signed either way. Apps Script also always answers 200, so
+VS2-02 decides how the web app tells the job it refused a body (an answer `{"ok": false}` the job then checks).
+
+**Reversal trigger:** the callback moves off Apps Script to something that reads headers.
+
+---
+
 ## 2026-11-18 — Condense through Claude Code on the owner's subscription, not the API (CND-05)
 
 **Decision:** `slidegen condense` calls `claude -p` (Claude Code in print mode) with `--json-schema`, `--model
