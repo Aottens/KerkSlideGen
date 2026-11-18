@@ -26,7 +26,7 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 
 ## Next
 1. VS2-03: the *Aanpassen* round trip, the 7-day expiry, every failure mailed.
-2. FIX-02: the team mail's headline on deliver failures.
+2. FIX-02, FIX-03, FIX-04: the team mails on deliver and loop failures, as one fix block.
 3. VS3-01: the Smart Playlist on the church Mac plays `Loop/` (gate 3).
 
 ## Waiting on the owner
@@ -39,6 +39,8 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - VS4-01: which system holds the church's agenda; the owner has asked at the church.
 
 ## Owner to decide
+- DLV-09 says a failed run leaves `Loop/` as it was; the build moves staged copies in file by file, so a failure while
+  moving can leave it half updated (FIX-03, DECISIONS 2026-11-18). Reword DLV-09, or undo the moves on failure?
 - The owner questions in `specs/modules/render.md`, `condense.md`, `intake.md`, `deliver.md`, `autoreview.md`.
 - Order of the loop, and is "de dienst begint zo" in the loop or cued by hand (`deliver.md`, question 4)?
 - Whether ProPresenter's Smart Playlist advances images every 15 s with a transition: VS3-01 at the church decides.
