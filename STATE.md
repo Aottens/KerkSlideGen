@@ -26,7 +26,6 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - Model and API key for condense (CND, question 1 and 2): Opus 5.5 at low effort or Haiku 5.5; whose account.
 - The allowlist (DLV-06): only known members approve their own slide; others go to the visual team.
 - Is `visueel@baptistengemeente.nl` a Google Workspace account, and may Apps Script run as that account?
-- A long title beside an image breaks with a hyphen at full size ("Kerstnacht-/dienst"): keep, or shrink first?
 - Order of the loop, and is "de dienst begint zo" in the loop or cued by hand (`deliver.md`, question 4)?
 - Whether ProPresenter's Smart Playlist advances images every 15 s with a transition: VS3-01 at the church decides.
 

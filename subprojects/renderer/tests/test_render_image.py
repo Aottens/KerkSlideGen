@@ -134,3 +134,19 @@ def test_ren_13_cli_image_and_id(assets, tmp_path):
     assert cli.main([*args, "--id", RIGHT_ID]) == 0
     assert Image.open(out).size == (3615, 768)
     assert cli.main(args) == 1  # an image without an id
+
+
+def test_ren_06_title_beside_image_shrinks_before_it_is_hyphenated(assets, kerst, tmp_path):
+    """Owner, 2026-11-18: "eerst kleiner maken". "Kerstnachtdienst" beside an image stays one word on one line."""
+    result = render(kerst, assets, tmp_path / "s.png", image=_photo(tmp_path / "p.png"), slide_id=LEFT_ID)
+    title = next(b for b in result.blocks if b.name == "title")
+    assert result.scale < 1.0
+    assert title.rect.h < 1.6 * title.font_px, title  # one line: not broken as "Kerstnacht-/dienst"
+
+
+def test_ren_06_first_pass_does_not_hyphenate(assets, kerst):
+    geo = Geometry.load(assets)
+    from slidegen.render import build_html
+
+    assert "hyphens: auto" not in build_html(kerst, geo, 1.0, hyphenate=False)
+    assert "hyphens: auto" in build_html(kerst, geo, 1.0, hyphenate=True)

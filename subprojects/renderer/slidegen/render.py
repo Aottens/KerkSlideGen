@@ -54,7 +54,8 @@ def _outline(r: Rect, colour: str) -> str:
 
 
 def build_html(
-    slide: SlideText, geo: Geometry, scale: float, guides: bool = False, image: Path | None = None, side: str = "left"
+    slide: SlideText, geo: Geometry, scale: float, guides: bool = False, image: Path | None = None, side: str = "left",
+    hyphenate: bool = True,
 ) -> str:
     blocks = "".join(
         f'<div data-block="{n}" style="font-size:{geo.font_px[n] * scale}px;font-weight:{geo.font_weight[n]}">'
@@ -84,7 +85,8 @@ body {{ width: {geo.canvas_w}px; height: {geo.canvas_h}px; position: relative; o
   background: url({geo.background.resolve().as_uri()}) 0 0 / {geo.canvas_w}px {geo.canvas_h}px no-repeat; }}
 #text {{ position: absolute; left: {t.x}px; top: {t.y}px; width: {t.w}px; height: {t.h}px;
   display: flex; flex-direction: column; justify-content: center; align-items: {align[1]}; text-align: {align[0]};
-  font-family: 'Montserrat'; color: #fff; hyphens: auto; text-shadow: 0 2px 8px rgba(0,0,0,.6); }}
+  font-family: 'Montserrat'; color: #fff; hyphens: {'auto' if hyphenate else 'manual'};
+  text-shadow: 0 2px 8px rgba(0,0,0,.6); }}
 #text div {{ margin: 0.2em 0; }}
 </style></head><body>{img}<div id="text">{blocks}</div>{g}</body></html>"""
 
@@ -133,8 +135,10 @@ def render(
         try:
             page = browser.new_page(viewport={"width": geo.canvas_w, "height": geo.canvas_h}, device_scale_factor=1)
             checked = False
-            for scale in _scales(geo.min_scale):
-                page_file.write_text(build_html(slide, geo, scale, guides, prepared, side or 'left'), encoding="utf-8")
+            # REN-06: shrink first; hyphenate (Dutch) only when nothing fits unhyphenated
+            for hyphenate, scale in ((h, sc) for h in (False, True) for sc in _scales(geo.min_scale)):
+                html = build_html(slide, geo, scale, guides, prepared, side or "left", hyphenate)
+                page_file.write_text(html, encoding="utf-8")
                 page.goto(page_file.as_uri())
                 page.evaluate("document.fonts.ready")
                 if not checked:

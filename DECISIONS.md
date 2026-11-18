@@ -5,6 +5,20 @@ Long-form records live in `specs/ADRs/`; this log is the index.
 
 ---
 
+## 2026-11-18 — Smaller before hyphenated (REN-06)
+
+**Decision:** The text shrinks as far as 60 % before any word is hyphenated; Dutch hyphenation is the fallback only
+when nothing fits unhyphenated.
+
+**Alternatives considered:** hyphenating first at full size (REN-06 as approved, which broke "Kerstnacht-/dienst"
+beside an image); shrinking only the title.
+
+**Why:** owner, shown both: "eerst kleiner maken". A whole word reads better from the back row than a broken one.
+
+**Reversal trigger:** slides with an image come out too small to read; then shrink only the title first.
+
+---
+
 ## 2026-11-18 — Montserrat, the image's side varies, the intro slideshow is the composed folder
 
 **Decision:** Slides are set in Montserrat (REN-08). A slide with an image puts it left or right by its id (REN-14).

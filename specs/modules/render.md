@@ -25,9 +25,11 @@ the livestream.
 - **REN-05** The slide shows the title, then the `when`, `where` and `line` fields that are not empty, each on its own
   block, in that order. Empty fields leave no gap.
 - **REN-06** Each block starts at its design size (from `assets/layout.json`; on the 768-high background title 78 px,
-  `when` and `where` 40 px, `line` 36 px) and the whole
-  text shrinks in steps until it fits inside the title-safe area, to at most 60 % of the design size. Words are never
-  broken except by Dutch hyphenation (`lang="nl"`, `hyphens: auto`).
+  `when` and `where` 40 px, `line` 36 px) and the whole text shrinks in steps until it fits inside the title-safe
+  area, to at most 60 % of the design size. No word is
+  hyphenated while a smaller size still fits without it (owner, 2026-11-18: rather smaller than broken); only when
+  nothing fits at 60 % unhyphenated is Dutch hyphenation (`lang="nl"`, `hyphens: auto`) tried, at the largest size
+  that then fits. Words are never broken otherwise.
 - **REN-07** Text that does not fit at 60 % is not rendered: render exits with code 3 and the reason `does not fit`,
   so the request goes back to condense once (CND-06) and else to the visual team (DLV-08).
 - **REN-08** All text is set in Montserrat (SIL Open Font License; the church's slides already use it), from
