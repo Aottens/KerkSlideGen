@@ -39,8 +39,6 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - VS4-01: which system holds the church's agenda; the owner has asked at the church.
 
 ## Owner to decide
-- DLV-09 says a failed run leaves `Loop/` as it was; the build moves staged copies in file by file, so a failure while
-  moving can leave it half updated (FIX-03, DECISIONS 2026-11-18). Reword DLV-09, or undo the moves on failure?
 - The owner questions in `specs/modules/render.md`, `condense.md`, `intake.md`, `deliver.md`, `autoreview.md`.
 - Order of the loop, and is "de dienst begint zo" in the loop or cued by hand (`deliver.md`, question 4)?
 - Whether ProPresenter's Smart Playlist advances images every 15 s with a transition: VS3-01 at the church decides.
