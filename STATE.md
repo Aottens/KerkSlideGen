@@ -15,12 +15,13 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - The loop has three sources: fixed slides (`Vast/`), approved requests, the agenda's coming week (2026-11-18).
 
 ## Next
-1. HAR-03: the review and risk gate in shadow; the token is set, so the next PR is its first run.
-2. VS1-07: a weekday on a slide that does not match its date sends the request to the visual team (CND-09).
-3. VS2-01, VS2-02: the form and dispatch, then the callback and approval mail; the owner then sets the callback secrets.
-4. VS2-05: the signed image link; until then a request with an image goes to the visual team.
+1. VS1-07: a weekday on a slide that does not match its date sends the request to the visual team (CND-09).
+2. VS2-01, VS2-02: the form and dispatch, then the callback and approval mail; the owner then sets the callback secrets.
+3. VS2-05: the signed image link; until then a request with an image goes to the visual team.
+4. FIX-01: a fix block for the review's finding on the render job.
 
 ## Waiting on the owner
+- Add the check `risk-gate` to the ruleset's required checks on `main`: the review ran in shadow on #6 (ARV-10).
 - Renew `CLAUDE_CODE_OAUTH_TOKEN` before 2027-11-18 (`claude setup-token`); a reminder is in the owner's calendar.
 
 ## Blocked
