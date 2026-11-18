@@ -8,10 +8,12 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - Phase 1: a member's request becomes an approved slide in the ProPresenter loop without a volunteer (`specs/PRD.md`).
 - The specs are approved (gate 1, 2026-11-18). The renderer puts slide text on the church's background in Montserrat,
   inside the safe area, shrinking to fit, with an image beside the text when there is one (left or right by id).
+- `slidegen condense` turns a request into slide text with Claude (structured output, budgets checked in code, one
+  retry); it is tested only offline so far. Model and effort sit in `subprojects/renderer/slidegen/config.py`.
 - The loop has three sources: fixed slides (`Vast/`), approved requests, the agenda's coming week (2026-11-18).
 
 ## Next
-1. VS1-03 + VS1-04, condense with Claude, once the model and the API key are chosen (below).
+1. VS1-04: `slidegen eval` on the eval set, once, after the owner chose the model and set the API key (below).
 2. VS1-05: `render.yml` turns a dispatch into a signed callback with the PNG.
 3. HAR-03: the review and risk gate in shadow; `risk-gate` becomes a required check after it.
 
