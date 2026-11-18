@@ -21,8 +21,8 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
   approval mail from the owner's address to an allowlisted requester or else to the owner, and *Goedkeuren* moves it
   to `Bibliotheek/`. *Aanpassen* shows a placeholder until VS2-03.
 - `Loop/` is composed in code after each approval and every night: every PNG in `Vast/`, one from `Vast/Wisselend/`
-  by ISO week, approved requests up to their last day; expired ones go to `Archief/`. Not yet pushed or run on
-  Google: `tests/manual/loop.md` is the owner's. The agenda in the loop waits on VS4-01.
+  by ISO week, approved requests up to their last day; expired ones go to `Archief/`. It runs on Google
+  (run of 2026-11-18). The agenda in the loop waits on VS4-01.
 
 ## Next
 1. VS2-03: the *Aanpassen* round trip, the 7-day expiry, every failure mailed.
@@ -30,8 +30,9 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 3. VS3-01: the Smart Playlist on the church Mac plays `Loop/` (gate 3).
 
 ## Waiting on the owner
-- `clasp push`, `setup` again, a new web app version, share `KerkSlideGen` with `visueel@` and the church Mac's
-  account, then `tests/manual/loop.md` (`subprojects/google/README.md` steps 15–18).
+- A new web app version, share `KerkSlideGen` with `visueel@` and the church Mac's account, then the open steps of
+  `tests/manual/loop.md`: *Goedkeuren* fills `Loop/` at once, the night run (run of 2026-11-18).
+- The owner's Drive is nearly full: a full Drive stops every copy into `Loop/`. Free space or buy storage.
 - Renew `GITHUB_TOKEN` (fine-grained, one year) before it expires; the date goes in the owner's calendar.
 - Renew `CLAUDE_CODE_OAUTH_TOKEN` before 2027-11-18 (`claude setup-token`); a reminder is in the owner's calendar.
 
