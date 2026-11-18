@@ -25,12 +25,17 @@ EMOJI = re.compile("[\U0001F000-\U0001FFFF\u2600-\u27BF]")
 TIME = re.compile(r"\d{1,2}[.:]\d{2}|\buur\b", re.I)
 
 
+def _header(raw: str, key: str) -> str | None:
+    """The value of a `key:` header line of an eval case, or None."""
+    for row in raw.partition("\n---\n")[0].splitlines():
+        if row.startswith(key + ":"):
+            return row[len(key) + 1:].strip()
+    return None
+
+
 def _empty_fields(raw: str) -> set[str]:
     """The `empty:` header of an eval case: fields the request gives nothing for (where, line, time)."""
-    for row in raw.partition("\n---\n")[0].splitlines():
-        if row.startswith("empty:"):
-            return {f.strip() for f in row[6:].split(",") if f.strip()}
-    return set()
+    return {f.strip() for f in (_header(raw, "empty") or "").split(",") if f.strip()}
 
 
 def _checks(slide: SlideText, req: Request, empty: set[str] = frozenset()) -> list[str]:
@@ -68,6 +73,9 @@ def _eval(directory: Path) -> int:
             continue
         print(json.dumps(asdict(slide), ensure_ascii=False))
         lines = _checks(slide, req, _empty_fields(raw))
+        keep = _header(raw, "keep")
+        if keep:  # CND-10: no slide or request text in the output (INT-07)
+            lines.append("CND-10 ok" if keep in slide.title else "CND-10 FAIL: title does not hold the name as written")
         print("\n".join(lines))
         failed |= any("FAIL" in line for line in lines)
     print("Tone (CND-02) and nothing invented (CND-03: no place or time the request lacks) are judged by reading.")

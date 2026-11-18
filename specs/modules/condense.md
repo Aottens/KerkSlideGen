@@ -11,7 +11,7 @@ read in three seconds.
 - **CND-01** Condense returns a `SlideText` with `title` (at most 32 characters), `when` (at most 40), `where` (at
   most 40), `line` (at most 70) and `show_until` (a date). Only `title` and `show_until` are required; an empty field
   is `""`.
-- **CND-02** All text is Dutch, whatever language the request is in, in the church's tone: plain, warm, no
+- **CND-02** All text is Dutch, whatever language the request is in (an activity's name: CND-10), in the church's tone: plain, warm, no
   exclamation marks, no emoji, no capitals for emphasis.
 - **CND-03** Condense invents nothing: every date, time, place, name and amount in the output appears in the request
   or in the form's date field. A field the request does not support is empty; `line` holds only what the request
@@ -26,6 +26,13 @@ read in three seconds.
   such date on or after the request. A mismatch, from the request or from the model, sends the request to the visual
   team (DLV-08) with the reason "weekday does not match the date", without a retry: the code cannot tell which of the
   two is wrong. Checked in code, not by the model (owner's choice 2026-11-18, IDEA-05).
+
+- **CND-10** The name or title of an activity stays as the request writes it: in its own language, with its
+  spelling, capitals and signs (`Worship & Prayer` stays `Worship & Prayer`). A name written all in capitals gets
+  normal capitals (`WORSHIP NIGHT` becomes `Worship Night`; a short abbreviation such as `JOP` stays). The rest of the
+  slide is Dutch, and a weekday derived from the date stays (CND-09). A name over the title's 32 characters goes the
+  CND-06 way. The eval set has a Dutch request with an English activity name; its case names the name in a `keep:`
+  header line and `slidegen eval` checks that the title holds it as written (owner's answers 2026-11-18, IDEA-07).
 
 ## The call
 - **CND-05** One call to Claude through Claude Code in print mode (`claude -p`), signed in with the owner's Claude

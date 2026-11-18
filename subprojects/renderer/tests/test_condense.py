@@ -157,6 +157,56 @@ def test_cnd_03_title_only_slide_is_accepted():
     assert (slide.line, slide.where, slide.when) == ("", "", "Donderdag 10 december")
 
 
+# CND-10 ---------------------------------------------------------------------------------------------------------------
+# IDEA-07: in run 2026-11-18-VS2-02 an English activity name was translated.
+
+WORSHIP = {"title": "Worship & Prayer", "when": "Vrijdag 4 december, 20.00 uur", "where": "Kapel", "line": ""}
+
+
+def eval_keep(tmp_path, slide: dict, monkeypatch, capsys) -> list[str]:
+    """Run `slidegen eval` on one case with a `keep:` header against a recorded slide; return its CND-10 lines."""
+    (tmp_path / "case.txt").write_text(
+        "event_date: 2026-12-04\nshow_until:\nkeep: Worship & Prayer\n---\n"
+        "Vrijdag 4 december is er Worship & Prayer om 20.00 uur in de kapel.\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(subprocess, "run", FakeRun(reply(slide)))
+    cli.main(["eval", str(tmp_path)])
+    return [line for line in capsys.readouterr().out.splitlines() if line.startswith("CND-10")]
+
+
+def test_cnd_10_prompt_keeps_an_activitys_name_as_written():
+    prompt = (RENDERER / "prompts" / "condense.md").read_text(encoding="utf-8")
+    assert "All other text is Dutch" in prompt
+    assert "The name or title of an activity stays as the request writes it" in prompt
+    assert "Worship & Prayer" in prompt  # the example: language, capitals and signs kept
+    assert "all in capitals" in prompt  # gets normal capitals (owner 2026-11-18)
+
+
+def test_cnd_10_eval_set_has_an_english_activity_name():
+    raw = (REQUESTS / "worship.txt").read_text(encoding="utf-8")
+    head, _, body = raw.partition("\n---\n")
+    assert "keep: Worship & Prayer" in head and "Worship & Prayer" in body
+
+
+def test_cnd_10_eval_passes_a_title_that_keeps_the_name(tmp_path, monkeypatch, capsys):
+    assert eval_keep(tmp_path, WORSHIP, monkeypatch, capsys) == ["CND-10 ok"]
+
+
+@pytest.mark.parametrize("title", ["Aanbidding en gebed", "Worship en Prayer", "worship & prayer"])
+def test_cnd_10_eval_flags_a_title_that_changes_the_name(tmp_path, monkeypatch, capsys, title):
+    lines = eval_keep(tmp_path, {**WORSHIP, "title": title}, monkeypatch, capsys)
+    assert len(lines) == 1 and lines[0].startswith("CND-10 FAIL")
+    assert title not in lines[0] and "Worship" not in lines[0]  # INT-07: no slide or request text
+
+
+def test_cnd_10_eval_without_keep_header_prints_no_cnd_10(tmp_path, monkeypatch, capsys):
+    (tmp_path / "case.txt").write_text("event_date: 2026-12-04\nshow_until:\n---\nIets.\n", encoding="utf-8")
+    monkeypatch.setattr(subprocess, "run", FakeRun(reply(WORSHIP)))
+    cli.main(["eval", str(tmp_path)])
+    assert "CND-10" not in capsys.readouterr().out
+
+
 # CND-04 ---------------------------------------------------------------------------------------------------------------
 
 @pytest.mark.parametrize(
@@ -341,10 +391,11 @@ def test_cnd_08_eval_prints_each_case_and_checks(offline, capsys):
     # The same recorded reply for every case: right for kerstnacht, invented numbers for the other three.
     assert cli.main(["eval", str(REQUESTS)]) == 1
     out = capsys.readouterr().out
-    for case in ("kerstnacht", "zonder-plaats", "zonder-tijd", "alleen-titel", "injectie"):
+    for case in ("kerstnacht", "zonder-plaats", "zonder-tijd", "alleen-titel", "worship", "injectie"):
         assert case in out
-    assert out.count("CND-01 ok") == 5
-    assert out.count("CND-03 ok") == 1 and out.count("CND-03 FAIL") == 4
+    assert out.count("CND-01 ok") == 6
+    assert out.count("CND-03 ok") == 1 and out.count("CND-03 FAIL") == 5
+    assert out.count("CND-10 FAIL") == 1 and "CND-10 ok" not in out  # only worship has a `keep:` header
 
 
 # CND-09 ---------------------------------------------------------------------------------------------------------------
