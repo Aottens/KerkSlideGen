@@ -6,10 +6,24 @@ on:
   pull_request:
 
 jobs:
-  # ponytail: only the harness checks until VS1-01 adds the renderer job (uv, pytest, ruff, playwright).
   harness:
     name: harness (stdlib Python)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: python3 -m py_compile scripts/*.py
+
+  renderer:
+    name: renderer (Python)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: subprojects/renderer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2  # v10.3.3
+      - run: uv sync --locked
+      - run: uv run playwright install --with-deps chromium
+      - run: uv run ruff check
+      # CND-08: no step here calls the Claude API. INT-07: no step prints slide text or uploads a PNG.
+      - run: uv run pytest -q

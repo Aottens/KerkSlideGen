@@ -20,8 +20,8 @@ Builds (proposed): VS1-01 + VS1-02 (render); VS1-03 + VS1-04 (condense); VS1-05 
 
 | Id | Task (one sentence, verifiable) | Spec ids | Size | Status |
 | --- | --- | --- | --- | --- |
-| VS1-01 | `slidegen render slide.json` writes a PNG of the background's size with the text in Montserrat inside the title-safe area, `--guides` draws both areas. | REN-01..05, 08 | M | todo |
-| VS1-02 | Shrink-to-fit with Dutch hyphenation, exit 3 when it does not fit at 60 %, golden-image test, under 10 s. | REN-06, 07, 09, 10 | S | todo |
+| VS1-01 | `slidegen render slide.json` writes a PNG of the background's size with the text in Montserrat inside the title-safe area, `--guides` draws both areas. | REN-01..05, 08 | M | done (2026-11-18, #2) |
+| VS1-02 | Shrink-to-fit with Dutch hyphenation, exit 3 when it does not fit at 60 %, golden-image test, under 10 s. | REN-06, 07, 09, 10 | S | done (2026-11-18, #2) |
 | VS1-03 | `slidegen condense request.txt` returns a `SlideText` within the budgets via structured output, with one retry on violations; offline tests on recorded responses. | CND-01, 04..08 | M | todo |
 | VS1-04 | The eval set (`tests/fixtures/requests/`) passes CND-01..04 on the chosen model, run once on the owner's word. | CND-02, 03, 05 | S | todo |
 | VS1-06 | `--image`: the *with image* layout, the image left or right by id, cropped to its box, upright by EXIF, HEIC read. | REN-11..14 | S | todo |

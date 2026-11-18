@@ -6,13 +6,14 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 
 ## Now
 - Phase 1: a member's request becomes an approved slide in the ProPresenter loop without a volunteer (`specs/PRD.md`).
-- The harness is ported from CMDMX; the specs for intake, agenda, condense, render and deliver are drafts.
+- The specs are approved (gate 1, 2026-11-18). The renderer puts slide text on the church's background in Montserrat,
+  inside the safe area, shrinking to fit; `slidegen render slide.json -o out.png --guides`.
 - The loop has three sources: fixed slides (`Vast/`), approved requests, the agenda's coming week (2026-11-18).
 
 ## Next
-1. Gate 1: the owner approves `specs/PRD.md` and the module specs, with the owner questions in each.
-2. HAR-03: the review and risk gate in shadow on the first PR; `risk-gate` becomes a required check after it.
-3. VS1-01 + VS1-02, the renderer (Montserrat, background in `assets/`); then VS1-06, the image layout.
+1. VS1-06, the image beside the text, left or right by id.
+2. VS1-03 + VS1-04, condense with Claude, once the model and the API key are chosen (below).
+3. HAR-03: the review and risk gate in shadow; `risk-gate` becomes a required check after it.
 
 ## Waiting on the owner
 - Set the repo secret `CLAUDE_CODE_OAUTH_TOKEN` (`claude setup-token`) for the review (HAR-03).
