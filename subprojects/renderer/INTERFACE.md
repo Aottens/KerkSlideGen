@@ -24,7 +24,9 @@ this repo only, stored in the script property `GITHUB_TOKEN`.
 ```
 `change` is the requester's *Aanpassen* text for round 2 and 3 (DLV-05), else `""`. `show_until` may be `""`.
 `image` says whether the request has one; the job then fetches it with
-`GET <web app URL>?image=<id>&exp=<unix time + 900>&sig=<hex HMAC-SHA256 of "<id>.<exp>">` (DLV-14).
+`GET <web app URL>?image=<id>&exp=<unix time + 900>&sig=<hex HMAC-SHA256 of "<id>.<exp>">` (DLV-14). The answer is
+`{"ext": "jpg", "base64": "<the image>"}` (`ext` one of `jpg`, `png`, `webp`, `heic`); a wrong or expired signature,
+or a request without image, answers `{"error": "…"}`. An Apps Script web app cannot send binary or a status code.
 
 Agenda (`specs/modules/agenda.md`) uses the same event with a `kind` (absent means `request`):
 - `"kind": "activity"`: the first slide of an agenda activity (AGD-04). `id` is the activity id (`A` + series id
@@ -43,7 +45,9 @@ Limits: title 32, when 40, where 40, line 70 characters (CND-01).
 `POST <web app URL>?sig=<hex HMAC-SHA256 of the body>` (secret `CALLBACK_URL`), `Content-Type: application/json`,
 signed under the shared secret (`CALLBACK_SECRET` in GitHub, the same value in the script property `CALLBACK_SECRET`).
 The signature is in the query string, not a header: an Apps Script `doPost(e)` cannot read request headers
-(DECISIONS 2026-11-18). The job follows the web app's redirect; a non-2xx answer or no answer fails the run.
+(DECISIONS 2026-11-18). The job follows the web app's redirect; a non-2xx answer or no answer fails the run. The web app
+answers `{"ok": true}` or `{"ok": false, "error": "…"}` with status 200 either way; a refused callback changes nothing
+(DLV-01), and any answer but `{"ok": true}` fails the run.
 
 ```json
 {"id": "R20261117-K7Q", "round": 1, "ok": true, "slide": {"…": "SlideText"}, "png_base64": "<PNG>"}
