@@ -1,6 +1,7 @@
 # subprojects/google — Apps Script
 
-The Google side of KerkSlideGen, on the visual team's account: the form, the requests Sheet, mail, Drive folders and,
+The Google side of KerkSlideGen, on the owner's Google account (DECISIONS 2026-11-18; folders are shared with the
+visual team): the form, the requests Sheet, mail, Drive folders and,
 later, the callback and approvals. It holds no slide logic (`CLAUDE.md`). Names and mail addresses never leave Google:
 the dispatch to GitHub carries only id, round, text, change, dates and an image flag (INT-04,
 `subprojects/renderer/INTERFACE.md`).
@@ -25,11 +26,14 @@ the dispatch to GitHub carries only id, round, text, change, dates and an image 
    by the minute trigger after 2, 5 and 10 minutes; after that `handwerk` and a mail to the visual team (INT-05).
 
 ## Setup (the owner, once)
-Do every step signed in as `visueel@baptistengemeente.nl`. It works on a plain Gmail account and on Google Workspace;
-step 6 has the one Workspace-only setting.
+Do every step signed in as the account that will own the script: the owner's own Google account (DECISIONS
+2026-11-18). It works on a plain Gmail account and on Google Workspace; step 6 has the one Workspace-only setting.
+Mails "to the visual team" go to this account (`Session.getEffectiveUser()`).
 
 1. **Apps Script API.** Open <https://script.google.com/home/usersettings> and turn *Google Apps Script API* on.
-2. **clasp.** `npm install -g @google/clasp`, then `clasp login` and choose the visual team's account.
+2. **clasp.** No install needed: run it with `npx @google/clasp …` (a global `npm install -g` fails with `EACCES`
+   when npm's prefix is `/usr/local`; do not use `sudo`). `npx @google/clasp login`, choose the account and allow
+   every scope it asks for (projects, Drive, deployments, logs). Every `clasp …` below is `npx @google/clasp …`.
 3. **Create the script project.** In `subprojects/google`:
    ```bash
    clasp create --type standalone --title "KerkSlideGen" --rootDir src
@@ -38,7 +42,8 @@ step 6 has the one Workspace-only setting.
    `src/Code.js`, undo that: `git checkout -- src/appsscript.json` and `rm -f src/Code.js`.
 4. **Push the code.** `clasp push` (answer yes when it asks to overwrite the manifest).
 5. **Run `setup` once.** `clasp open-script` (clasp 3; `clasp open` on clasp 2), pick `main.gs`, choose `setup` in the
-   function list and press *Run*. Allow what it asks: Forms, Sheets, Drive, sending mail, connecting to an external
+   function list and press *Run*. On "Google hasn't verified this app" choose *Advanced → Go to KerkSlideGen
+   (unsafe)*: it is your own script. Allow what it asks: Forms, Sheets, Drive, sending mail, connecting to an external
    service (GitHub) and triggers. It makes, in *My Drive* (not a shared drive: uploads do not work there):
    - the folder `KerkSlideGen` with `Beelden` inside;
    - the Sheet *KerkSlideGen aanvragen* with the tab `Aanvragen`;
@@ -50,7 +55,8 @@ step 6 has the one Workspace-only setting.
    triggers, which it reinstalls.
 6. **Finish the form in the Forms editor** (FormApp cannot make a file-upload question). Open the edit link:
    1. Add a question at the end, type *File upload* (*Bestand uploaden*); confirm the upload folder with *Continue*.
-   2. Title `Afbeelding`, description `Mag leeg. Eén foto: JPG, PNG, WebP of HEIC, hoogstens 10 MB.`
+   2. Title `Afbeelding`, description `Niet verplicht: een foto (JPG, PNG, WebP of HEIC), maximaal 10 MB.` (the text
+      in `src/intake.js`).
    3. *Allow only specific file types* on, tick only *Image*; *Maximum number of files* 1; *Maximum file size*
       10 MB; *Required* off.
    4. *Settings → Responses*: *Collect email addresses* is *Verified*; *Limit to 1 response* is off.
@@ -61,10 +67,11 @@ step 6 has the one Workspace-only setting.
 7. **GitHub token.** On GitHub (the owner's account): *Settings → Developer settings → Personal access tokens →
    Fine-grained tokens → Generate new token*. Name `KerkSlideGen intake`, expiry one year (put the renewal date in the
    calendar), *Resource owner* Aottens, *Only select repositories* → `KerkSlideGen`, *Repository permissions →
-   Contents: Read and write* (nothing else). Copy it once into the script: editor → *Project Settings → Script
+   Contents: Read and write* (nothing else: GitHub adds *Metadata: Read-only* by itself, and the dispatch needs only
+   *Contents: write*). Copy it once into the script: editor → *Project Settings → Script
    Properties → Add script property*, name `GITHUB_TOKEN`. Do not paste it anywhere else.
 8. **Check the triggers.** Editor → *Triggers*: `onSubmit` *From form – On form submit* and `retryDispatches`
-   *Time-driven – Every minute*, both owned by the visual team's account.
+   *Time-driven – Every minute*, both owned by the account from step 1.
 9. **Test it** with `tests/manual/intake.md`.
 
 Later, with VS2-02: the script property `CALLBACK_SECRET` (the same value as the GitHub secret) and the web app
