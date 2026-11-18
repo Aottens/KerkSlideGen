@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 from slidegen import cli, config
-from slidegen.condense import CondenseError, Request, condense
+from slidegen.condense import CondenseError, Request, WeekdayMismatch, condense
 from slidegen.slide import SlideText
 
 RENDERER = Path(__file__).resolve().parents[1]
@@ -285,3 +285,132 @@ def test_cnd_08_eval_prints_each_case_and_checks(offline, capsys):
         assert case in out
     assert out.count("CND-01 ok") == 4
     assert out.count("CND-03 ok") == 1 and out.count("CND-03 FAIL") == 3
+
+
+# CND-09 ---------------------------------------------------------------------------------------------------------------
+# 24 December 2026 is a Thursday, 5 December 2026 a Saturday, 1 January 2027 a Friday, 24 December 2027 a Friday.
+
+def weekday(when: str, event_date: str = "", today: date = TODAY, run=None) -> SlideText:
+    """Condense a request whose recorded slide has this `when`."""
+    req = Request(text="Iets in de kerk", event_date=event_date)
+    return condense(req, today, run=run or FakeRun(reply({**KERST_SLIDE, "when": when})))
+
+
+def test_cnd_09_matching_weekday_with_full_date_passes():
+    assert weekday("Donderdag 24 december, 22.00 uur").when == "Donderdag 24 december, 22.00 uur"
+
+
+def test_cnd_09_wrong_weekday_goes_to_visual_team_without_retry():
+    run = FakeRun(reply({**KERST_SLIDE, "when": "Dinsdag 24 december 2026"}))
+    with pytest.raises(WeekdayMismatch) as e:
+        weekday("", run=run)
+    assert isinstance(e.value, CondenseError)  # ends at the visual team like every condense failure (DLV-08)
+    assert str(e.value) == "weekday does not match the date"
+    assert len(run.calls) == 1
+
+
+def test_cnd_09_mismatch_after_a_render_retry_is_not_retried_again():
+    run = FakeRun(reply({**KERST_SLIDE, "when": "Woensdag 24 december"}))
+    with pytest.raises(WeekdayMismatch):
+        condense(kerst(), TODAY, run=run, previous=SlideText(**KERST_SLIDE), feedback=["does not fit"])
+    assert len(run.calls) == 1
+
+
+@pytest.mark.parametrize(
+    "when, ok",
+    [
+        ("Zaterdag, 19.00 uur", True),
+        ("zaterdagavond 19.00 uur", True),
+        ("Zondag, 19.00 uur", False),
+        ("Zondagmiddag", False),
+    ],
+)
+def test_cnd_09_weekday_without_date_is_checked_against_the_event_date(when, ok):
+    if ok:
+        weekday(when, event_date="2026-12-05")
+    else:
+        with pytest.raises(WeekdayMismatch):
+            weekday(when, event_date="2026-12-05")
+
+
+def test_cnd_09_weekday_without_any_date_passes():
+    assert weekday("Zaterdag, 19.00 uur").when == "Zaterdag, 19.00 uur"
+
+
+@pytest.mark.parametrize(
+    "when, ok",
+    [
+        ("do 24 dec", True),
+        ("do. 24 dec., 22.00 uur", True),
+        ("Za 5 december", True),
+        ("wo 24 dec", False),
+        ("vr 24 dec", False),
+        ("ma 5 dec", False),
+        ("di 5 dec", False),
+        ("zo 5 dec", False),
+        ("do 24-12", True),
+        ("wo 24/12", False),
+    ],
+)
+def test_cnd_09_abbreviations(when, ok):
+    if ok:
+        weekday(when)
+    else:
+        with pytest.raises(WeekdayMismatch):
+            weekday(when)
+
+
+@pytest.mark.parametrize(
+    "when, ok", [("zaterdag 5 en zondag 6 december", True), ("zaterdag 5 en maandag 6 december", False)]
+)
+def test_cnd_09_every_weekday_is_checked(when, ok):
+    if ok:
+        weekday(when)
+    else:
+        with pytest.raises(WeekdayMismatch):
+            weekday(when)
+
+
+@pytest.mark.parametrize(
+    "when",
+    ["24 december, 22.00 uur", "Zomerfeest, 14.00 uur", "Maart 2027", "Doorlopend tot 24 december", ""],
+)
+def test_cnd_09_no_weekday_passes(when):
+    assert weekday(when).when == when
+
+
+@pytest.mark.parametrize("when, ok", [("vrijdag 1 januari", True), ("donderdag 1 januari", False)])
+def test_cnd_09_year_inferred_across_new_year(when, ok):
+    december = date(2026, 12, 20)
+    if ok:
+        weekday(when, today=december)
+    else:
+        with pytest.raises(WeekdayMismatch):
+            weekday(when, today=december)
+
+
+@pytest.mark.parametrize("when, ok", [("vrijdag 24 december", True), ("donderdag 24 december", False)])
+def test_cnd_09_year_from_the_event_date(when, ok):
+    if ok:
+        weekday(when, event_date="2027-12-24")
+    else:
+        with pytest.raises(WeekdayMismatch):
+            weekday(when, event_date="2027-12-24")
+
+
+@pytest.mark.parametrize(
+    "when, ok",
+    [
+        ("DONDERDAG 24 DECEMBER", True),
+        ("donderdag 24 december", True),
+        ("Do 24 Dec", True),
+        ("WOENSDAG 24 DECEMBER", False),
+        ("wOeNsDaG 24 dEcEmBeR", False),
+    ],
+)
+def test_cnd_09_any_case(when, ok):
+    if ok:
+        weekday(when)
+    else:
+        with pytest.raises(WeekdayMismatch):
+            weekday(when)

@@ -1,6 +1,8 @@
 """Request text to SlideText with one structured call to Claude Code (`claude -p`, the owner's subscription;
-CND-01, CND-04..07). The token comes from CLAUDE_CODE_OAUTH_TOKEN in the environment; it is never passed or printed."""
+CND-01, CND-04..07, CND-09). The token comes from CLAUDE_CODE_OAUTH_TOKEN in the environment; it is never passed
+or printed."""
 import json
+import re
 import subprocess
 import tempfile
 from collections.abc import Sequence
@@ -23,6 +25,45 @@ SCHEMA = {
 
 class CondenseError(Exception):
     """The reason the visual team is mailed (DLV-08). Never holds request or slide text (INT-07)."""
+
+
+class WeekdayMismatch(CondenseError):
+    """CND-09: the visual team decides which of weekday and date is wrong; no retry."""
+
+
+_DAYS = ("maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag", "zondag")
+_MONTHS = ("januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober",
+           "november", "december")
+_MONTH = {m: i + 1 for i, m in enumerate(_MONTHS)} | {m[:3]: i + 1 for i, m in enumerate(_MONTHS)}
+_MONTH |= {"sept": 9, "mrt": 3}
+_WEEKDAY = re.compile(
+    r"\b(" + "|".join(_DAYS + tuple(d[:2] for d in _DAYS)) + r")(?:ochtend|morgen|middag|avond|nacht)?\b\.?"
+    r"(?:\s*(\d{1,2})(?:\s*[-/]\s*(\d{1,2})\b|\s+([a-z]+)\b))?"
+)
+
+
+def weekday_mismatch(when: str, event_date: str, today: date) -> bool:
+    """CND-09: every weekday in `when` must be the weekday of the date it stands with."""
+    try:
+        event = date.fromisoformat(event_date)
+    except ValueError:
+        event = None
+    return any(_wrong(m, event, today) for m in _WEEKDAY.finditer(when.lower()))
+
+
+def _wrong(m: re.Match, event: date | None, today: date) -> bool:
+    weekday = [d[:2] for d in _DAYS].index(m.group(1)[:2])
+    day, month = m.group(2), m.group(3) or _MONTH.get(m.group(4) or "")
+    if not (day and month):
+        return event is not None and event.weekday() != weekday
+    for year in [event.year] if event else range(today.year, today.year + 9):
+        try:
+            d = date(year, int(month), int(day))
+        except ValueError:
+            continue
+        if event or d >= today:
+            return d.weekday() != weekday
+    return True
 
 
 @dataclass(frozen=True)
@@ -108,6 +149,8 @@ def condense(
         bad = violations(data)
     if bad:
         raise CondenseError("; ".join(bad))
+    if weekday_mismatch(data["when"], req.event_date, today):
+        raise WeekdayMismatch("weekday does not match the date")
     show_until = req.show_until or req.event_date or (today + timedelta(days=14)).isoformat()
     return SlideText(**{k: v.strip() for k, v in data.items()}, show_until=show_until)
 
