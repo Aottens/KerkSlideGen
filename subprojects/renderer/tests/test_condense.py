@@ -114,10 +114,10 @@ def test_cnd_04_show_until_rule(event_date, show_until, expected):
 
 def test_cnd_04_request_file_header_parsed():
     req = Request.parse((REQUESTS / "zonder-plaats.txt").read_text(encoding="utf-8"))
-    assert (req.event_date, req.show_until) == ("2026-12-06", "2026-12-05")
-    assert req.text.startswith("Op zaterdag 6 december") and "---" not in req.text
+    assert (req.event_date, req.show_until) == ("2026-12-05", "2026-12-04")
+    assert req.text.startswith("Op zaterdag 5 december") and "---" not in req.text
     empty = Request.parse((REQUESTS / "injectie.txt").read_text(encoding="utf-8"))
-    assert (empty.event_date, empty.show_until) == ("2026-11-30", "")
+    assert (empty.event_date, empty.show_until) == ("2026-11-29", "")
 
 
 # CND-05 ---------------------------------------------------------------------------------------------------------------

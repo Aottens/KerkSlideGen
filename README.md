@@ -17,7 +17,7 @@ How it works: `ARCHITECTURE.md`. How we work: `CLAUDE.md`. Where it stands: `STA
 
 ## Status
 Phase 1 is specified and approved; the renderer makes slides with and without an image on the church's background.
-Condense runs on Claude Code with the owner's subscription, tested offline; the live eval run VS1-04 waits on the owner.
+Condense runs on Claude Code with the owner's subscription and passed its eval set on Opus 5.5 at low effort.
 Next: the render workflow VS1-05, and HAR-03 the review in shadow.
 
 ## Layout

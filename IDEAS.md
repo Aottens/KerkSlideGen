@@ -8,6 +8,7 @@ Ideas the owner dropped or that came up, not yet planned. No criteria or code un
 | IDEA-02 | Mail-in intake: a mail to `visueel+slide@` works like the form. | later | open |
 | IDEA-03 | More layouts (e.g. a date-first layout for recurring events). | later | open |
 | IDEA-04 | A live dashboard like CMDMX's `scripts/dashboard.py` (TRK-05..08). | later | open |
+| IDEA-05 | A weekday on a slide is checked against its date in code; a wrong one never reaches the screen. | 1? | open |
 
 ### IDEA-01
 Intent: members want their own image on a slide. Touches: render (image placement inside the safe area), intake (a
@@ -23,3 +24,9 @@ Open: who maintains the layouts.
 
 ### IDEA-04
 Intent: the owner sees the state without reading files. Touches: scripts only. Open: worth it at this project's size?
+
+### IDEA-05
+Intent: a member writes "zaterdag 6 december" when the 6th is a Sunday, or the model adds a weekday; condense copies
+it and the slide shows a wrong day (run `tests/manual/runs/2026-11-18-VS1-04.md`). Touches: condense (check a Dutch
+weekday in `when` against the date it names or the form's date; a mismatch gives the one retry, or drops the weekday).
+Open: drop the weekday, fix it from the date, or send the request to the visual team?
