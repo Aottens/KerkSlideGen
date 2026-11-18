@@ -42,4 +42,4 @@ How a request gets in: as easy as a form on a phone, but only for someone who si
 2. **Is `visueel@baptistengemeente.nl` a Google Workspace account?** Needed to know whether Apps Script runs as that
    account (it does on Workspace and on a plain Gmail account; only the quotas differ: 100 mails a day on Gmail).
    Answered 2026-11-18: moot, the script runs on the owner's own account, a plain Gmail account (owner: "Dan kan ik
-   beheer houden"); the folders are shared with the visual team.
+   beheer houden"); the folders are to be shared with the visual team once `Loop/` exists (VS2-04).
