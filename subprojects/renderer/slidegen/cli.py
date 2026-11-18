@@ -1,4 +1,4 @@
-"""`slidegen render SLIDE.json -o OUT.png [--guides] [--assets DIR]`.
+"""`slidegen render SLIDE.json -o OUT.png [--guides] [--assets DIR] [--image PATH] [--id ID]`.
 
 Exit codes: 0 ok, 1 error, 2 usage, 3 does not fit (REN-07).
 """
@@ -22,10 +22,12 @@ def main(argv: list[str]) -> int:
     r.add_argument("-o", "--out", type=Path, required=True)
     r.add_argument("--guides", action="store_true")
     r.add_argument("--assets", type=Path, default=ASSETS)
+    r.add_argument("--image", type=Path)
+    r.add_argument("--id", default="")
     a = ap.parse_args(argv)
     try:
         slide = SlideText.from_json(json.loads(a.slide.read_text(encoding="utf-8")))
-        render(slide, a.assets, a.out, a.guides)
+        render(slide, a.assets, a.out, a.guides, a.image, a.id)
     except DoesNotFit:
         print("does not fit", file=sys.stderr)
         return 3
