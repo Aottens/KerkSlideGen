@@ -32,8 +32,8 @@ Builds (proposed): VS1-01 + VS1-02 (render); VS1-03 + VS1-04 (condense); VS1-05 
 | Id | Task (one sentence, verifiable) | Spec ids | Size | Status |
 | --- | --- | --- | --- | --- |
 | VS2-01 | Form with sign-in and image, requests Sheet and dispatch: a submit shows up as a run of `render.yml` with only id, text, dates and the image flag. | INT-01..08 | M | done (2026-11-18, #10) |
-| VS2-05 | The signed image link: the render job fetches a request's image for 15 minutes, nothing with a wrong or old signature. | DLV-14 | S | todo |
-| VS2-02 | Callback, `Te keuren/` and the approval mail with *Goedkeuren* and *Aanpassen*, signed bodies and tokens checked. | DLV-01..04, 06 | M | todo |
+| VS2-05 | The signed image link: the render job fetches a request's image for 15 minutes, nothing with a wrong or old signature. | DLV-14 | S | doing: in code; the owner deploys the web app and runs `tests/manual/approve.md` |
+| VS2-02 | Callback, `Te keuren/` and the approval mail with *Goedkeuren* and *Aanpassen*, signed bodies and tokens checked. | DLV-01..04, 06 | M | doing: in code; the owner deploys the web app, sets the secrets and runs `tests/manual/approve.md` |
 | VS2-03 | *Aanpassen* round trip (3 rounds max), 7-day expiry of unanswered requests, every failure mailed to the visual team. | DLV-05, 07, 08 | M | todo |
 | VS2-04 | Loop composition at night and after each approval: `Vast/` + approved requests in date, swapped in atomically; expired requests archived; `KerkSlideGen` shared with `visueel@` and the church Mac's account. | DLV-09, 12, 13 | M | todo |
 
