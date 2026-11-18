@@ -35,7 +35,7 @@ slide: requests (this spec and `intake.md`), the agenda's coming week (`agenda.m
   page says "Je aanpassing is verstuurd. Je krijgt binnen een paar minuten een nieuw voorbeeld per mail." An empty
   text box sends nothing. *Aanpassen* on round 3 shows the same text box, but its text goes to the visual team
   (DLV-08, reason "3 rondes aangepast") instead of a fourth render, and the page says "Het kerkteam maakt je slide
-  verder af en neemt contact met je op." (proposed 2026-11-18, awaiting gate 1)
+  verder af en neemt contact met je op." (owner, gate 1 2026-11-18)
 - **DLV-06** A sender (the verified mail address of the sign-in, INT-02) who is not on the allowlist tab of the Sheet
   does not approve: the mail with the buttons goes to the visual team, and the requester gets "Je aanvraag is ontvangen
   en wordt bekeken." The visual team adds trusted members to the allowlist: one address per row in column A of the
@@ -43,14 +43,14 @@ slide: requests (this spec and `intake.md`), the agenda's coming week (`agenda.m
 - **DLV-07** A request that has been in `te keuren` for 7 days (counted from the mail of its latest round, kept in
   the Sheet column `sinds`) is archived by the nightly run (DLV-09): its PNG moves from `Te keuren/` to `Archief/` and
   its state becomes `verlopen`. Nobody is mailed; its links then show "Deze aanvraag wacht niet op goedkeuring."
-  (proposed 2026-11-18, awaiting gate 1)
+  (owner, gate 1 2026-11-18)
 
 ## Failure
 - **DLV-08** Every request that does not reach `te keuren` (INT-05, INT-06, CND-06, CND-07, REN-07, DLV-05) reaches
   the visual team's inbox as one mail with the request text, every change text, and the reason, and the state
   `handwerk`. A request still waiting for its render (`verzonden`) 2 hours after its dispatch (column `sinds`) counts
   too: the nightly run gives it the reason "geen antwoord van de render" (a render job that GitHub cancelled or that
-  never ran posts nothing). (wait-time rule proposed 2026-11-18, awaiting gate 1)
+  never ran posts nothing). (wait-time rule: owner, gate 1 2026-11-18)
 
 ## The loop
 - **DLV-09** `KerkSlideGen/Loop/` is composed, never edited by hand: every night at 03:00 and after every approval,
