@@ -284,7 +284,13 @@ function composeLoop_() {
 // Daily trigger (setup): also expires requests past their last day.
 function composeLoop() {
   const lock = LockService.getScriptLock();
-  lock.waitLock(30000);
+  if (!lock.tryLock(30000)) {
+    try {
+      const m = loopFailMail('geen slot: het script was na 30 s nog met iets anders bezig');
+      MailApp.sendEmail(Session.getEffectiveUser().getEmail(), m.subject, m.body);
+    } catch (e) {}
+    return;
+  }
   try { composeLoop_(); expireStale_(); } finally { lock.releaseLock(); }
 }
 

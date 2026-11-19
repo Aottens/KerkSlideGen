@@ -174,3 +174,12 @@ test('dlv_09_compose_marks_the_move_step_after_copying', () => {
   assert.ok(copy > 0 && mark > copy, 'marked after the copies are made');
   assert.ok(mark < c.indexOf('.moveTo(loop)'), 'and before the first move into Loop/');
 });
+
+// FIX-04 (DLV-08): a nightly run that cannot get the lock mails the team -----------------------------------------------
+
+test('dlv_08_night_run_without_the_lock_mails_the_team', () => {
+  const night = fnBody('composeLoop');
+  assert.doesNotMatch(night, /waitLock/);
+  assert.match(night, /if \(!lock\.tryLock\(30000\)\)/);
+  assert.match(night, /loopFailMail\(/);
+});
