@@ -100,7 +100,7 @@ test('dlv_02_an_ok_callback_sets_te_keuren_with_token_and_png', () => {
 test('dlv_02_token_and_png_survive_the_sheet', () => {
   const row = I.toRow({ ...ROW, token: 'b'.repeat(32), png: 'file-9' });
   assert.equal(row.length, I.COLUMNS.length);
-  assert.deepEqual(I.COLUMNS.slice(-2), ['token', 'png']);
+  assert.deepEqual(I.COLUMNS.slice(13, 15), ['token', 'png']);
   const got = I.fromRow(row.map((v) => (typeof v === 'string' && v.startsWith("'") ? v.slice(1) : v)));
   assert.equal(got.token, 'b'.repeat(32));
   assert.equal(got.png, 'file-9');
@@ -205,12 +205,6 @@ test('dlv_06_others_go_to_the_team_and_get_the_received_mail', () => {
 
 test('dlv_06_an_empty_address_never_matches_an_empty_allowlist_row', () => {
   assert.deepEqual(D.recipients('', [[''], ['']], TEAM), { approval: TEAM, received: '' });
-});
-
-// DLV-05 placeholder (VS2-03) -----------------------------------------------------------------------------------------
-
-test('dlv_05_aanpassen_has_a_placeholder_page_until_vs2_03', () => {
-  assert.ok(D.PAGES.changeLater.trim());
 });
 
 // DLV-14 --------------------------------------------------------------------------------------------------------------

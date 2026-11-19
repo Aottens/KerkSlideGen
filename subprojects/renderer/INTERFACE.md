@@ -22,7 +22,8 @@ this repo only, stored in the script property `GITHUB_TOKEN`.
   }
 }
 ```
-`change` is the requester's *Aanpassen* text for round 2 and 3 (DLV-05), else `""`. `show_until` may be `""`.
+`change` holds the requester's *Aanpassen* texts for round 2 and 3, oldest first, one per paragraph (DLV-05),
+else `""`. `show_until` may be `""`.
 `image` says whether the request has one; the job then fetches it with
 `GET <web app URL>?image=<id>&exp=<unix time + 900>&sig=<hex HMAC-SHA256 of "<id>.<exp>">` (DLV-14). The answer is
 `{"ext": "jpg", "base64": "<the image>"}` (`ext` one of `jpg`, `png`, `webp`, `heic`); a wrong or expired signature,
