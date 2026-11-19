@@ -29,20 +29,22 @@ activity gets one slide, approved once; after that only its date changes.
   agenda, never from Claude. The visual team gets the approval mail (DLV-03) with three buttons: *Goedkeuren*,
   *Aanpassen*, *Niet tonen*. The agenda has no requester, so the visual team approves (owner, 2026-11-18: once per
   activity).
-- **AGD-05** For an activity in state `tonen`, every occurrence in the window of AGD-02 is rendered without Claude: the
-  approved `title` and `line`, `when` from the occurrence's start in Dutch ("zondag 30 november, 19.30 uur"), `where`
-  from its location (cut to 40 characters at a word boundary, empty when the agenda has none).
+- **AGD-05** For an activity in state `tonen` without its own slide (AGD-09), every occurrence in the window of AGD-02
+  is rendered without Claude: the approved `title` and `line`, `when` from the occurrence's start in Dutch ("zondag 30
+  november, 19.30 uur"), `where` from its location (cut to 40 characters at a word boundary, empty when the agenda has
+  none).
 - **AGD-06** *Niet tonen* gives the activity state `niet tonen`: none of its occurrences gets a slide. The visual team
   undoes it by setting the state back to `nieuw` in the Sheet.
 - **AGD-07** An occurrence whose time or place changes in the agenda is rendered again in the next night's run; one
   that is cancelled or deleted is not in the next loop. A change to an activity's title or description does not make
   a new slide: the visual team sets the activity back to `nieuw` when it should.
-- **AGD-09** The visual team keeps its own slides for agenda activities as PNGs in `KerkSlideGen/Vast/Agenda/`, the
-  file name being the activity's title (trimmed, case ignored, without `.png`). An activity with such a file gets no
-  slide from condense and no approval mail, whatever its state; its PNG is in the loop once when the activity has at
-  least one occurrence in the window of AGD-02, and not otherwise. The PNG carries no date from the agenda. Slides
-  that do not belong to the agenda (collecte, welkom) stay in `Vast/` (DLV-12) or `Vast/Wisselend/` (DLV-16) (owner,
-  2026-11-19).
+- **AGD-09** The visual team keeps its own slides for agenda activities as PNGs in `KerkSlideGen/Vast/Agenda/`, the file
+  name being the activity's title (trimmed, case ignored, without `.png`). The PNG replaces the activity's own agenda
+  slides: condense makes none (AGD-04), no approval mail goes out, and none of its occurrences is rendered (AGD-05). It
+  is in the loop once when the activity has at least one occurrence in the window of AGD-02 that is not cancelled
+  (AGD-07), and not otherwise; an activity in state `niet tonen` (AGD-06) is not in the loop, own slide or not. The PNG
+  carries no date from the agenda. Slides that do not belong to the agenda (collecte, welkom) stay in `Vast/` (DLV-12)
+  or `Vast/Wisselend/` (DLV-16) (owner, 2026-11-19).
 
 ## Failure
 - **AGD-08** When the agenda cannot be read, the night's run keeps the agenda slides of the last successful read in
