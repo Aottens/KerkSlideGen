@@ -3,7 +3,7 @@
 Owner: `subprojects/google/` (reading the agenda, the activities tab, the nightly run), `subprojects/renderer`
 (rendering an occurrence without Claude). Tests: `subprojects/google/tests/`, `subprojects/renderer/tests/`.
 Status: draft 2026-11-18, asked for by the owner ("koppelen aan de gemeente-agenda, zodat de terugkerende dingen er
-automatisch ingezet kunnen worden"). Waits for gate 1. The agenda is the church's public Google Agenda (owner
+automatisch ingezet kunnen worden"). Approved (gate 1, 2026-11-19). The agenda is the church's public Google Agenda (owner
 question 1, 2026-11-19).
 
 What is in the church's agenda for the coming week is on the screen without anyone asking for it. A recurring
