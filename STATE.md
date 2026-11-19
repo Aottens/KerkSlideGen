@@ -28,7 +28,7 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 
 ## Next
 1. FIX-02, FIX-03, FIX-04: the team mails on deliver and loop failures, as one fix block.
-2. FIX-05: the change page must not reach the script's other functions.
+2. FIX-05, FIX-06: the change page must not reach the script's other functions; retries of a change round.
 3. VS3-01: the Smart Playlist on the church Mac plays `Loop/` (gate 3).
 
 ## Waiting on the owner

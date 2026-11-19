@@ -61,6 +61,7 @@ Builds (proposed): VS1-01 + VS1-02 (render); VS1-03 + VS1-04 (condense); VS1-05 
 | FIX-03 | A failure while moving staged copies into `Loop/` leaves it half updated and the team mail says it is unchanged (`subprojects/google/src/main.js:254`; #18, plausible, major): mark that step so the mail says `Loop/` may be partly updated and the next run completes it (DLV-09 as reworded), with a test. | DLV-09, 08 | S | todo |
 | FIX-04 | When the nightly `composeLoop` cannot get the script lock within 30 s it fails without a team mail (`subprojects/google/src/main.js:279`, `waitLock` outside a try; #18, minor): use `tryLock` and mail `loopFailMail` on a miss, with a test. | DLV-08 | S | todo |
 | FIX-05 | The change page loads `google.script.run`, which lets anyone holding an *Aanpassen* link call every public top-level function of the script as the owner (`setup`, `composeLoop`, `retryDispatches`, `onSubmit`; `subprojects/google/src/main.js`; #22, plausible, minor): make the trigger and setup entry points refuse a call from the web app, with a test. | DLV-05 | S | todo |
+| FIX-06 | A failed dispatch in an *Aanpassen* round retries every minute and ends as `handwerk` after about 3 minutes instead of 3 times over 10 minutes (`subprojects/google/src/main.js:177`, `nextAttempt` counts from `created`; #22, major): count from `since`, with a test. | INT-05, DLV-05 | S | todo |
 
 ## Open questions
 - See *Owner to decide* in `STATE.md`.
