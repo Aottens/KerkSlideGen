@@ -71,8 +71,8 @@ slide: requests (this spec and `intake.md`), the agenda's coming week (`agenda.m
   for a period goes through the form, with its last date (owner, 2026-11-18).
 - **DLV-16** The visual team keeps rotating slides as PNGs in `KerkSlideGen/Vast/Wisselend/`; they are not part of
   "every PNG in `Vast/`" (DLV-12), nor are the agenda slides in `Vast/Agenda/` (AGD-09). Each composition adds
-  exactly one of them: sorted by file name, the one at index `ISO week number of the composition date mod their count`. Monday to Sunday is one week, so Saturday night and
-  Sunday give the same slide. An empty or missing folder adds nothing. Adding or removing a slide may shift the
+  exactly one of them: sorted by file name, the one at index `ISO week number of the composition date mod their
+  count`. Monday to Sunday is one week, so Saturday night and Sunday give the same slide. An empty or missing folder adds nothing. Adding or removing a slide may shift the
   rotation once (owner, 2026-11-18).
 - **DLV-13** A request past its `show_until` moves from `Bibliotheek/` to `KerkSlideGen/Archief/` with state
   `gearchiveerd`.
