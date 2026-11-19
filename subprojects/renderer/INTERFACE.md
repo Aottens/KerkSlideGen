@@ -30,8 +30,8 @@ else `""`. `show_until` may be `""`.
 or a request without image, answers `{"error": "…"}`. An Apps Script web app cannot send binary or a status code.
 
 Agenda (`specs/modules/agenda.md`) uses the same event with a `kind` (absent means `request`):
-- `"kind": "activity"`: the first slide of an agenda activity (AGD-04). `id` is the activity id (`A` + series id
-  hash), `text` is the event's title and description, and `when` and `where` come along filled from the agenda;
+- `"kind": "activity"`: the first slide of an agenda activity (AGD-04). `id` is the activity id (`A` + a hash of
+  the activity's title, AGD-03), `text` is the event's title and description, and `when` and `where` come along filled from the agenda;
   condense fills only `title` and `line`.
 - `"kind": "occurrence"`: one date of an approved activity (AGD-05). `id` is `<activity id>-<yyyy-mm-dd>`, and
   `slide` carries the full `SlideText`; there is no `text`, and the renderer does not call Claude.

@@ -5,6 +5,23 @@ Long-form records live in `specs/ADRs/`; this log is the index.
 
 ---
 
+## 2026-11-19 — The agenda is the church's public Google Agenda; an activity is grouped by title (AGD-01, 03)
+
+**Decision:** VS4-01 reads the church's public Google Agenda with `CalendarApp` (the owner's account subscribes to it;
+its id is a script property). An activity is every occurrence with the same title, not one recurring series; an
+occurrence whose title starts with "Samenkomst" gets no slide.
+
+**Alternatives considered:** parsing the public iCal feed with `UrlFetchApp` (own recurrence code); grouping by series
+id as AGD-03 first said.
+
+**Why:** the owner got the agenda's link (2026-11-19). `CalendarApp` expands recurring events itself. In the agenda
+many weekly activities (20+, Growing in Christ, Meidenclub) are separate events, so grouping by series would ask the
+team to approve each date. A service is on screen anyway (owner).
+
+**Reversal trigger:** two different activities share a title, or the church moves its agenda off Google.
+
+---
+
 ## 2026-11-18 — `Loop/` keeps its folder: the swap moves staged copies in, file by file (DLV-09)
 
 **Decision:** a composition copies only the files `Loop/` lacks into a temporary folder `Loop (opbouw)/`, then moves

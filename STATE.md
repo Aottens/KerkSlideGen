@@ -24,12 +24,13 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
   2 hours to the team. *Aanpassen* runs on Google (run of 2026-11-19); the expiry is still to run.
 - `Loop/` is composed in code after each approval and every night: every PNG in `Vast/`, one from `Vast/Wisselend/`
   by ISO week, approved requests up to their last day; expired ones go to `Archief/`. It runs on Google, and
-  *Goedkeuren* puts the slide in `Loop/` at once (run of 2026-11-18). The agenda in the loop waits on VS4-01.
+  *Goedkeuren* puts the slide in `Loop/` at once (run of 2026-11-18). The agenda in the loop starts with VS4-01.
 
 ## Next
 1. FIX-02, FIX-03, FIX-04: the team mails on deliver and loop failures, as one fix block.
 2. FIX-05, FIX-06: the change page must not reach the script's other functions; retries of a change round.
 3. VS3-01: the Smart Playlist on the church Mac plays `Loop/` (gate 3).
+4. VS4-01: read the coming week from the church's public Google Agenda (`specs/modules/agenda.md`).
 
 ## Waiting on the owner
 - The rest of the *Aanpassen* run: round 3, the old links, the logs, the expiry and the watchdog
@@ -41,9 +42,10 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - Renew `CLAUDE_CODE_OAUTH_TOKEN` before 2027-11-18 (`claude setup-token`); a reminder is in the owner's calendar.
 
 ## Blocked
-- VS4-01: which system holds the church's agenda; the owner has asked at the church.
+- Nothing.
 
 ## Owner to decide
+- Gate 1 for `specs/modules/agenda.md`: the agenda is the public Google Agenda, activities grouped by title.
 - The owner questions in `specs/modules/render.md`, `condense.md`, `intake.md`, `deliver.md`, `autoreview.md`.
 - Order of the loop, and is "de dienst begint zo" in the loop or cued by hand (`deliver.md`, question 4)?
 - Whether ProPresenter's Smart Playlist advances images every 15 s with a transition: VS3-01 at the church decides.
