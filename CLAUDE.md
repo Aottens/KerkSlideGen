@@ -35,7 +35,7 @@ reference, not the rule.
    `scripts/check-tracking.py` checks this in CI. **Every PR description has a `## Tracking` section** with the output
    of `scripts/check-tracking.py --summary origin/main`, and names its risk-gate lane (ARV-17).
 6. **Clean up after the merge.** In the owner's checkout on `main`:
-   `git fetch --prune && git branch -vv | awk '/: gone]/{print $1}' | xargs git branch -D`.
+   `git fetch --prune && git branch -vv | awk '/: gone]/ && $1 != "+" {print $1}' | xargs git branch -D`.
 
 Use the `project-orchestrator` agent in `.claude/agents/` for pre-flight and post-flight checks.
 

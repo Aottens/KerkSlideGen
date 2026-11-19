@@ -31,12 +31,11 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 2. VS4-01: read the coming week from the church's public Google Agenda (`specs/modules/agenda.md`).
 
 ## Waiting on the owner
-- The rest of the *Aanpassen* run: round 3, the old links, the logs, the expiry and the watchdog
+- The rest of the *Aanpassen* run: round 3, the old links, the logs, the expiry, the watchdog,
+  the web app guard and a change round's retries
   (`tests/manual/approve.md`, run of 2026-11-19).
 - Share `KerkSlideGen` with `visueel@` and the church Mac's account; check the night run of `composeLoop` in
   *Executions* (`tests/manual/loop.md`, run of 2026-11-18).
-- `clasp push` and a new web app version, so the night run and the web app send the new team mails, the change page
-  cannot run the script's triggers and a change round retries over 10 minutes.
 - The owner's Drive is nearly full: a full Drive stops every copy into `Loop/`. Free space or buy storage.
 - Renew `GITHUB_TOKEN` (fine-grained, one year) before it expires; the date goes in the owner's calendar.
 - Renew `CLAUDE_CODE_OAUTH_TOKEN` before 2027-11-18 (`claude setup-token`); a reminder is in the owner's calendar.
