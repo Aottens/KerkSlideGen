@@ -15,6 +15,7 @@ Ideas the owner dropped or that came up, not yet planned. No criteria or code un
 | IDEA-09 | *Aanpassen* can drop the request's image (a checkbox on the change page). | 1 | open |
 | IDEA-10 | *Aanpassen* can change the event date and the last day on screen. | 1 | open |
 | IDEA-11 | The form explains a series (e.g. Alpha, 10 Tuesdays): first date as event date, last day on screen as chosen. | 1 | open |
+| IDEA-12 | The team's own slides for agenda activities show only in weeks the activity is in the agenda. | 1 | planned (2026-11-19, AGD-09, VS4-02/03) |
 
 ### IDEA-01
 Intent: members want their own image on a slide. Touches: render (image placement inside the safe area), intake (a
@@ -91,3 +92,11 @@ zichtbaar zijn?". Phase 1, small. Touches: `specs/modules/intake.md` (INT-01 hel
 (`FORM`), the form itself (`setup` or the Forms editor), `tests/manual/intake.md`. Related: a series in the church's
 agenda gets its slides from VS4 without the form (AGD-03..05); a weekday on the slide is checked against the event
 date (CND-09). Open: should the last day default to something else than the event date?
+
+### IDEA-12
+Intent: the visual team already has slides for most recurring activities (Kringen, Bidstond, Seniorenmiddag), and
+condense should not propose new ones for them. Owner, 2026-11-19: a PNG in `Vast/Agenda/` named after the activity's
+title replaces condense's slide and shows only in weeks the activity is in the agenda; collecte and welkom stay in
+`Vast/`. Planned as AGD-09 in VS4-02 (no proposal) and VS4-03 (in the loop). Touches: `specs/modules/agenda.md`,
+`deliver.md` (DLV-09, DLV-16), `subprojects/google/src/main.js` (`composeLoop`). `Vast/` is read without subfolders, so
+`Vast/Agenda/` is not in "every PNG in `Vast/`" today. Open: none.
