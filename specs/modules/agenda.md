@@ -26,8 +26,9 @@ activity gets one slide, approved once; after that only its date changes.
   `te keuren`, `tonen`, `niet tonen`) and the approved slide text.
 - **AGD-04** An occurrence of an activity in state `nieuw` without its own slide (AGD-09) gets its slide made once:
   condense (CND) reads the title and description and fills only `title` and `line`; `when` and `where` come from the
-  agenda, never from Claude. The visual team gets the approval mail (DLV-03) with three buttons: *Goedkeuren*, *Aanpassen*, *Niet tonen*. The agenda has no
-  requester, so the visual team approves (owner, 2026-11-18: once per activity).
+  agenda, never from Claude. The visual team gets the approval mail (DLV-03) with three buttons: *Goedkeuren*,
+  *Aanpassen*, *Niet tonen*. The agenda has no requester, so the visual team approves (owner, 2026-11-18: once per
+  activity).
 - **AGD-05** For an activity in state `tonen`, every occurrence in the window of AGD-02 is rendered without Claude: the
   approved `title` and `line`, `when` from the occurrence's start in Dutch ("zondag 30 november, 19.30 uur"), `where`
   from its location (cut to 40 characters at a word boundary, empty when the agenda has none).
