@@ -32,8 +32,8 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 3. VS3-01: the Smart Playlist on the church Mac plays `Loop/` (gate 3).
 
 ## Waiting on the owner
-- The rest of the *Aanpassen* run: round 3, the old links, the logs, the expiry and the watchdog (`tests/manual/approve.md`,
-  run of 2026-11-19).
+- The rest of the *Aanpassen* run: round 3, the old links, the logs, the expiry and the watchdog
+  (`tests/manual/approve.md`, run of 2026-11-19).
 - Share `KerkSlideGen` with `visueel@` and the church Mac's account; check the night run of `composeLoop` in
   *Executions* (`tests/manual/loop.md`, run of 2026-11-18).
 - The owner's Drive is nearly full: a full Drive stops every copy into `Loop/`. Free space or buy storage.
