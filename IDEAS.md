@@ -61,3 +61,20 @@ beside all of `Vast/`), VS2-04's composition in `subprojects/google/src/main.js`
 with `slidegen render` and live only in Drive (INT-07). Open: one per week or a few; does the rotation reset when a
 slide is added; the photos sent along are too small for 1920×1080 (text only, or larger photos); one message is too
 long for 15 seconds and goes back to the team to shorten.
+
+### IDEA-09
+Intent: a requester who asks in *Aanpassen* to leave the image out gets it again: the change text only goes to condense
+(DLV-05), and the render uses the request's image whenever there is one (REN-11). Found in the VS2-03 run
+(2026-11-19). Proposed: the change page gets a checkbox *Afbeelding weglaten*; ticked, the next dispatch sends
+`image: false`. Phase 1, after the fix blocks. Touches: `specs/modules/deliver.md` (DLV-05),
+`subprojects/google/src/deliver.js` (`changeForm`, `afterChange`), `main.js` (`submitChange`), a Sheet field for "no
+image", `tests/manual/approve.md`. Open: can a requester also add or swap an image in *Aanpassen*, or only drop it?
+
+### IDEA-10
+Intent: when a change moves the event's date, the slide's last day on screen (`show_until`) moves with it; today the
+dates stay those of the form, whatever the change text says. Found in the VS2-03 run (2026-11-19). Proposed: the change
+page shows the event date and the last day, filled in from the request, editable; the next dispatch carries the new
+dates (a date read from the change text by Claude is not trusted: CND-03). Phase 1, together with IDEA-09 (one change
+page). Touches: `specs/modules/deliver.md` (DLV-05), `intake.md` (INT-01 date rules), `deliver.js`, `main.js`,
+`tests/manual/approve.md`. Open: what if the text says another date than the fields; can the last day be after the
+event date.
