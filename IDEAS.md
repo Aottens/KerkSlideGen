@@ -12,6 +12,8 @@ Ideas the owner dropped or that came up, not yet planned. No criteria or code un
 | IDEA-06 | Team mails and the requester's mail come from or go to `visueel@`, though the script runs on the owner's account. | 1 | decided (2026-11-18): the owner's address for phase 1, DECISIONS |
 | IDEA-07 | Condense keeps an activity's name as written, in its own language (changes CND-02). | 1 | planned (2026-11-18, CND-10, VS1-09 done) |
 | IDEA-08 | Rotating fixed slides: one of a set shows per week, e.g. the pastoral team's messages. | 1 | planned (2026-11-18, DLV-16, with VS2-04) |
+| IDEA-09 | *Aanpassen* can drop the request's image (a checkbox on the change page). | 1 | open |
+| IDEA-10 | *Aanpassen* can change the event date and the last day on screen. | 1 | open |
 
 ### IDEA-01
 Intent: members want their own image on a slide. Touches: render (image placement inside the safe area), intake (a
