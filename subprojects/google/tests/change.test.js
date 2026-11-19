@@ -158,5 +158,5 @@ test('dlv_05_main_has_the_change_round_trip', () => {
   assert.ok(MAIN.includes('function submitChange('));
   assert.match(sub, /afterChange\(/);
   assert.match(sub, /tryDispatch_\(/);
-  assert.match(sub.slice(sub.lastIndexOf('catch (err)')), /mailTeam_\(/, 'a failed Aanpassen mails the team');
+  assert.match(sub.slice(sub.lastIndexOf('catch (err)')), /mailTeamDeliver_\(/, 'a failed Aanpassen mails the team');
 });

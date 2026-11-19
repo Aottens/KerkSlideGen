@@ -259,9 +259,27 @@ const fnBody = (name) => {
 test('dlv_08_a_failed_goedkeuren_mails_the_team', () => {
   const get = fnBody('doGet');
   const c = get.slice(get.lastIndexOf('catch (err)'));
-  assert.match(c, /mailTeam_\(/, 'the catch of doGet mails the team');
+  assert.match(c, /mailTeamDeliver_\(/, 'the catch of doGet mails the team');
 });
 
 test('dlv_01_a_post_without_body_is_refused_before_anything_can_throw', () => {
   assert.match(fnBody('doPost'), /e && e\.postData && e\.postData\.contents\) \|\| ''/);
+});
+
+// FIX-02 (DLV-08): a request that was dispatched and then stops gets its own headline, not "niet naar GitHub gestuurd".
+test('dlv_08_team_mail_after_dispatch_has_its_own_headline', () => {
+  const m = I.teamMail(ROW, 'geen antwoord van de render', 'deliver');
+  assert.doesNotMatch(m.subject + m.body, /GitHub|niet doorgestuurd/);
+  assert.ok(m.subject.includes(ROW.id) && m.subject.includes('geen antwoord van de render'));
+  assert.match(m.body.split('\n')[0], /met de hand afgemaakt/);
+  for (const s of [ROW.text, ROW.name, ROW.email, 'Reden: geen antwoord van de render']) assert.ok(m.body.includes(s), s);
+  assert.match(I.teamMail(ROW, 'x').body, /niet naar GitHub gestuurd/, 'the intake headline stays');
+});
+
+test('dlv_08_deliver_paths_mail_the_team_with_the_deliver_headline', () => {
+  assert.match(MAIN, /function mailTeamDeliver_\(req, reason\) \{[^}]*teamMail\(req, reason, 'deliver'\)/);
+  for (const name of ['doPost', 'doGet', 'submitChange', 'expireStale_']) {
+    assert.doesNotMatch(fnBody(name), /mailTeam_\(/, name + ' uses mailTeamDeliver_');
+    assert.match(fnBody(name), /mailTeamDeliver_\(/, name);
+  }
 });
