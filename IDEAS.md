@@ -12,6 +12,9 @@ Ideas the owner dropped or that came up, not yet planned. No criteria or code un
 | IDEA-06 | Team mails and the requester's mail come from or go to `visueel@`, though the script runs on the owner's account. | 1 | decided (2026-11-18): the owner's address for phase 1, DECISIONS |
 | IDEA-07 | Condense keeps an activity's name as written, in its own language (changes CND-02). | 1 | planned (2026-11-18, CND-10, VS1-09 done) |
 | IDEA-08 | Rotating fixed slides: one of a set shows per week, e.g. the pastoral team's messages. | 1 | planned (2026-11-18, DLV-16, with VS2-04) |
+| IDEA-09 | *Aanpassen* can drop the request's image (a checkbox on the change page). | 1 | open |
+| IDEA-10 | *Aanpassen* can change the event date and the last day on screen. | 1 | open |
+| IDEA-11 | The form explains a series (e.g. Alpha, 10 Tuesdays): first date as event date, last day on screen as chosen. | 1 | open |
 
 ### IDEA-01
 Intent: members want their own image on a slide. Touches: render (image placement inside the safe area), intake (a
@@ -61,3 +64,30 @@ beside all of `Vast/`), VS2-04's composition in `subprojects/google/src/main.js`
 with `slidegen render` and live only in Drive (INT-07). Open: one per week or a few; does the rotation reset when a
 slide is added; the photos sent along are too small for 1920×1080 (text only, or larger photos); one message is too
 long for 15 seconds and goes back to the team to shorten.
+
+### IDEA-09
+Intent: a requester who asks in *Aanpassen* to leave the image out gets it again: the change text only goes to condense
+(DLV-05), and the render uses the request's image whenever there is one (REN-11). Found in the VS2-03 run
+(2026-11-19). Proposed: the change page gets a checkbox *Afbeelding weglaten*; ticked, the next dispatch sends
+`image: false`. Phase 1, after the fix blocks. Touches: `specs/modules/deliver.md` (DLV-05),
+`subprojects/google/src/deliver.js` (`changeForm`, `afterChange`), `main.js` (`submitChange`), a Sheet field for "no
+image", `tests/manual/approve.md`. Open: can a requester also add or swap an image in *Aanpassen*, or only drop it?
+
+### IDEA-10
+Intent: when a change moves the event's date, the slide's last day on screen (`show_until`) moves with it; today the
+dates stay those of the form, whatever the change text says. Found in the VS2-03 run (2026-11-19). Proposed: the change
+page shows the event date and the last day, filled in from the request, editable; the next dispatch carries the new
+dates (a date read from the change text by Claude is not trusted: CND-03). Phase 1, together with IDEA-09 (one change
+page). Touches: `specs/modules/deliver.md` (DLV-05), `intake.md` (INT-01 date rules), `deliver.js`, `main.js`,
+`tests/manual/approve.md`. Open: what if the text says another date than the fields; can the last day be after the
+event date.
+
+### IDEA-11
+Intent: a series such as the Alpha course (10 Tuesdays) has one event date in the form. It works today when the
+requester gives the first date as event date and fills the last day on screen, but the form does not say so, and an
+empty last day takes the slide out after the first evening. Owner, 2026-11-19. Proposed: help texts in the form, at the
+event date "Bij een reeks: de eerste datum" and at the last day "Bij een reeks of aanmelding: tot wanneer moet hij
+zichtbaar zijn?". Phase 1, small. Touches: `specs/modules/intake.md` (INT-01 help texts), `subprojects/google/src/intake.js`
+(`FORM`), the form itself (`setup` or the Forms editor), `tests/manual/intake.md`. Related: a series in the church's
+agenda gets its slides from VS4 without the form (AGD-03..05); a weekday on the slide is checked against the event
+date (CND-09). Open: should the last day default to something else than the event date?
