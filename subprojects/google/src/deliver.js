@@ -205,10 +205,23 @@ function loopPlan({ fixed, rotating, requests, current, today }) {
 }
 
 function loopFailMail(reason) {
+  const tail = `\n\nReden: ${reason}`;
+  if (reason.startsWith('verplaatsen')) {
+    return {
+      subject: `Loop deels bijgewerkt: ${reason}`,
+      body: 'Het samenstellen van de loop is mislukt bij het verplaatsen van de nieuwe bestanden. Loop/ is mogelijk deels bijgewerkt. ' +
+        'De volgende run (elke nacht om 03:00 of na een goedkeuring) maakt het af.' + tail,
+    };
+  }
+  if (reason.startsWith('archiveren')) {
+    return {
+      subject: `Loop bijgewerkt, archiveren mislukt: ${reason}`,
+      body: 'De loop is bijgewerkt; alleen het archiveren van verlopen aanvragen is mislukt.' + tail,
+    };
+  }
   return {
     subject: `Loop niet bijgewerkt: ${reason}`,
-    body: 'Het samenstellen van de loop is mislukt. Loop/ staat er zoals hij was, tenzij de reden met "archiveren" ' +
-      `begint: dan is de loop wel bijgewerkt en is alleen het archiveren mislukt.\n\nReden: ${reason}`,
+    body: 'Het samenstellen van de loop is mislukt. Loop/ staat er zoals hij was.' + tail,
   };
 }
 

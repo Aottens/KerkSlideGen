@@ -235,7 +235,8 @@ function page_(text) {
 }
 
 // Builds Loop/ (DLV-09/12/13/16). Copies go into a temp folder first; Loop/ itself stays, since Drive for Desktop and
-// ProPresenter watch it. Never throws: a failure mails the team and leaves Loop/ as it was.
+// ProPresenter watch it. Never throws: a failure mails the team. A failure while copying leaves Loop/ as it was; one while
+// moving may leave it partly updated, and the next run completes it (DLV-09).
 function composeLoop_() {
   let temp = null;
   let step = '';
@@ -257,6 +258,7 @@ function composeLoop_() {
     for (const old of list(root.getFoldersByName(LOOP_TEMP_FOLDER), (f) => f)) old.setTrashed(true);
     temp = root.createFolder(LOOP_TEMP_FOLDER);
     for (const a of plan.add) DriveApp.getFileById(a.sourceId).makeCopy(a.name, temp).setDescription(a.key);
+    step = 'verplaatsen: ';
     for (const f of list(temp.getFiles(), (x) => x)) f.moveTo(loop);
     for (const id of plan.remove) DriveApp.getFileById(id).setTrashed(true);
     temp.setTrashed(true);
