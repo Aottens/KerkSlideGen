@@ -14,6 +14,7 @@ Ideas the owner dropped or that came up, not yet planned. No criteria or code un
 | IDEA-08 | Rotating fixed slides: one of a set shows per week, e.g. the pastoral team's messages. | 1 | planned (2026-11-18, DLV-16, with VS2-04) |
 | IDEA-09 | *Aanpassen* can drop the request's image (a checkbox on the change page). | 1 | open |
 | IDEA-10 | *Aanpassen* can change the event date and the last day on screen. | 1 | open |
+| IDEA-11 | The form explains a series (e.g. Alpha, 10 Tuesdays): first date as event date, last day on screen as chosen. | 1 | open |
 
 ### IDEA-01
 Intent: members want their own image on a slide. Touches: render (image placement inside the safe area), intake (a
@@ -80,3 +81,13 @@ dates (a date read from the change text by Claude is not trusted: CND-03). Phase
 page). Touches: `specs/modules/deliver.md` (DLV-05), `intake.md` (INT-01 date rules), `deliver.js`, `main.js`,
 `tests/manual/approve.md`. Open: what if the text says another date than the fields; can the last day be after the
 event date.
+
+### IDEA-11
+Intent: a series such as the Alpha course (10 Tuesdays) has one event date in the form. It works today when the
+requester gives the first date as event date and fills the last day on screen, but the form does not say so, and an
+empty last day takes the slide out after the first evening. Owner, 2026-11-19. Proposed: help texts in the form, at the
+event date "Bij een reeks: de eerste datum" and at the last day "Bij een reeks of aanmelding: tot wanneer moet hij
+zichtbaar zijn?". Phase 1, small. Touches: `specs/modules/intake.md` (INT-01 help texts), `subprojects/google/src/intake.js`
+(`FORM`), the form itself (`setup` or the Forms editor), `tests/manual/intake.md`. Related: a series in the church's
+agenda gets its slides from VS4 without the form (AGD-03..05); a weekday on the slide is checked against the event
+date (CND-09). Open: should the last day default to something else than the event date?
