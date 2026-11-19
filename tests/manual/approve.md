@@ -44,6 +44,11 @@ Before the run: `clasp push`, a new web app version, and `setup` once (the Sheet
       run starts, the row says `handwerk` with reason `3 rondes aangepast`, and the owner gets one mail with the
       request text and all three change texts.
 - [ ] **INT-07** The runs of round 2 and 3 log only id, round and outcome: no change text.
+- [ ] **DLV-05** (FIX-05) In a private window, open an *Aanpassen* link, and in the browser console run
+      `google.script.run.composeLoop()`: *Executions* shows `composeLoop` ending at once, no mail, `Loop/` unchanged.
+      `composeLoop` from the editor and the night trigger still run.
+- [ ] **INT-05** (FIX-06) With `GITHUB_TOKEN` made invalid, send an *Aanpassen*: the row says `opnieuw` and goes to
+      `handwerk` about 10 minutes after the change, not after 3. Restore the token.
 
 ## Expiry and watchdog (DLV-07, 08)
 Fake the time in the Sheet instead of waiting a week; run `composeLoop` by hand in the editor.

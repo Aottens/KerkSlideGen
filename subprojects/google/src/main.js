@@ -2,7 +2,17 @@
 
 function props_() { return PropertiesService.getScriptProperties(); }
 
-function setup() {
+// FIX-05 / DLV-05: trigger and setup entry points run only from our own triggers or the owner,
+// never from the web app's google.script.run.
+function fromOwner_(e) {
+  const uid = e && e.triggerUid;
+  if (uid && ScriptApp.getProjectTriggers().some((t) => t.getUniqueId() === String(uid))) return true;
+  const me = Session.getEffectiveUser().getEmail();
+  return Boolean(me) && Session.getActiveUser().getEmail() === me;
+}
+
+function setup(e) {
+  if (!fromOwner_(e)) return;
   const p = props_();
   let formId = p.getProperty('FORM_ID');
   if (!formId) {
@@ -84,6 +94,7 @@ function mailTeamDeliver_(req, reason) {
 }
 
 function onSubmit(e) {
+  if (!fromOwner_(e)) return;
   const lock = LockService.getScriptLock();
   let answers = {};
   let email = '';
@@ -180,7 +191,7 @@ function tryDispatch_(req, rowNumber) {
     writeRow_(rowNumber, req);
     return;
   }
-  const next = nextAttempt(req.attempts, req.created);
+  const next = nextAttempt(req.attempts, retryFrom(req));
   if (next) {
     req.state = STATE.RETRY;
     req.next = next;
@@ -197,8 +208,9 @@ function tryDispatch_(req, rowNumber) {
 }
 
 // Runs every minute: stays cheap until a retry is pending.
-function retryDispatches() {
+function retryDispatches(e) {
   if (!props_().getProperty('RETRY_PENDING')) return;
+  if (!fromOwner_(e)) return;
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(30000)) return; // the next minute tries again
   // No catch: an error here leaves the rows in 'opnieuw' in the Sheet and Google mails the script owner about the
@@ -282,7 +294,8 @@ function composeLoop_() {
 }
 
 // Daily trigger (setup): also expires requests past their last day.
-function composeLoop() {
+function composeLoop(e) {
+  if (!fromOwner_(e)) return;
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(30000)) {
     try {

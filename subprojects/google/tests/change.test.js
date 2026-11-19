@@ -160,3 +160,25 @@ test('dlv_05_main_has_the_change_round_trip', () => {
   assert.match(sub, /tryDispatch_\(/);
   assert.match(sub.slice(sub.lastIndexOf('catch (err)')), /mailTeamDeliver_\(/, 'a failed Aanpassen mails the team');
 });
+
+// FIX-05 (DLV-05): the change page loads google.script.run, which can call every public function of the script --------
+
+test('dlv_05_web_app_cannot_run_the_trigger_and_setup_entry_points', () => {
+  const MAIN = fs.readFileSync(path.join(__dirname, '..', 'src', 'main.js'), 'utf8');
+  const publicFns = [...MAIN.matchAll(/^function ([A-Za-z0-9]*[A-Za-z0-9])\(/gm)].map((m) => m[1]);
+  const web = ['doGet', 'doPost', 'submitChange']; // reached from the web on purpose, each checks its own signature or token
+  for (const name of ['setup', 'onSubmit', 'retryDispatches', 'composeLoop']) assert.ok(publicFns.includes(name), name);
+  for (const name of publicFns.filter((n) => !web.includes(n))) {
+    const body = MAIN.slice(MAIN.indexOf(`function ${name}(`));
+    const head = body.slice(0, body.indexOf('\n}\n'));
+    assert.match(head, new RegExp(`^function ${name}\\(e\\) \\{`), `${name} takes the trigger event`);
+    assert.match(head, /if \(!fromOwner_\(e\)\) return;/, `${name} refuses a call from the web app`);
+  }
+  const guard = MAIN.slice(MAIN.indexOf('function fromOwner_('));
+  const g = guard.slice(0, guard.indexOf('\n}\n'));
+  assert.match(g, /e\.triggerUid/, 'a trigger passes');
+  assert.match(g, /getProjectTriggers\(\)/, 'only one of this project\'s own triggers');
+  assert.match(g, /getUniqueId\(\)/);
+  assert.match(g, /Session\.getActiveUser\(\)\.getEmail\(\)/, 'the owner in the editor passes');
+  assert.match(g, /Session\.getEffectiveUser\(\)\.getEmail\(\)/);
+});
