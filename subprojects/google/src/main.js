@@ -180,7 +180,7 @@ function tryDispatch_(req, rowNumber) {
     writeRow_(rowNumber, req);
     return;
   }
-  const next = nextAttempt(req.attempts, req.created);
+  const next = nextAttempt(req.attempts, retryFrom(req));
   if (next) {
     req.state = STATE.RETRY;
     req.next = next;

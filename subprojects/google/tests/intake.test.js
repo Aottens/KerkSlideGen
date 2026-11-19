@@ -253,3 +253,22 @@ test('int_08_refusal_mail_to_the_requester', () => {
   assert.ok(I.FILE_TYPE_MAIL.body.includes(
     'Dit bestandstype kunnen we niet gebruiken, stuur een foto (JPG of PNG).'));
 });
+
+// FIX-06 (INT-05, DLV-05): retries count from the round's dispatch, not from the first submit ----------------------------
+
+test('int_05_round_1_retries_count_from_the_submit', () => {
+  const req = { ...REQ, created: NOW, since: '' };
+  assert.equal(I.retryFrom(req).getTime(), NOW.getTime());
+  assert.equal(I.nextAttempt(1, I.retryFrom(req)).getTime(), NOW.getTime() + 2 * MIN);
+});
+
+test('int_05_an_aanpassen_round_retries_3_times_over_10_minutes_from_the_change', () => {
+  const D = require('../src/deliver.js');
+  const change = new Date(NOW.getTime() + 3 * 24 * 60 * MIN);
+  const { row } = D.afterChange({ ...REQ, created: NOW, state: I.STATE.TO_APPROVE, token: 'a'.repeat(32),
+    attempts: 1, png: 'f', change: '', since: new Date(NOW.getTime() + 60 * MIN) }, 'Andere tijd', change);
+  const due = [1, 2, 3].map((n) => I.nextAttempt(n, I.retryFrom(row)));
+  assert.deepEqual(due.map((d) => (d - change) / MIN), [2, 5, 10]);
+  const MAIN = fs.readFileSync(path.join(__dirname, '..', 'src', 'main.js'), 'utf8');
+  assert.match(MAIN, /nextAttempt\(req\.attempts, retryFrom\(req\)\)/);
+});

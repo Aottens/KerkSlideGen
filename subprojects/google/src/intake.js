@@ -93,6 +93,8 @@ function nextAttempt(attemptsMade, firstAt) {
   const m = RETRY_MINUTES[attemptsMade - 1];
   return m === undefined ? null : new Date(new Date(firstAt).getTime() + m * MIN_MS);
 }
+// Retries count from the last change (Aanpassen round), else from the submit.
+const retryFrom = (req) => req.since || req.created;
 
 const MAX_TEXT = 5000;
 const MAX_PER_HOUR = 5;
@@ -141,7 +143,7 @@ const FILE_TYPE_MAIL = {
 if (typeof module !== 'undefined') {
   module.exports = {
     GITHUB_REPO, SHEET_TAB, IMAGES_FOLDER, ROOT_FOLDER, FORM, readAnswers, makeId, STATE, COLUMNS, toRow, fromRow,
-    buildDispatch, dispatched, RETRY_MINUTES, nextAttempt, MAX_TEXT, MAX_PER_HOUR, guardReason, earlierFrom,
+    buildDispatch, dispatched, RETRY_MINUTES, nextAttempt, retryFrom, MAX_TEXT, MAX_PER_HOUR, guardReason, earlierFrom,
     teamMail, imageExtension, imageName, FILE_TYPE_MAIL,
   };
 }
