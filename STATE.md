@@ -45,7 +45,8 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - Nothing.
 
 ## Owner to decide
-- The owner questions in `specs/modules/render.md`, `condense.md`, `intake.md`, `deliver.md`, `autoreview.md`.
+- The owner questions in `specs/modules/render.md`, `condense.md`, `intake.md`, `deliver.md`, `autoreview.md`,
+  `agenda.md`.
 - Order of the loop, and is "de dienst begint zo" in the loop or cued by hand (`deliver.md`, question 4)?
 - Whether ProPresenter's Smart Playlist advances images every 15 s with a transition: VS3-01 at the church decides.
 
