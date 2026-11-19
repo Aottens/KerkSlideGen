@@ -139,3 +139,47 @@ test('dlv_08_loop_failure_mail_names_the_reason', () => {
   assert.match(m.body, /Drive antwoordde niet/);
   assert.match(m.body, /ongewijzigd|zoals hij was/);
 });
+
+// FIX-03 (DLV-09, DLV-08): the mail says which of the two it was ---------------------------------------------------------
+
+const fs = require('node:fs');
+const path = require('node:path');
+const MAIN = fs.readFileSync(path.join(__dirname, '..', 'src', 'main.js'), 'utf8');
+const fnBody = (name) => {
+  const start = MAIN.indexOf(`function ${name}(`);
+  const next = MAIN.indexOf('\nfunction ', start + 1);
+  return MAIN.slice(start, next < 0 ? undefined : next);
+};
+
+test('dlv_09_a_failure_while_moving_says_loop_may_be_partly_updated', () => {
+  const m = D.loopFailMail('verplaatsen: Drive antwoordde niet');
+  assert.match(m.subject, /deels/);
+  assert.match(m.body, /deels bijgewerkt/);
+  assert.match(m.body, /volgende run/);
+  assert.match(m.body, /Drive antwoordde niet/);
+  assert.doesNotMatch(m.subject + m.body, /zoals hij was|niet bijgewerkt/);
+});
+
+test('dlv_09_a_failure_before_moving_says_loop_is_as_it_was', () => {
+  const m = D.loopFailMail('Drive antwoordde niet');
+  assert.match(m.body, /zoals hij was/);
+  assert.doesNotMatch(m.body, /deels/);
+  assert.doesNotMatch(D.loopFailMail('archiveren: x').subject + D.loopFailMail('archiveren: x').body, /deels|zoals hij was/);
+});
+
+test('dlv_09_compose_marks_the_move_step_after_copying', () => {
+  const c = fnBody('composeLoop_');
+  const copy = c.indexOf('makeCopy(');
+  const mark = c.indexOf("step = 'verplaatsen: '");
+  assert.ok(copy > 0 && mark > copy, 'marked after the copies are made');
+  assert.ok(mark < c.indexOf('.moveTo(loop)'), 'and before the first move into Loop/');
+});
+
+// FIX-04 (DLV-08): a nightly run that cannot get the lock mails the team -----------------------------------------------
+
+test('dlv_08_night_run_without_the_lock_mails_the_team', () => {
+  const night = fnBody('composeLoop');
+  assert.doesNotMatch(night, /waitLock/);
+  assert.match(night, /if \(!lock\.tryLock\(30000\)\)/);
+  assert.match(night, /loopFailMail\(/);
+});

@@ -27,16 +27,16 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
   *Goedkeuren* puts the slide in `Loop/` at once (run of 2026-11-18). The agenda in the loop starts with VS4-01.
 
 ## Next
-1. FIX-02, FIX-03, FIX-04: the team mails on deliver and loop failures, as one fix block.
-2. FIX-05, FIX-06: the change page must not reach the script's other functions; retries of a change round.
-3. VS3-01: the Smart Playlist on the church Mac plays `Loop/` (gate 3).
-4. VS4-01: read the coming week from the church's public Google Agenda (`specs/modules/agenda.md`).
+1. FIX-05, FIX-06: the change page must not reach the script's other functions; retries of a change round.
+2. VS3-01: the Smart Playlist on the church Mac plays `Loop/` (gate 3).
+3. VS4-01: read the coming week from the church's public Google Agenda (`specs/modules/agenda.md`).
 
 ## Waiting on the owner
 - The rest of the *Aanpassen* run: round 3, the old links, the logs, the expiry and the watchdog
   (`tests/manual/approve.md`, run of 2026-11-19).
 - Share `KerkSlideGen` with `visueel@` and the church Mac's account; check the night run of `composeLoop` in
   *Executions* (`tests/manual/loop.md`, run of 2026-11-18).
+- `clasp push` and a new web app version, so the night run and the web app send the new team mails.
 - The owner's Drive is nearly full: a full Drive stops every copy into `Loop/`. Free space or buy storage.
 - Renew `GITHUB_TOKEN` (fine-grained, one year) before it expires; the date goes in the owner's calendar.
 - Renew `CLAUDE_CODE_OAUTH_TOKEN` before 2027-11-18 (`claude setup-token`); a reminder is in the owner's calendar.

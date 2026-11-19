@@ -78,6 +78,11 @@ function mailTeam_(req, reason) {
   MailApp.sendEmail(Session.getEffectiveUser().getEmail(), m.subject, m.body);
 }
 
+function mailTeamDeliver_(req, reason) {
+  const m = teamMail(req, reason, 'deliver');
+  MailApp.sendEmail(Session.getEffectiveUser().getEmail(), m.subject, m.body);
+}
+
 function onSubmit(e) {
   const lock = LockService.getScriptLock();
   let answers = {};
@@ -230,7 +235,8 @@ function page_(text) {
 }
 
 // Builds Loop/ (DLV-09/12/13/16). Copies go into a temp folder first; Loop/ itself stays, since Drive for Desktop and
-// ProPresenter watch it. Never throws: a failure mails the team and leaves Loop/ as it was.
+// ProPresenter watch it. Never throws: a failure mails the team. A failure while copying leaves Loop/ as it was; one while
+// moving may leave it partly updated, and the next run completes it (DLV-09).
 function composeLoop_() {
   let temp = null;
   let step = '';
@@ -252,6 +258,7 @@ function composeLoop_() {
     for (const old of list(root.getFoldersByName(LOOP_TEMP_FOLDER), (f) => f)) old.setTrashed(true);
     temp = root.createFolder(LOOP_TEMP_FOLDER);
     for (const a of plan.add) DriveApp.getFileById(a.sourceId).makeCopy(a.name, temp).setDescription(a.key);
+    step = 'verplaatsen: ';
     for (const f of list(temp.getFiles(), (x) => x)) f.moveTo(loop);
     for (const id of plan.remove) DriveApp.getFileById(id).setTrashed(true);
     temp.setTrashed(true);
@@ -277,7 +284,13 @@ function composeLoop_() {
 // Daily trigger (setup): also expires requests past their last day.
 function composeLoop() {
   const lock = LockService.getScriptLock();
-  lock.waitLock(30000);
+  if (!lock.tryLock(30000)) {
+    try {
+      const m = loopFailMail('geen slot: het script was na 30 s nog met iets anders bezig');
+      MailApp.sendEmail(Session.getEffectiveUser().getEmail(), m.subject, m.body);
+    } catch (e) {}
+    return;
+  }
   try { composeLoop_(); expireStale_(); } finally { lock.releaseLock(); }
 }
 
@@ -298,14 +311,14 @@ function submitChange(id, token, text) {
     if (row.png) DriveApp.getFileById(row.png).setTrashed(true);
     writeRow_(found.rowNumber, after.row);
     if (after.toTeam) {
-      mailTeam_(after.row, after.row.reason);
+      mailTeamDeliver_(after.row, after.row.reason);
       return PAGES.changeToTeam;
     }
     tryDispatch_(after.row, found.rowNumber);
     return PAGES.changeSent;
   } catch (err) {
     const reason = 'aanpassen mislukt: ' + String((err && err.message) || err).slice(0, 200);
-    try { mailTeam_(row || { id: String(id || '(onbekend)'), name: '', email: '', text: '', event_date: '', show_until: '' }, reason); } catch (x) {}
+    try { mailTeamDeliver_(row || { id: String(id || '(onbekend)'), name: '', email: '', text: '', event_date: '', show_until: '' }, reason); } catch (x) {}
     return PAGES.error;
   } finally {
     try { lock.releaseLock(); } catch (x) {}
@@ -328,12 +341,12 @@ function expireStale_() {
         row.reason = NO_RENDER_REASON;
         row.token = '';
         writeRow_(i + 2, row);
-        mailTeam_(row, row.reason);
+        mailTeamDeliver_(row, row.reason);
       }
     });
   } catch (err) {
     try {
-      mailTeam_({ id: '(nachtrun)', name: '', email: '', text: '', event_date: '', show_until: '' },
+      mailTeamDeliver_({ id: '(nachtrun)', name: '', email: '', text: '', event_date: '', show_until: '' },
         'verlopen/wachtende aanvragen: ' + String((err && err.message) || err).slice(0, 200));
     } catch (x) {}
   }
@@ -363,7 +376,7 @@ function doPost(e) {
     if (!body.ok) {
       const after = afterCallback(row, body, '', '');
       writeRow_(rowNumber, after);
-      mailTeam_(after, after.reason);
+      mailTeamDeliver_(after, after.reason);
       return json_({ ok: true });
     }
     const base = props_().getProperty('WEB_APP_URL');
@@ -387,7 +400,7 @@ function doPost(e) {
   } catch (err) {
     const reason = 'fout in het script: ' + String((err && err.message) || err).slice(0, 200);
     if (req && rowNumber && !mailed) { req = afterError(req, reason); try { writeRow_(rowNumber, req); } catch (e2) {} }
-    try { mailTeam_(req || { id: '(onbekend)', name: '', email: '', text: '', event_date: '', show_until: '' }, reason); } catch (x) {}
+    try { mailTeamDeliver_(req || { id: '(onbekend)', name: '', email: '', text: '', event_date: '', show_until: '' }, reason); } catch (x) {}
     return json_({ ok: false });
   } finally {
     try { lock.releaseLock(); } catch (x) {}
@@ -430,7 +443,7 @@ function doGet(e) {
     return page_(approvedPage(row));
   } catch (err) {
     const reason = 'goedkeuren mislukt: ' + String((err && err.message) || err).slice(0, 200);
-    try { mailTeam_(row || { id: String(q.id || '(onbekend)'), name: '', email: '', text: '', event_date: '', show_until: '' }, reason); } catch (x) {}
+    try { mailTeamDeliver_(row || { id: String(q.id || '(onbekend)'), name: '', email: '', text: '', event_date: '', show_until: '' }, reason); } catch (x) {}
     return page_(PAGES.error);
   } finally {
     try { lock.releaseLock(); } catch (x) {}

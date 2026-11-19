@@ -106,11 +106,13 @@ function guardReason(text, earlierDates, now) {
 const earlierFrom = (rows, email) =>
   rows.filter((r) => String(r.email).toLowerCase() === String(email).toLowerCase()).map((r) => r.created);
 
-function teamMail(r, reason) {
+function teamMail(r, reason, kind) {
+  const deliver = kind === 'deliver';
   return {
-    subject: `Aanvraag ${r.id} is niet doorgestuurd: ${reason}`,
+    subject: deliver ? `Aanvraag ${r.id} moet met de hand: ${reason}` : `Aanvraag ${r.id} is niet doorgestuurd: ${reason}`,
     body: [
-      `Aanvraag ${r.id} is niet naar GitHub gestuurd en moet met de hand gemaakt worden.`,
+      deliver ? `Aanvraag ${r.id} loopt niet vanzelf verder en moet met de hand afgemaakt worden.`
+        : `Aanvraag ${r.id} is niet naar GitHub gestuurd en moet met de hand gemaakt worden.`,
       '', `Reden: ${reason}`, `Id: ${r.id}`, `Naam: ${r.name}`, `Mail: ${r.email}`,
       `Datum van het evenement: ${r.event_date}`, `Laatste dag op het scherm: ${r.show_until || '(leeg)'}`,
       '', 'Tekst van de aanvraag:', r.text,
