@@ -116,6 +116,14 @@ Mails "to the visual team" go to this account (`Session.getEffectiveUser()`).
     *Viewer*; on the church Mac, Drive for Desktop mirrors `KerkSlideGen/Loop/` (DLV-10, VS3-01).
 18. **Test it** with `tests/manual/loop.md`.
 
+### Aanpassen and expiry (VS2-03)
+19. **Push, run `setup` again, new web app version.** In the owner's checkout: `git checkout main && git pull`, then
+    in `subprojects/google` run `npx @google/clasp push` (answer yes to overwrite the manifest). Open the editor with
+    `npx @google/clasp open-script`, pick `main.gs`, choose `setup`, press *Run*: it adds the Sheet columns
+    `aanpassing` and `sinds`. Then *Deploy → Manage deployments*, the pencil at the web app, *Version: New version*,
+    *Deploy*: the URL stays the same. Without the new version the *Aanpassen* button still shows the old page.
+20. **Test it** with the *Aanpassen* and *Expiry* sections of `tests/manual/approve.md`.
+
 The approval mail, the "ontvangen" mail and the team mails come from this account's address (DECISIONS 2026-11-18).
 
 ## Gmail or Workspace
