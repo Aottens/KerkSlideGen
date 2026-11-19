@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The risk gate (specs/modules/autoreview.md, ARV-03..10, ARV-17..19): paths, findings, checks and round give a lane.
+"""The risk gate (specs/modules/autoreview.md, ARV-03..10, ARV-17..20): paths, findings, checks and round give a lane.
 
 A spec file is medium, high when the PR changes a criterion line (ARV-05). Tests and .md files are not counted
 in the 600 lines, and only the PR title can name a sub-release (ARV-07).
@@ -22,6 +22,7 @@ Usage:
       Decides from `git diff --numstat <base>...HEAD`; PR_TITLE and PR_BODY come from the environment.
       A finding outside the diff (line < 1, or a file the PR does not change) is not reviewed: red (ARV-19).
       Findings whose file:line the PR's added BACKLOG.md/STATE.md lines lack make a green lane amber (ARV-18).
+      A BACKLOG.md/STATE.md finding that an added FIX-nn row marked done names by file:line is fixed: dropped (ARV-20).
       Prints the lane, then one "- reason" line per reason. Always exits 0; the workflow acts on the lane.
 """
 import argparse
@@ -149,12 +150,21 @@ def decide(rows, findings, review_round=1, failed_checks=(), title="", body="", 
     paths = [path for _, _, path in rows]
     outside = [x for x in findings or [] if outside_diff(x, paths)]
     findings = [x for x in findings if x not in outside] if findings is not None else None
+    # ARV-20: a BACKLOG.md/STATE.md finding that one added `FIX-nn ... done` line names by file:line is fixed.
+    def fixed(x):
+        w = f"{x['file']}:{x['line']}"
+        return x["file"] in ("BACKLOG.md", "STATE.md") and any(
+            re.search(r"FIX-\d+", l) and re.search(r"\bdone\b", l) and re.search(rf"(?<![\w./-]){re.escape(w)}(?!\d)", l)
+            for l in recorded.splitlines())
+    fixed_found = [x for x in findings or [] if fixed(x)]
+    findings = [x for x in findings if x not in fixed_found] if findings is not None else None
     worst = worst_finding(findings or [])
     level = worst_impact([path for _, _, path in rows])
     if criteria_changed:
         level = "high"
     lane = MATRIX[worst or "none"][ORDER.index(level)]
     reasons = [f"impact {level}, worst finding {worst or 'none'} → {lane}"]
+    reasons += [f"fixed and recorded: {x['file']}:{x['line']}" for x in fixed_found]
     reasons += [f"changes a criterion: {p}" for p in criteria_changed]
     red = [f"required check failed: {name}" for name in failed_checks]
     if findings is None:
