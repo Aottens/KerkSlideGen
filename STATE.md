@@ -21,7 +21,7 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
   approval mail from the owner's address to an allowlisted requester or else to the owner, and *Goedkeuren* moves it
   to `Bibliotheek/`. *Aanpassen* asks what must change and renders again, at most 3 rounds, then the team takes over.
 - The night run also expires a slide nobody approved in 7 days (`verlopen`) and hands a render without answer after
-  2 hours to the team. In code and tests; its run on Google waits on the owner (`tests/manual/approve.md`).
+  2 hours to the team. *Aanpassen* runs on Google (run of 2026-11-19); the expiry is still to run.
 - `Loop/` is composed in code after each approval and every night: every PNG in `Vast/`, one from `Vast/Wisselend/`
   by ISO week, approved requests up to their last day; expired ones go to `Archief/`. It runs on Google, and
   *Goedkeuren* puts the slide in `Loop/` at once (run of 2026-11-18). The agenda in the loop waits on VS4-01.
@@ -32,8 +32,8 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 3. VS3-01: the Smart Playlist on the church Mac plays `Loop/` (gate 3).
 
 ## Waiting on the owner
-- `clasp push`, a new web app version and `setup` once (Sheet columns `aanpassing`, `sinds`), then the *Aanpassen*,
-  expiry and watchdog steps of `tests/manual/approve.md`.
+- The rest of the *Aanpassen* run: round 3, the old links, the logs, the expiry and the watchdog (`tests/manual/approve.md`,
+  run of 2026-11-19).
 - Share `KerkSlideGen` with `visueel@` and the church Mac's account; check the night run of `composeLoop` in
   *Executions* (`tests/manual/loop.md`, run of 2026-11-18).
 - The owner's Drive is nearly full: a full Drive stops every copy into `Loop/`. Free space or buy storage.
