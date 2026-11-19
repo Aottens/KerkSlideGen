@@ -88,6 +88,11 @@ decision is code with tests; sensitive paths never merge by themselves; every de
   reviewed* and red, with the reason `not reviewed: finding outside the diff (<file:line>), re-run the review`; such a
   finding is never `not recorded` (ARV-18) and is not recorded (ARV-13). The harness re-runs the review
   (`gh run rerun`) instead of recording it.
+- **ARV-20** A finding in `BACKLOG.md` or `STATE.md` whose `file:line` the PR's added lines name in a `FIX-nn` row
+  that says `done` is fixed (ARV-04): it no longer counts toward the worst finding (ARV-06), it is recorded
+  (ARV-18), and the gate gives the reason `fixed and recorded: <file:line>`. So a kept review whose only finding the
+  PR fixed in one of those files does not stay amber (on #28 it did, until the PR was closed and reopened). A
+  finding in any other file still counts: a push that fixes one is reviewed again (ARV-04).
 
 ## Acting on the lane
 - **ARV-10** Green: when the repository variable `AUTOMERGE` is `on`, auto-merge is switched on and GitHub merges once

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for the risk gate (specs/modules/autoreview.md, ARV-03..14, ARV-16..19). Run: scripts/test_risk_gate.py"""
+"""Tests for the risk gate (specs/modules/autoreview.md, ARV-03..14, ARV-16..20). Run: scripts/test_risk_gate.py"""
 import ast
 import importlib.util
 import subprocess
@@ -439,6 +439,46 @@ def test_arv_18_only_added_lines_record():
     text = gate.added_lines(diff)
     assert "n.rs:3" in text
     assert "k.rs:1" not in text and "g.rs:2" not in text and "b/BACKLOG.md" not in text
+
+
+# PR #28: a medium PR whose kept review found a minor in STATE.md, fixed and recorded as done (ARV-20).
+FIXED = files("scripts/x.py", "STATE.md", "BACKLOG.md")
+DONE_ROW = "| FIX-07 | names agenda.md again (`STATE.md:47`; #28, minor). | TRK | S | done (2026-11-19, #28) |"
+
+
+def test_arv_20_fixed_finding_in_state_md_no_longer_counts():
+    lane, reasons = gate.decide(FIXED, [f("minor", file="STATE.md", line=47)], recorded=DONE_ROW)
+    assert lane == "green", reasons
+    assert "fixed and recorded: STATE.md:47" in reasons
+    assert not any(r.startswith("not recorded") for r in reasons)
+    lane, reasons = gate.decide(FIXED, [f("major", file="BACKLOG.md", line=3)],
+                                recorded="| FIX-09 | x (`BACKLOG.md:3`) | TRK | S | done (2026-11-19, #31) |")
+    assert lane == "green", reasons
+
+
+def test_arv_20_a_todo_row_still_counts():
+    lane, reasons = gate.decide(FIXED, [f("minor", file="STATE.md", line=47)],
+                                recorded=DONE_ROW.replace("done (2026-11-19, #28)", "todo"))
+    assert lane == "amber", reasons
+    assert not any(r.startswith("fixed and recorded") for r in reasons)
+
+
+def test_arv_20_only_backlog_and_state_findings_are_fixed_by_a_row():
+    row = "| FIX-08 | x (`scripts/x.py:3`) | TRK | S | done (2026-11-19, #28) |"
+    lane, reasons = gate.decide(FIXED, [f("minor", file="scripts/x.py", line=3)], recorded=row)
+    assert lane == "amber", reasons
+    assert not any(r.startswith("fixed and recorded") for r in reasons)
+
+
+def test_arv_20_the_done_row_names_the_same_file_and_line():
+    found = [f("minor", file="STATE.md", line=47)]
+    for row in (DONE_ROW.replace("STATE.md:47", "STATE.md:470"), DONE_ROW.replace("FIX-07", "HAR-07"),
+                "`STATE.md:47` is done"):
+        lane, reasons = gate.decide(FIXED, found, recorded=row)
+        assert lane == "amber", row
+    # The done row must itself name the finding: another row's mention does not fix it.
+    text = "| FIX-07 | other (`STATE.md:5`) | TRK | S | done (2026-11-19, #28) |\n`STATE.md:47`"
+    assert gate.decide(FIXED, found, recorded=text)[0] == "amber"
 
 
 def gate_in_repo(tmp, findings, changed="docs/x.md"):
