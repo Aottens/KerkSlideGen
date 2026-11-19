@@ -62,6 +62,7 @@ Builds (proposed): VS1-01 + VS1-02 (render); VS1-03 + VS1-04 (condense); VS1-05 
 | FIX-04 | When the nightly `composeLoop` cannot get the script lock within 30 s it fails without a team mail (`subprojects/google/src/main.js:279`, `waitLock` outside a try; #18, minor): use `tryLock` and mail `loopFailMail` on a miss, with a test. | DLV-08 | S | todo |
 | FIX-05 | The change page loads `google.script.run`, which lets anyone holding an *Aanpassen* link call every public top-level function of the script as the owner (`setup`, `composeLoop`, `retryDispatches`, `onSubmit`; `subprojects/google/src/main.js`; #22, plausible, minor): make the trigger and setup entry points refuse a call from the web app, with a test. | DLV-05 | S | todo |
 | FIX-06 | A failed dispatch in an *Aanpassen* round retries every minute and ends as `handwerk` after about 3 minutes instead of 3 times over 10 minutes (`subprojects/google/src/main.js:178`, `nextAttempt` counts from `created`; #22, major): count from `since || created` (`since` is unset before the first dispatch), with a test for round 1 and for an *Aanpassen* round. | INT-05, DLV-05 | S | todo |
+| FIX-07 | *Owner to decide* in `STATE.md` names `agenda.md` again, whose owner question 2 is still open (`STATE.md:47`; #28, minor). | TRK | S | done (2026-11-19, #28) |
 
 ## Open questions
 - See *Owner to decide* in `STATE.md`.
