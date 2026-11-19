@@ -22,7 +22,8 @@ Phase 1 is specified and approved; the renderer makes slides with and without an
 Condense runs on Claude Code with the owner's subscription; it keeps an activity's name and invents no line.
 The intake runs on the owner's Google account: a signed-in member's form submit becomes a run of `render.yml`.
 The web app mails the approval mail; *Goedkeuren* fills `Loop/`, *Aanpassen* renders again up to 3 rounds.
-Unapproved slides expire after 7 days; its run on Google waits on the owner. Next: VS3-01, VS4-01.
+Unapproved slides expire after 7 days; its run on Google waits on the owner.
+The night run reads the coming week of the church agenda; its first run waits on the owner. Next: VS3-01, VS4-02.
 The Claude review and risk gate run on every PR, in shadow.
 
 ## Layout
