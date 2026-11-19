@@ -42,7 +42,7 @@ Builds (proposed): VS1-01 + VS1-02 (render); VS1-03 + VS1-04 (condense); VS1-05 
 ## Vertical slice 4 — the agenda
 | Id | Task (one sentence, verifiable) | Spec ids | Size | Status |
 | --- | --- | --- | --- | --- |
-| VS4-01 | The agenda adapter reads the coming week of the church's agenda as occurrences, and a failed read keeps the last good week. | AGD-01, 02, 08 | S | blocked: the agenda's system is not known yet |
+| VS4-01 | The agenda adapter reads the coming week of the church's agenda as occurrences, and a failed read keeps the last good week. | AGD-01, 02, 08 | S | todo |
 | VS4-02 | The *Activiteiten* tab: a new activity's first slide goes to the visual team with *Goedkeuren*, *Aanpassen*, *Niet tonen*. | AGD-03, 04, 06 | M | todo |
 | VS4-03 | Every occurrence of an approved activity is rendered without Claude with the agenda's time and place and joins the loop composition. | AGD-05, 07, DLV-09 | M | todo |
 

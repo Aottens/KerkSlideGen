@@ -3,23 +3,27 @@
 Owner: `subprojects/google/` (reading the agenda, the activities tab, the nightly run), `subprojects/renderer`
 (rendering an occurrence without Claude). Tests: `subprojects/google/tests/`, `subprojects/renderer/tests/`.
 Status: draft 2026-11-18, asked for by the owner ("koppelen aan de gemeente-agenda, zodat de terugkerende dingen er
-automatisch ingezet kunnen worden"). Waits for gate 1. The agenda's system is not known yet (owner question 1).
+automatisch ingezet kunnen worden"). Waits for gate 1. The agenda is the church's public Google Agenda (owner
+question 1, 2026-11-19).
 
 What is in the church's agenda for the coming week is on the screen without anyone asking for it. A recurring
 activity gets one slide, approved once; after that only its date changes.
 
 ## Reading the agenda
 - **AGD-01** The rest of this spec sees the agenda only as *occurrences*: series id, title, description, start, end,
-  location, cancelled. One adapter turns the agenda's system into occurrences; which adapter is chosen when the owner
-  names the system (owner question 1). The adapter is the only code that knows the system.
+  location, cancelled. One adapter turns the church's public Google Agenda into occurrences: Apps Script reads it with
+  `CalendarApp` (the owner's account subscribes to it once), recurring events come back as their occurrences, and
+  the calendar's id is a script property, not in the repo. The adapter is the only code that knows the agenda.
 - **AGD-02** Every night, in the same run as the loop composition (DLV-09), Apps Script reads the occurrences that
   start from today up to and including 7 days later. That is what the loop shows: on Sunday morning, the coming week
   (owner, 2026-11-18).
 
 ## Activities
-- **AGD-03** An *activity* is one recurring series (same series id), or one event that does not recur. The Sheet
-  has a tab *Activiteiten*: series id, title, state (`nieuw`, `te keuren`, `tonen`, `niet tonen`) and the approved
-  slide text.
+- **AGD-03** An *activity* is every occurrence with the same title (trimmed, case ignored), whether the agenda keeps
+  it as one recurring series or as separate events: many of the church's weekly activities are separate events
+  (owner, 2026-11-19). An occurrence whose title starts with "Samenkomst" is no activity and gets no slide: the
+  service is on screen anyway (owner, 2026-11-19). The Sheet has a tab *Activiteiten*: title, state (`nieuw`,
+  `te keuren`, `tonen`, `niet tonen`) and the approved slide text.
 - **AGD-04** An occurrence of an activity in state `nieuw` gets its slide made once: condense (CND) reads the title and
   description and fills only `title` and `line`; `when` and `where` come from the agenda, never from Claude. The visual
   team gets the approval mail (DLV-03) with three buttons: *Goedkeuren*, *Aanpassen*, *Niet tonen*. The agenda has no
@@ -38,7 +42,7 @@ activity gets one slide, approved once; after that only its date changes.
   the loop, and the visual team gets one mail per day with the error until it works again (DLV-08).
 
 ## Owner questions
-1. **Which agenda system?** Asked at the church (2026-11-18). Most church apps and websites can export a calendar
-   link (iCal); a Google Agenda can be read directly. Needed before VS4-01.
+1. **Which agenda system?** Answered (2026-11-19): the church's public Google Agenda, read directly (AGD-01). Many
+   weekly activities in it are separate events rather than a series, so an activity is grouped by title (AGD-03).
 2. **What if an activity's slide should differ per date** (e.g. a speaker's name)? Recommended: phase 1 no; such an
    evening goes through the form. Otherwise: let condense read each occurrence's description, with an approval each time.
