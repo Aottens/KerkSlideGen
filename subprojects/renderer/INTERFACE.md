@@ -37,6 +37,10 @@ Agenda (`specs/modules/agenda.md`) uses the same event with a `kind` (absent mea
   `round` 1..3 (Aanpassen), `change` as for a request, `image` false.
 - `"kind": "occurrence"`: one date of an approved activity (AGD-05). `id` is `<activity id>-<yyyy-mm-dd>`, and
   `slide` carries the full `SlideText`; there is no `text`, and the renderer does not call Claude.
+  Fields: `id`, `round` (always 1), `kind`, `event_date` (the occurrence date), `slide` (`title`, `when`, `where`,
+  `line`, within the limits of section 2; `title` and `when` not empty). A slide that does not fit is posted as a
+  failure (`does not fit`), with no second try. The web app stores the PNG without an approval mail: the activity is
+  approved already.
 
 ## 2. SlideText (inside the renderer)
 ```json

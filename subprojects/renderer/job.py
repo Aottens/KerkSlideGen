@@ -19,7 +19,8 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-ALLOWED = {"id", "round", "kind", "text", "change", "event_date", "show_until", "image", "when", "where"}
+ALLOWED = {"id", "round", "kind", "text", "change", "event_date", "show_until", "image", "when", "where", "slide"}
+SLIDE_LIMITS = {"title": 32, "when": 40, "where": 40, "line": 70}  # INTERFACE.md section 2; no import outside work()
 NOT_FIT = "the slide does not fit the safe area at the smallest text size: make it shorter (does not fit)"
 
 
@@ -75,6 +76,18 @@ def parse(p: dict) -> tuple[dict | None, str]:
     """(fields, "") or (None, reason). Reasons never hold payload values (INT-04)."""
     if set(p) - ALLOWED:
         return None, "payload has a field outside INTERFACE.md"
+    kind = p.get("kind", "request")
+    if kind == "occurrence":  # AGD-05: the slide is sent ready, Claude is never asked
+        sl = p.get("slide")
+        if "text" in p:
+            return None, "invalid payload: text"
+        if (not isinstance(sl, dict) or set(sl) - set(SLIDE_LIMITS)
+                or not all(isinstance(v, str) and len(v) <= SLIDE_LIMITS[k] for k, v in sl.items())
+                or not sl.get("title") or not sl.get("when")):
+            return None, "invalid payload: slide"
+        return {"occurrence": sl, "image": False}, ""
+    if "slide" in p:
+        return None, "payload has a field outside INTERFACE.md"
     text, change = p.get("text"), p.get("change", "")
     if not isinstance(text, str) or not 0 < len(text) <= 5000:
         return None, "invalid payload: text"
@@ -89,9 +102,6 @@ def parse(p: dict) -> tuple[dict | None, str]:
             return None, f"invalid payload: {k}"
     if not isinstance(p.get("image", False), bool):
         return None, "invalid payload: image"
-    kind = p.get("kind", "request")
-    if kind == "occurrence":
-        return None, "agenda kinds not built yet"
     fixed = None
     if kind == "activity":  # AGD-04: when and where come from the agenda, Claude never writes them
         for k in ("when", "where"):
@@ -116,11 +126,22 @@ def work(f: dict, run, render_fn, today: date, image: tuple[str, bytes] | None =
         from slidegen.layout import LayoutError
         from slidegen.render import DoesNotFit, RenderError
         from slidegen.render import render as default_render
+        from slidegen.slide import SlideText
     except ImportError as e:
         return {"reason": f"internal error: {type(e).__name__}"}
 
     try:
         render_fn = render_fn or default_render
+        if "occurrence" in f:  # AGD-05: no condense, one render
+            slide = SlideText(**{"line": "", **f["occurrence"]}, show_until="")
+            with tempfile.TemporaryDirectory() as tmp:
+                out = Path(tmp) / "slide.png"
+                try:
+                    render_fn(slide, ASSETS, out)
+                except DoesNotFit:
+                    return {"reason": "does not fit"}
+                png = base64.b64encode(out.read_bytes()).decode()
+            return {"slide": asdict(slide), "png_base64": png}
         text = f["text"]
         if f["change"]:  # DLV-05
             text += f"\n\nAanpassing van de aanvrager:\n{f['change']}"
