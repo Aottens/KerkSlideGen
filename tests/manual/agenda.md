@@ -100,7 +100,8 @@ Kies drie activiteiten uit de mails van stap 9.
 - [ ] **AGD-04** Klik nog een keer op *Goedkeuren* in dezelfde mail: de pagina zegt dat de link niet (meer) klopt.
 3. Activiteit 2: klik **Niet tonen**.
 - [ ] **AGD-06** De pagina zegt dat de activiteit niet in de loop komt. In de Sheet: `status` `niet tonen`.
-4. Zet in de Sheet de `status` van activiteit 2 terug op `nieuw` (typ het woord) en voer `composeLoop` uit.
+4. Zet in de Sheet de `status` van activiteit 2 terug op `nieuw` (typ het woord), maak `sinds` leeg als daar iets
+   staat, en voer `composeLoop` uit. Met een ingevulde `sinds` wacht het script 20 uur.
 - [ ] **AGD-06** Er komt opnieuw een mail van activiteit 2. Klik daarin **Goedkeuren** of **Niet tonen**, wat je wilt.
 5. Activiteit 3: kies zelf. Laat geen activiteit op `te keuren` staan als je klaar bent.
 
