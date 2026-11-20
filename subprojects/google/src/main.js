@@ -209,13 +209,18 @@ function tryDispatch_(req, rowNumber) {
 
 // Runs every minute: stays cheap until a retry is pending.
 function retryDispatches(e) {
-  if (!props_().getProperty('RETRY_PENDING')) return;
+  if (!props_().getProperty('RETRY_PENDING') && !props_().getProperty('LOOP_PENDING')) return;
   if (!fromOwner_(e)) return;
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(30000)) return; // the next minute tries again
   // No catch: an error here leaves the rows in 'opnieuw' in the Sheet and Google mails the script owner about the
   // failed trigger (a mail per minute to the team would burn the daily mail quota).
   try {
+    if (props_().getProperty('LOOP_PENDING')) { // DLV-09: a dated slide arrived
+      props_().deleteProperty('LOOP_PENDING');
+      composeLoop_();
+    }
+    if (!props_().getProperty('RETRY_PENDING')) return;
     const now = new Date();
     const rows = rows_();
     rows.forEach((req, i) => {
@@ -292,7 +297,9 @@ function mailTeamActivity_(a, reason) {
 }
 
 // Returns '' on success, else the reason. Same call as tryDispatch_.
-function dispatchActivity_(a, occ) {
+function dispatchActivity_(a, occ) { return postDispatch_(activityDispatch(a, occ)); }
+
+function postDispatch_(payload) {
   const token = props_().getProperty('GITHUB_TOKEN');
   if (!token) return 'GITHUB_TOKEN ontbreekt';
   try {
@@ -304,7 +311,7 @@ function dispatchActivity_(a, occ) {
         Accept: 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28',
       },
-      payload: JSON.stringify(activityDispatch(a, occ)),
+      payload: JSON.stringify(payload),
       muteHttpExceptions: true,
     }).getResponseCode();
     return dispatched(code) ? '' : 'GitHub antwoordde ' + code;
@@ -367,6 +374,89 @@ function activityCallback_(e, raw, id) {
   return json_({ ok: true });
 }
 
+// Dated slides (AGD-05/07/09): tab Datums. Never log agenda content.
+function datedTab_() {
+  const ss = SpreadsheetApp.openById(props_().getProperty('SHEET_ID'));
+  let tab = ss.getSheetByName(DATED_TAB);
+  if (!tab) {
+    tab = ss.insertSheet(DATED_TAB);
+    tab.getRange(1, 1, 1, DATED_COLUMNS.length).setValues([DATED_COLUMNS]);
+  }
+  return tab;
+}
+
+function datedRows_() {
+  const t = datedTab_();
+  const n = t.getLastRow() - 1;
+  return n < 1 ? [] : t.getRange(2, 1, n, DATED_COLUMNS.length).getValues()
+    .map((r, i) => ({ d: fromDatedRow(r), rowNumber: i + 2 })).filter((x) => x.d.id);
+}
+
+function writeDated_(rowNumber, d) {
+  datedTab_().getRange(rowNumber, 1, 1, DATED_COLUMNS.length).setValues([toDatedRow(d)]);
+}
+
+// Asks the render job for every new or changed date of an activity in tonen (AGD-05/07), prunes past dates. Never throws.
+function datedSlides_() {
+  try {
+    const tab = datedTab_();
+    const rows = datedRows_();
+    const today = amsterdamDay(new Date());
+    const plan = datedPlan({ activities: activityRows_().map((x) => x.a), occurrences: agendaOccurrences_(),
+      files: agendaFiles_(), dated: rows.map((x) => x.d), today, now: new Date() });
+    const bad = [];
+    for (const item of plan.dispatch) {
+      const found = rows.find((x) => x.d.id === item.id);
+      const why = postDispatch_(datedDispatch(item));
+      const after = afterDatedDispatch(found && found.d, item, why, new Date());
+      if (found && found.d.png && !after.png) { try { DriveApp.getFileById(found.d.png).setTrashed(true); } catch (x) {} }
+      if (found) writeDated_(found.rowNumber, after);
+      else tab.getRange(tab.getLastRow() + 1, 1, 1, DATED_COLUMNS.length).setValues([toDatedRow(after)]);
+      if (why || item.retry) bad.push({ key: item.key, reason: why || NO_RENDER_REASON });
+    }
+    if (plan.prune.length) {
+      for (const x of rows.filter((r) => plan.prune.includes(r.d.id))) {
+        if (x.d.png) { try { DriveApp.getFileById(x.d.png).setTrashed(true); } catch (e) {} }
+      }
+      const keep = datedRows_().filter((x) => !plan.prune.includes(x.d.id));
+      const n = tab.getLastRow() - 1;
+      if (n > 0) tab.getRange(2, 1, n, DATED_COLUMNS.length).clearContent();
+      if (keep.length) tab.getRange(2, 1, keep.length, DATED_COLUMNS.length).setValues(keep.map((x) => toDatedRow(x.d)));
+    }
+    if (bad.length) {
+      const m = datedTeamMail(bad);
+      MailApp.sendEmail(Session.getEffectiveUser().getEmail(), m.subject, m.body);
+    }
+  } catch (err) {
+    try {
+      MailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'Datums niet bijgewerkt',
+        'Het bijwerken van de datum-slides uit de agenda is mislukt.\n\nReden: ' + String((err && err.message) || err).slice(0, 200));
+    } catch (x) {}
+  }
+}
+
+// The render job's answer for a dated slide: stored straight in the library, no approval (AGD-05); a failure is mailed (DLV-08).
+function datedCallback_(e, raw, id) {
+  const found = datedRows_().find((x) => x.d.id === id);
+  const c = checkCallback({ raw, sig: e.parameter && e.parameter.sig, expected: hmacHex_(raw), row: found && found.d });
+  if (c.error) return json_({ ok: false, error: c.error });
+  const d = found.d;
+  const body = c.body;
+  let pngId = '';
+  if (body.ok) {
+    const blob = Utilities.newBlob(Utilities.base64Decode(body.png_base64), 'image/png', pngName(id));
+    pngId = DriveApp.getFolderById(props_().getProperty('LIBRARY_FOLDER_ID')).createFile(blob).getId();
+  }
+  const after = afterDatedCallback(d, body, pngId);
+  writeDated_(found.rowNumber, after);
+  if (body.ok) props_().setProperty('LOOP_PENDING', '1');
+  else {
+    const m = datedTeamMail([{ key: d.key, reason: after.reason }]);
+    MailApp.sendEmail(Session.getEffectiveUser().getEmail(), m.subject, m.body);
+  }
+  return json_({ ok: true });
+}
+
 // Builds Loop/ (DLV-09/12/13/16). Copies go into a temp folder first; Loop/ itself stays, since Drive for Desktop and
 // ProPresenter watch it. Never throws: a failure mails the team. A failure while copying leaves Loop/ as it was; one while
 // moving may leave it partly updated, and the next run completes it (DLV-09).
@@ -382,10 +472,14 @@ function composeLoop_() {
     const rot = fixedFolder.getFoldersByName(ROTATING_FOLDER);
     const loop = DriveApp.getFolderById(p.getProperty('LOOP_FOLDER_ID'));
     const ag = fixedFolder.getFoldersByName(AGENDA_FOLDER);
+    const agFiles = ag.hasNext() ? list(ag.next().getFiles(), info) : [];
+    const acts = activityRows_().map((x) => x.a);
+    const today = amsterdamDay(new Date());
+    const occs = agendaOccurrences_();
     const plan = loopPlan({
       fixed: list(fixedFolder.getFiles(), info),
-      agenda: agendaLoopFiles({ files: ag.hasNext() ? list(ag.next().getFiles(), info) : [], activities: activityRows_().map((x) => x.a),
-        occurrences: agendaOccurrences_(), today: amsterdamDay(new Date()) }),
+      agenda: agendaLoopFiles({ files: agFiles, activities: acts, occurrences: occs, today }),
+      dated: datedLoopItems({ dated: datedRows_().map((x) => x.d), activities: acts, occurrences: occs, files: agFiles, today }),
       rotating: rot.hasNext() ? list(rot.next().getFiles(), info) : [],
       requests: rows_(),
       current: list(loop.getFiles(), (f) => ({ id: f.getId(), key: f.getDescription() || '' })),
@@ -428,7 +522,7 @@ function composeLoop(e) {
     } catch (e) {}
     return;
   }
-  try { readAgenda_(); activities_(); composeLoop_(); expireStale_(); } finally { lock.releaseLock(); }
+  try { readAgenda_(); activities_(); datedSlides_(); composeLoop_(); expireStale_(); } finally { lock.releaseLock(); }
 }
 
 // Reads the coming week from the church agenda into the Agenda tab (AGD-01/02). A failure keeps the last good read
@@ -558,6 +652,7 @@ function doPost(e) {
     const raw = (e && e.postData && e.postData.contents) || '';
     let id = '';
     try { id = String(JSON.parse(raw).id); } catch (x) {}
+    if (/^A[0-9a-f]{8}-\d{4}-\d{2}-\d{2}$/.test(id)) return datedCallback_(e, raw, id);
     if (id.startsWith('A')) return activityCallback_(e, raw, id);
     const found = rowById_(id);
     const row = found.row;
