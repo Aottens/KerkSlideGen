@@ -567,3 +567,30 @@ def test_cnd_09_time_range_is_not_a_date(when, ok):
     else:
         with pytest.raises(WeekdayMismatch):
             weekday(when, event_date="2026-12-05")
+
+
+# AGD-04: an agenda activity's when and where come from the agenda, never from Claude ----------------------------------
+
+AGENDA = {"when": "woensdag 25 november, 19.30 uur", "where": "Zaal 2"}
+
+
+def test_agd_04_condense_fills_only_title_and_line_for_an_activity():
+    run = FakeRun(reply())
+    s = condense(Request("Bijbelkring\n\nWe lezen Marcus.", "2026-11-25"), TODAY, run=run, fixed=AGENDA)
+    assert (s.when, s.where) == (AGENDA["when"], AGENDA["where"])
+    assert (s.title, s.line) == (KERST_SLIDE["title"], KERST_SLIDE["line"])
+    assert len(run.calls) == 1
+
+
+def test_agd_04_a_long_when_from_claude_is_no_retry_for_an_activity():
+    run = FakeRun(reply({**KERST_SLIDE, "when": "x" * 60, "where": "y" * 60}))
+    s = condense(Request("Bijbelkring", "2026-11-25"), TODAY, run=run, fixed=AGENDA)
+    assert s.when == AGENDA["when"] and len(run.calls) == 1
+
+
+def test_agd_04_the_retry_keeps_the_agenda_fields():
+    run = FakeRun(reply())
+    prev = condense(Request("Bijbelkring", "2026-11-25"), TODAY, run=FakeRun(reply()), fixed=AGENDA)
+    s = condense(Request("Bijbelkring", "2026-11-25"), TODAY, run=run, previous=prev, feedback=["too long"],
+                 fixed=AGENDA)
+    assert s.when == AGENDA["when"] and s.where == AGENDA["where"]

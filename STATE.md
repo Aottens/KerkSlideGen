@@ -26,13 +26,19 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
   by ISO week, approved requests up to their last day; expired ones go to `Archief/`. It runs on Google, and
   *Goedkeuren* puts the slide in `Loop/` at once (run of 2026-11-18).
 - The night run reads the coming week of the church's Google Agenda into the Sheet tab `Agenda`; a failed read keeps
-  the last good one and mails the team once a day (run of 2026-11-20). No agenda slides yet: VS4-02 and VS4-03.
+  the last good one and mails the team once a day (run of 2026-11-20).
+- The night run groups the agenda into activities in the tab *Activiteiten* (no "Samenkomst") and sends a new
+  activity's first slide, with the agenda's own time and place, to the visual team: *Goedkeuren* sets `tonen`,
+  *Aanpassen* renders again, *Niet tonen* keeps it out. An activity's own PNG in `Vast/Agenda/` skips all that and
+  joins the loop while it has a date this week. Not yet run on Google; the dates themselves come with VS4-03.
 
 ## Next
 1. VS3-01: the Smart Playlist on the church Mac plays `Loop/` (gate 3).
-2. VS4-02: the *Activiteiten* tab and the first slide of a new activity to the visual team (`specs/modules/agenda.md`).
+2. VS4-03: every date of an approved activity rendered without Claude and in the loop (`specs/modules/agenda.md`).
 
 ## Waiting on the owner
+- Push the activities code, deploy a new web app version, run one activity through its three buttons and one
+  PNG in `Vast/Agenda/` (`tests/manual/agenda.md`, steps 7–12).
 - The rest of the *Aanpassen* run: round 3, the old links, the logs, the expiry, the watchdog,
   the web app guard and a change round's retries
   (`tests/manual/approve.md`, run of 2026-11-19).

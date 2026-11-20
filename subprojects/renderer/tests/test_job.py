@@ -174,8 +174,8 @@ def test_int_04_payload_outside_the_interface_goes_to_visual_team(callback, tmp_
     assert "Marja" not in body["reason"] and "marja@" not in body["reason"]
 
 
-@pytest.mark.parametrize("kind", ["activity", "occurrence", "something"])
-def test_int_04_only_kind_request_in_this_build(callback, tmp_path, kind):
+@pytest.mark.parametrize("kind", ["occurrence", "something"])
+def test_int_04_only_kind_request_and_activity_in_this_build(callback, tmp_path, kind):
     run = FakeRun(reply())
     assert go(callback, tmp_path, run=run, kind=kind) == 0
     assert callback.json()["ok"] is False and run.calls == []
@@ -327,7 +327,7 @@ def test_dlv_05_change_text_goes_with_the_original_request(callback, tmp_path):
         (None, FakeRender(FontMissing("font file not found")), {}, "font"),  # REN-08
         (None, FakeRender(RuntimeError(TEXT)), {}, "RuntimeError"),  # anything else, its message withheld
         (None, None, {"image": True}, "image fetch failed"),  # DLV-14: the web app gave no image
-        (None, None, {"kind": "activity"}, "not built yet"),  # agenda comes with VS4
+        (None, None, {"kind": "occurrence"}, "not built yet"),  # occurrences come with VS4-03
         (None, None, {"text": ""}, "text"),  # INT-04
     ],
     ids=["claude-login", "over-budget", "does-not-fit", "font-missing", "unexpected", "image", "agenda", "payload"],
@@ -450,3 +450,60 @@ def test_dlv_01_a_refused_callback_fails_the_run(callback, tmp_path, capsys):
     callback.answer = b'{"ok": false, "error": "handtekening klopt niet"}'
     assert go(callback, tmp_path) == 1
     assert "callback refused" in capsys.readouterr().err
+
+
+# AGD-04: the first slide of an agenda activity ------------------------------------------------------------------------
+
+WHEN = "woensdag 25 november, 19.30 uur"
+ACTIVITY = {"id": "A1b2c3d4e", "kind": "activity", "text": "Bijbelkring\n\nWe lezen Marcus.",
+            "event_date": "2026-11-25", "when": WHEN, "where": "Zaal 2"}
+
+
+def test_agd_04_activity_keeps_when_and_where_from_the_agenda(callback, tmp_path):
+    run = FakeRun(reply())  # the recorded slide says 24 december, 22.00 uur, Grote zaal
+    assert go(callback, tmp_path, run=run, **ACTIVITY) == 0
+    body = callback.json()
+    assert body["ok"] is True and body["id"] == "A1b2c3d4e"
+    assert body["slide"]["when"] == WHEN and body["slide"]["where"] == "Zaal 2"
+    assert body["slide"]["title"] == KERST_SLIDE["title"] and body["slide"]["line"] == KERST_SLIDE["line"]
+    assert len(run.calls) == 1
+    assert "We lezen Marcus." in run.calls[0]["input"]
+
+
+def test_agd_04_activity_with_empty_where_stays_empty(callback, tmp_path):
+    assert go(callback, tmp_path, **{**ACTIVITY, "where": ""}) == 0
+    assert callback.json()["slide"]["where"] == ""
+
+
+def test_agd_04_activity_renders_the_agenda_fields(callback, tmp_path):
+    render = FakeRender()
+    assert go(callback, tmp_path, render_fn=render, **ACTIVITY) == 0
+    assert render.slides[0].when == WHEN and render.slides[0].where == "Zaal 2"
+
+
+def test_agd_04_activity_retry_after_does_not_fit_keeps_the_agenda_fields(callback, tmp_path):
+    render = FakeRender(DoesNotFit())
+    assert go(callback, tmp_path, run=FakeRun(reply(), reply()), render_fn=render, **ACTIVITY) == 0
+    assert [s.when for s in render.slides] == [WHEN, WHEN]
+
+
+@pytest.mark.parametrize(
+    "payload, reason",
+    [
+        ({"when": "x" * 41}, "when"),
+        ({"where": 3}, "where"),
+        ({"when": None}, "when"),
+    ],
+    ids=["when-long", "where-type", "when-missing"],
+)
+def test_agd_04_activity_with_bad_when_or_where_goes_to_visual_team(callback, tmp_path, payload, reason):
+    run = FakeRun(reply())
+    assert go(callback, tmp_path, run=run, **{**ACTIVITY, **payload}) == 0
+    body = callback.json()
+    assert body["ok"] is False and reason in body["reason"] and run.calls == []
+
+
+def test_agd_04_a_request_carries_no_when_or_where(callback, tmp_path):
+    run = FakeRun(reply())
+    assert go(callback, tmp_path, run=run, when=WHEN) == 0
+    assert callback.json()["ok"] is False and run.calls == []

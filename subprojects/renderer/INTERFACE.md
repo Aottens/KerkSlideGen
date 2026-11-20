@@ -33,6 +33,8 @@ Agenda (`specs/modules/agenda.md`) uses the same event with a `kind` (absent mea
 - `"kind": "activity"`: the first slide of an agenda activity (AGD-04). `id` is the activity id (`A` + a hash of
   the activity's title, AGD-03), `text` is the event's title and description, and `when` and `where` come along filled from the agenda;
   condense fills only `title` and `line`.
+  Extra fields: `when` (at most 40), `where` (at most 40, may be `""`); `event_date` is the occurrence date,
+  `round` 1..3 (Aanpassen), `change` as for a request, `image` false.
 - `"kind": "occurrence"`: one date of an approved activity (AGD-05). `id` is `<activity id>-<yyyy-mm-dd>`, and
   `slide` carries the full `SlideText`; there is no `text`, and the renderer does not call Claude.
 

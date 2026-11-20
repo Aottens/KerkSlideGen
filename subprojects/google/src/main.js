@@ -246,6 +246,127 @@ function page_(text) {
     String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</p>');
 }
 
+// Activities (AGD-03/04/06/09). Never log agenda content.
+function activityTab_() {
+  const ss = SpreadsheetApp.openById(props_().getProperty('SHEET_ID'));
+  let tab = ss.getSheetByName(ACTIVITIES_TAB);
+  if (!tab) {
+    tab = ss.insertSheet(ACTIVITIES_TAB);
+    tab.getRange(1, 1, 1, ACTIVITY_COLUMNS.length).setValues([ACTIVITY_COLUMNS]);
+  }
+  return tab;
+}
+
+function activityRows_() {
+  const t = activityTab_();
+  const n = t.getLastRow() - 1;
+  return n < 1 ? [] : t.getRange(2, 1, n, ACTIVITY_COLUMNS.length).getValues()
+    .map((r, i) => ({ a: fromActivityRow(r), rowNumber: i + 2 })).filter((x) => x.a.id);
+}
+
+function writeActivity_(rowNumber, a) {
+  activityTab_().getRange(rowNumber, 1, 1, ACTIVITY_COLUMNS.length).setValues([toActivityRow(a)]);
+}
+
+function agendaOccurrences_() {
+  const tab = SpreadsheetApp.openById(props_().getProperty('SHEET_ID')).getSheetByName(AGENDA_TAB);
+  const n = tab ? tab.getLastRow() - 1 : 0;
+  return n < 1 ? [] : tab.getRange(2, 1, n, AGENDA_COLUMNS.length).getValues().map(fromAgendaRow);
+}
+
+function agendaFiles_() {
+  const it = DriveApp.getFolderById(props_().getProperty('FIXED_FOLDER_ID')).getFoldersByName(AGENDA_FOLDER);
+  const out = [];
+  if (!it.hasNext()) return out;
+  const files = it.next().getFiles();
+  while (files.hasNext()) {
+    const f = files.next();
+    out.push({ id: f.getId(), name: f.getName(), updated: f.getLastUpdated().toISOString() });
+  }
+  return out;
+}
+
+function mailTeamActivity_(a, reason) {
+  const m = activityTeamMail(a, reason);
+  MailApp.sendEmail(Session.getEffectiveUser().getEmail(), m.subject, m.body);
+}
+
+// Returns '' on success, else the reason. Same call as tryDispatch_.
+function dispatchActivity_(a, occ) {
+  const token = props_().getProperty('GITHUB_TOKEN');
+  if (!token) return 'GITHUB_TOKEN ontbreekt';
+  try {
+    const code = UrlFetchApp.fetch('https://api.github.com/repos/' + GITHUB_REPO + '/dispatches', {
+      method: 'post',
+      contentType: 'application/json',
+      headers: {
+        Authorization: 'Bearer ' + token,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+      payload: JSON.stringify(activityDispatch(a, occ)),
+      muteHttpExceptions: true,
+    }).getResponseCode();
+    return dispatched(code) ? '' : 'GitHub antwoordde ' + code;
+  } catch (err) {
+    return ('GitHub niet bereikt: ' + err.message).slice(0, 200);
+  }
+}
+
+// Adds new activities to the tab and asks the render job for the first slide of each (AGD-03/04). Never throws.
+function activities_() {
+  try {
+    const tab = activityTab_();
+    const add = newActivities(activityRows_().map((x) => x.a), agendaOccurrences_());
+    if (add.length) {
+      const first = tab.getLastRow() + 1;
+      tab.getRange(first, 1, add.length, ACTIVITY_COLUMNS.length).setValues(add.map(toActivityRow));
+    }
+    const rows = activityRows_();
+    const list = activitiesToDispatch({ activities: rows.map((x) => x.a), occurrences: agendaOccurrences_(),
+      files: agendaFiles_(), today: amsterdamDay(new Date()), now: new Date() });
+    for (const { activity, occurrence } of list) {
+      const rowNumber = rows.find((x) => x.a.id === activity.id).rowNumber;
+      const why = dispatchActivity_(activity, occurrence);
+      const after = why ? { ...activity, reason: why, since: '' } : { ...activity, reason: '', since: new Date() };
+      writeActivity_(rowNumber, after);
+      if (why) mailTeamActivity_(after, why);
+    }
+  } catch (err) {
+    try {
+      MailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'Activiteiten niet bijgewerkt',
+        'Het bijwerken van de activiteiten uit de agenda is mislukt.\n\nReden: ' + String((err && err.message) || err).slice(0, 200));
+    } catch (x) {}
+  }
+}
+
+// The render job's answer for an activity: the approval mail goes to the visual team only (AGD-04).
+function activityCallback_(e, raw, id) {
+  const found = activityRows_().find((x) => x.a.id === id);
+  const c = checkCallback({ raw, sig: e.parameter && e.parameter.sig, expected: hmacHex_(raw), row: found && found.a });
+  if (c.error) return json_({ ok: false, error: c.error });
+  const a = found.a;
+  const body = c.body;
+  if (!body.ok) {
+    const after = afterActivityCallback(a, body, '', '', new Date());
+    writeActivity_(found.rowNumber, after);
+    mailTeamActivity_(after, after.reason);
+    return json_({ ok: true });
+  }
+  const base = props_().getProperty('WEB_APP_URL');
+  if (!base) throw new Error('WEB_APP_URL ontbreekt');
+  const blob = Utilities.newBlob(Utilities.base64Decode(body.png_base64), 'image/png', pngName(a.id));
+  const file = DriveApp.getFolderById(props_().getProperty('TO_APPROVE_FOLDER_ID')).createFile(blob);
+  const token = makeToken(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,
+    Utilities.getUuid() + Utilities.getUuid()));
+  const after = afterActivityCallback(a, body, token, file.getId(), new Date());
+  writeActivity_(found.rowNumber, after);
+  const m = approvalMail(after, body.slide || {}, approvalLinks(base, a.id, token));
+  MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(), subject: m.subject, body: m.body, htmlBody: m.htmlBody,
+    inlineImages: { slide: file.getBlob() } });
+  return json_({ ok: true });
+}
+
 // Builds Loop/ (DLV-09/12/13/16). Copies go into a temp folder first; Loop/ itself stays, since Drive for Desktop and
 // ProPresenter watch it. Never throws: a failure mails the team. A failure while copying leaves Loop/ as it was; one while
 // moving may leave it partly updated, and the next run completes it (DLV-09).
@@ -260,8 +381,11 @@ function composeLoop_() {
     const info = (f) => ({ id: f.getId(), name: f.getName(), updated: f.getLastUpdated().toISOString() });
     const rot = fixedFolder.getFoldersByName(ROTATING_FOLDER);
     const loop = DriveApp.getFolderById(p.getProperty('LOOP_FOLDER_ID'));
+    const ag = fixedFolder.getFoldersByName(AGENDA_FOLDER);
     const plan = loopPlan({
       fixed: list(fixedFolder.getFiles(), info),
+      agenda: agendaLoopFiles({ files: ag.hasNext() ? list(ag.next().getFiles(), info) : [], activities: activityRows_().map((x) => x.a),
+        occurrences: agendaOccurrences_(), today: amsterdamDay(new Date()) }),
       rotating: rot.hasNext() ? list(rot.next().getFiles(), info) : [],
       requests: rows_(),
       current: list(loop.getFiles(), (f) => ({ id: f.getId(), key: f.getDescription() || '' })),
@@ -304,7 +428,7 @@ function composeLoop(e) {
     } catch (e) {}
     return;
   }
-  try { composeLoop_(); expireStale_(); readAgenda_(); } finally { lock.releaseLock(); }
+  try { readAgenda_(); activities_(); composeLoop_(); expireStale_(); } finally { lock.releaseLock(); }
 }
 
 // Reads the coming week from the church agenda into the Agenda tab (AGD-01/02). A failure keeps the last good read
@@ -338,12 +462,37 @@ function readAgenda_() {
   }
 }
 
+function submitActivityChange_(id, token, text) {
+  const found = activityRows_().find((x) => x.a.id === id);
+  const a = found && found.a;
+  const d = approveDecision(a, token);
+  if (d === 'bad-token') return PAGES.badToken;
+  if (d === 'already') return PAGES.already;
+  if (d === 'not-open') return PAGES.notOpen;
+  const after = afterActivityChange(a, text, new Date());
+  if (!after) return PAGES.changeEmpty;
+  if (after === 'rounds') return PAGES.activityRounds;
+  if (a.png) DriveApp.getFileById(a.png).setTrashed(true);
+  writeActivity_(found.rowNumber, after);
+  const next = activitiesToDispatch({ activities: [{ ...after, since: '' }], occurrences: agendaOccurrences_(),
+    files: [], today: amsterdamDay(new Date()), now: new Date() })[0];
+  const why = next ? dispatchActivity_(after, next.occurrence) : 'geen komende datum in de agenda';
+  if (why) {
+    writeActivity_(found.rowNumber, { ...after, reason: why, since: '' });
+    mailTeamActivity_(after, why);
+  } else {
+    writeActivity_(found.rowNumber, { ...after, since: new Date() });
+  }
+  return PAGES.activityChanged;
+}
+
 // Called by the change form via google.script.run (DLV-05). Returns the Dutch message to show.
 function submitChange(id, token, text) {
   const lock = LockService.getScriptLock();
   let row;
   try {
     lock.waitLock(30000);
+    if (String(id || '').startsWith('A')) return submitActivityChange_(String(id), token, text);
     const found = rowById_(String(id || ''));
     row = found.row;
     const d = approveDecision(row, token);
@@ -409,6 +558,7 @@ function doPost(e) {
     const raw = (e && e.postData && e.postData.contents) || '';
     let id = '';
     try { id = String(JSON.parse(raw).id); } catch (x) {}
+    if (id.startsWith('A')) return activityCallback_(e, raw, id);
     const found = rowById_(id);
     const row = found.row;
     const c = checkCallback({ raw, sig: e.parameter && e.parameter.sig,
@@ -464,11 +614,13 @@ function doGet(e) {
     return ContentService.createTextOutput(imageAnswer(file.getName(), Utilities.base64Encode(file.getBlob().getBytes())))
       .setMimeType(ContentService.MimeType.JSON);
   }
-  if (q.a !== 'goedkeuren' && q.a !== 'aanpassen') return page_(PAGES.badToken);
+  if (!['goedkeuren', 'aanpassen', 'niet-tonen'].includes(q.a)) return page_(PAGES.badToken);
   const lock = LockService.getScriptLock();
   let row;
   try {
     lock.waitLock(30000);
+    if (String(q.id || '').startsWith('A')) return activityDecision_(q);
+    if (q.a === 'niet-tonen') return page_(PAGES.badToken);
     const found = rowById_(String(q.id || ''));
     row = found.row;
     const rowNumber = found.rowNumber;
@@ -492,4 +644,25 @@ function doGet(e) {
   } finally {
     try { lock.releaseLock(); } catch (x) {}
   }
+}
+
+// Approval links of an activity (AGD-04/06): Goedkeuren, Aanpassen, Niet tonen. Called inside doGet's lock and try.
+function activityDecision_(q) {
+  const found = activityRows_().find((x) => x.a.id === String(q.id));
+  const a = found && found.a;
+  const d = approveDecision(a, q.t);
+  if (d === 'bad-token') return page_(PAGES.badToken);
+  if (d === 'already') return page_(PAGES.already);
+  if (d === 'not-open') return page_(PAGES.notOpen);
+  if (q.a === 'aanpassen') {
+    return HtmlService.createHtmlOutput(changeForm(a.id, q.t)).addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  }
+  if (q.a === 'goedkeuren') {
+    DriveApp.getFileById(a.png).moveTo(DriveApp.getFolderById(props_().getProperty('LIBRARY_FOLDER_ID')));
+    writeActivity_(found.rowNumber, afterActivityApprove(a));
+    return page_(PAGES.activityApproved);
+  }
+  DriveApp.getFileById(a.png).setTrashed(true);
+  writeActivity_(found.rowNumber, afterActivityHide(a));
+  return page_(PAGES.activityHidden);
 }

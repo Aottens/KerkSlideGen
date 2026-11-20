@@ -147,7 +147,10 @@ test('AGD-08 a failed read keeps the last good read, mails once a day and never 
 
 test('AGD-08 a failed agenda read never stops composeLoop from finishing', () => {
   const night = fnBody('composeLoop');
-  assert.ok(night.indexOf('composeLoop_()') < night.indexOf('readAgenda_()'), 'the loop is composed first');
+  // AGD-09 reads the agenda before the loop: readAgenda_ and activities_ never throw, so composeLoop_ still runs.
+  assert.ok(night.indexOf('readAgenda_()') < night.indexOf('composeLoop_()'));
+  const act = fnBody('activities_');
+  assert.ok(act.indexOf('try {') < act.indexOf('activityTab_('), 'activities_ never throws');
   const r = fnBody('readAgenda_');
   const t = r.indexOf('try {');
   assert.ok(t > 0 && t < r.indexOf('CalendarApp') && t < r.indexOf('getProperty('), 'every Google call is inside the try');

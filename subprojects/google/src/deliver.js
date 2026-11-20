@@ -29,7 +29,8 @@ function checkCallback({ raw, sig, expected, row }) {
   if (!body || typeof body !== 'object') return no('geen geldige JSON');
   if (!row) return no('onbekende aanvraag');
   const S = dlvState_();
-  if (![S.SENT, S.RETRY].includes(row.state)) return no('aanvraag wacht niet op een antwoord');
+  const waiting = String(row.id).startsWith('A') ? row.state === S.NEW && Boolean(row.since) : [S.SENT, S.RETRY].includes(row.state);
+  if (!waiting) return no('aanvraag wacht niet op een antwoord');
   if (Number(body.round) !== Number(row.round)) return no('andere ronde');
   return { error: '', body };
 }
@@ -51,7 +52,9 @@ function makeToken(bytes) {
 
 function approvalLinks(base, id, token) {
   const u = (a) => `${base}?a=${a}&id=${encodeURIComponent(id)}&t=${encodeURIComponent(token)}`;
-  return { approve: u('goedkeuren'), change: u('aanpassen') };
+  const links = { approve: u('goedkeuren'), change: u('aanpassen') };
+  if (String(id).startsWith('A')) links.hide = u('niet-tonen');
+  return links;
 }
 
 const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -61,13 +64,17 @@ function approvalMail(row, slide, links) {
   const btn = (href, text, bg) => `<a href="${esc(href)}" style="display:inline-block;padding:10px 20px;margin-right:8px;` +
     `background:${bg};color:#fff;text-decoration:none;border-radius:6px">${text}</a>`;
   const lines = [slide.title, slide.when, slide.where, slide.line].filter(Boolean);
+  const act = Boolean(links.hide);
+  const intro = act ? 'Dit is een nieuwe activiteit uit de agenda. Je keurt de slide één keer goed; daarna krijgt elke datum '
+    + 'zijn eigen slide.' : 'Hier is de slide voor je aanvraag.';
   return {
-    subject: `Slide ${row.id} ter goedkeuring`,
-    body: ['Hier is de slide voor je aanvraag.', '', ...lines, '', `Goedkeuren: ${links.approve}`,
-      `Aanpassen: ${links.change}`].join('\n'),
-    htmlBody: `<p>Hier is de slide voor je aanvraag.</p><p><img src="cid:slide" style="max-width:100%"></p>` +
+    subject: act ? `Nieuwe activiteit uit de agenda: ${slide.title || row.title}` : `Slide ${row.id} ter goedkeuring`,
+    body: [intro, '', ...lines, '', `Goedkeuren: ${links.approve}`, `Aanpassen: ${links.change}`,
+      ...(act ? [`Niet tonen: ${links.hide}`] : [])].join('\n'),
+    htmlBody: `<p>${esc(intro)}</p><p><img src="cid:slide" style="max-width:100%"></p>` +
       `<p>${lines.map(esc).join('<br>')}</p><p>${btn(links.approve, 'Goedkeuren', '#2e7d32')}` +
-      `${btn(links.change, 'Aanpassen', '#555')}</p>`,
+      `${btn(links.change, 'Aanpassen', '#555')}` +
+      `${act ? btn(links.hide, 'Niet tonen', '#b71c1c') : ''}</p>`,
   };
 }
 
@@ -97,6 +104,11 @@ const PAGES = {
   changeSent: 'Je aanpassing is verstuurd. Je krijgt binnen een paar minuten een nieuw voorbeeld per mail.',
   changeToTeam: 'Het kerkteam maakt je slide verder af en neemt contact met je op.',
   changeEmpty: 'Schrijf eerst wat er anders moet.',
+  activityApproved: 'Goedgekeurd: deze activiteit staat nu op tonen.',
+  activityHidden: 'Deze activiteit komt niet in de loop. Het team maakt dit ongedaan door de status in de tab Activiteiten '
+    + 'terug te zetten op nieuw.',
+  activityChanged: 'Je aanpassing is verstuurd. Je krijgt binnen een paar minuten een nieuw voorbeeld per mail.',
+  activityRounds: 'Dit was de derde ronde. Zet een eigen PNG in Vast/Agenda/, of kies Goedkeuren of Niet tonen in de laatste mail.',
   error: 'Er ging iets mis. Het kerkteam is op de hoogte.',
 };
 
@@ -181,12 +193,12 @@ function rotatingPick(files, today) {
   return l.length ? l[isoWeek(today) % l.length] : null;
 }
 
-function loopPlan({ fixed, rotating, requests, current, today }) {
+function loopPlan({ fixed, rotating, requests, current, today, agenda = [] }) {
   const S = dlvState_();
   const wanted = [];
   const archive = [];
   const asItem = (f) => ({ sourceId: f.id, name: f.name, key: `${f.id}:${f.updated}` });
-  fixed.filter(isPng_).forEach((f) => wanted.push(asItem(f)));
+  fixed.concat(agenda).filter(isPng_).forEach((f) => wanted.push(asItem(f)));
   const pick = rotatingPick(rotating, today);
   if (pick) wanted.push(asItem(pick));
   for (const r of requests) {
