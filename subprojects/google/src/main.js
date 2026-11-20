@@ -325,12 +325,12 @@ function activities_() {
     const rows = activityRows_();
     const list = activitiesToDispatch({ activities: rows.map((x) => x.a), occurrences: agendaOccurrences_(),
       files: agendaFiles_(), today: amsterdamDay(new Date()), now: new Date() });
-    for (const { activity, occurrence } of list) {
+    for (const { activity, occurrence, retry } of list) {
       const rowNumber = rows.find((x) => x.a.id === activity.id).rowNumber;
       const why = dispatchActivity_(activity, occurrence);
       const after = why ? { ...activity, reason: why, since: '' } : { ...activity, reason: '', since: new Date() };
       writeActivity_(rowNumber, after);
-      if (why) mailTeamActivity_(after, why);
+      if (why || retry) mailTeamActivity_(after, why || NO_RENDER_REASON);
     }
   } catch (err) {
     try {
@@ -552,7 +552,7 @@ function doPost(e) {
   let rowNumber = 0;
   let mailed = false;
   try {
-    lock.waitLock(30000);
+    lock.waitLock(120000);
     // DLV-08: a missing setting is mailed, not silently refused.
     if (!props_().getProperty('CALLBACK_SECRET')) throw new Error('CALLBACK_SECRET ontbreekt');
     const raw = (e && e.postData && e.postData.contents) || '';

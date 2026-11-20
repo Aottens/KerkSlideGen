@@ -48,9 +48,11 @@ Limits: title 32, when 40, where 40, line 70 characters (CND-01).
 `POST <web app URL>?sig=<hex HMAC-SHA256 of the body>` (secret `CALLBACK_URL`), `Content-Type: application/json`,
 signed under the shared secret (`CALLBACK_SECRET` in GitHub, the same value in the script property `CALLBACK_SECRET`).
 The signature is in the query string, not a header: an Apps Script `doPost(e)` cannot read request headers
-(DECISIONS 2026-11-18). The job follows the web app's redirect; a non-2xx answer or no answer fails the run. The web app
+(DECISIONS 2026-11-18). The job follows the web app's redirect. The web app
 answers `{"ok": true}` or `{"ok": false, "error": "…"}` with status 200 either way; a refused callback changes nothing
-(DLV-01), and any answer but `{"ok": true}` fails the run.
+(DLV-01). When the answer is not `{"ok": true}`, or there is none, the job posts the same signed body again, up to 3
+times, 30 s apart, and fails the run only after the fourth try. The web app waits up to 2 minutes for its script lock,
+the job up to 3 minutes for an answer.
 
 ```json
 {"id": "R20261117-K7Q", "round": 1, "ok": true, "slide": {"…": "SlideText"}, "png_base64": "<PNG>"}
