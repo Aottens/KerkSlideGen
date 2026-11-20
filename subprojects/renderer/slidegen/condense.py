@@ -137,6 +137,7 @@ def condense(
     run=None,
     previous: SlideText | None = None,
     feedback: Sequence[str] = (),
+    fixed: dict | None = None,
 ) -> SlideText:
     """One call; one more with the problems named if a limit is broken (CND-06). `feedback` counts as that retry."""
     run = run or subprocess.run
@@ -149,16 +150,22 @@ def condense(
             "<problems>\n" + "\n".join(problems) + "\n</problems>\nWrite a corrected, shorter version."
         )
 
+    def call(c: str) -> dict:
+        d = _call(run, c)
+        if fixed:  # AGD-04: the agenda's when/where replace whatever Claude wrote
+            d.update(when=fixed["when"], where=fixed["where"])
+        return d
+
     if previous or feedback:
         prev = {k: getattr(previous, k, "") for k in LIMITS}
-        data = _call(run, retry_content(prev, feedback))
+        data = call(retry_content(prev, feedback))
         retried = True
     else:
-        data = _call(run, content)
+        data = call(content)
         retried = False
     bad = violations(data)
     if bad and not retried:
-        data = _call(run, retry_content(data, bad))
+        data = call(retry_content(data, bad))
         bad = violations(data)
     if bad:
         raise CondenseError("; ".join(bad))

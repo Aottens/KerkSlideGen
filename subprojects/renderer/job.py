@@ -19,7 +19,7 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-ALLOWED = {"id", "round", "kind", "text", "change", "event_date", "show_until", "image"}
+ALLOWED = {"id", "round", "kind", "text", "change", "event_date", "show_until", "image", "when", "where"}
 NOT_FIT = "the slide does not fit the safe area at the smallest text size: make it shorter (does not fit)"
 
 
@@ -83,11 +83,20 @@ def parse(p: dict) -> tuple[dict | None, str]:
     if not isinstance(p.get("image", False), bool):
         return None, "invalid payload: image"
     kind = p.get("kind", "request")
-    if kind in ("activity", "occurrence"):
+    if kind == "occurrence":
         return None, "agenda kinds not built yet"
-    if kind != "request":
+    fixed = None
+    if kind == "activity":  # AGD-04: when and where come from the agenda, Claude never writes them
+        for k in ("when", "where"):
+            v = p.get(k)
+            if not isinstance(v, str) or len(v) > 40 or (k == "when" and not v):
+                return None, f"invalid payload: {k}"
+        fixed = {"when": p["when"], "where": p["where"]}
+    elif kind != "request":
         return None, "unknown kind (not built yet)"
-    return {"text": text, "change": change, "event_date": p.get("event_date", ""),
+    elif "when" in p or "where" in p:
+        return None, "payload has a field outside INTERFACE.md"
+    return {"fixed": fixed, "text": text, "change": change, "event_date": p.get("event_date", ""),
             "show_until": p.get("show_until", ""), "image": p.get("image", False)}, ""
 
 
@@ -116,11 +125,11 @@ def work(f: dict, run, render_fn, today: date, image: tuple[str, bytes] | None =
                 path = Path(tmp) / f"image.{image[0]}"
                 path.write_bytes(image[1])
                 kw = {"image": path, "slide_id": f["id"]}
-            slide = condense(req, today, run=run)
+            slide = condense(req, today, run=run, fixed=f["fixed"])
             try:
                 render_fn(slide, ASSETS, out, **kw)
             except DoesNotFit:  # CND-06
-                slide = condense(req, today, run=run, previous=slide, feedback=[NOT_FIT])
+                slide = condense(req, today, run=run, previous=slide, feedback=[NOT_FIT], fixed=f["fixed"])
                 try:
                     render_fn(slide, ASSETS, out, **kw)
                 except DoesNotFit:
