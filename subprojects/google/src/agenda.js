@@ -120,7 +120,7 @@ function activitiesToDispatch({ activities, occurrences, files, today, now }) {
     if (a.state !== ACT.NEW || agOwnPng_(files, a.title)) continue;
     if (a.since && now - new Date(a.since) < 20 * 3600e3) continue;
     const occurrence = agNext_(a.title, occurrences, today);
-    if (occurrence) out.push({ activity: a, occurrence });
+    if (occurrence) out.push({ activity: a, occurrence, retry: Boolean(a.since) });
   }
   return out;
 }

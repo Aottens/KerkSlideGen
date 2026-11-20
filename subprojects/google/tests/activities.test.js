@@ -143,6 +143,19 @@ test('AGD-04 a dispatched activity is not dispatched again while its render runs
   assert.equal(run(new Date(NOW.getTime() - 21 * 3600e3)), 1);
 });
 
+test('DLV-08 a dispatch after 20 hours without an answer is marked as a retry', () => {
+  const run = (since) => G.activitiesToDispatch({ activities: [act('Bijbelkring', { since })], occurrences: [occ()],
+    files: [], today: TODAY, now: NOW })[0].retry;
+  assert.equal(run(''), false, 'never dispatched: a first dispatch');
+  assert.equal(run(new Date(NOW.getTime() - 21 * 3600e3)), true, 'its render never answered');
+});
+
+test('DLV-08 a re-dispatched activity mails the team that the render did not answer', () => {
+  const body = fnBody('activities_');
+  assert.match(body, /retry/);
+  assert.match(body, /mailTeamActivity_\([^)]*NO_RENDER_REASON/);
+});
+
 test('AGD-04 an activity without a coming, not cancelled occurrence is not dispatched', () => {
   const run = (o) => G.activitiesToDispatch({ activities: [act('Bijbelkring')], occurrences: o, files: [], today: TODAY,
     now: NOW }).length;
