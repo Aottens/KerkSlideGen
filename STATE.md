@@ -33,7 +33,7 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 2. VS4-02: the *Activiteiten* tab and the first slide of a new activity to the visual team (`specs/modules/agenda.md`).
 
 ## Waiting on the owner
-- The agenda: the failed-read check and one night run in *Executions* (`tests/manual/agenda.md`, run of
+- The agenda: the log check, the failed-read check and one night run in *Executions* (`tests/manual/agenda.md`, run of
   2026-11-20; the first read worked).
 - The rest of the *Aanpassen* run: round 3, the old links, the logs, the expiry, the watchdog,
   the web app guard and a change round's retries
