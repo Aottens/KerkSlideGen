@@ -23,7 +23,7 @@ Condense runs on Claude Code with the owner's subscription; it keeps an activity
 The intake runs on the owner's Google account: a signed-in member's form submit becomes a run of `render.yml`.
 The web app mails the approval mail; *Goedkeuren* fills `Loop/`, *Aanpassen* renders again up to 3 rounds.
 Unapproved slides expire after 7 days; its run on Google waits on the owner.
-The night run reads the coming week of the church agenda; its first read ran on Google. Next: VS3-01, VS4-02.
+The night run reads the coming week of the church agenda on Google, and keeps the last good read. Next: VS3-01, VS4-02.
 The Claude review and risk gate run on every PR, in shadow.
 
 ## Layout

@@ -26,15 +26,13 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
   by ISO week, approved requests up to their last day; expired ones go to `Archief/`. It runs on Google, and
   *Goedkeuren* puts the slide in `Loop/` at once (run of 2026-11-18).
 - The night run reads the coming week of the church's Google Agenda into the Sheet tab `Agenda`; a failed read keeps
-  the last good one and mails the team once a day. No agenda slides yet: VS4-02 and VS4-03 make them.
+  the last good one and mails the team once a day (run of 2026-11-20). No agenda slides yet: VS4-02 and VS4-03.
 
 ## Next
 1. VS3-01: the Smart Playlist on the church Mac plays `Loop/` (gate 3).
 2. VS4-02: the *Activiteiten* tab and the first slide of a new activity to the visual team (`specs/modules/agenda.md`).
 
 ## Waiting on the owner
-- The agenda: the log check, the failed-read check and one night run in *Executions* (`tests/manual/agenda.md`, run of
-  2026-11-20; the first read worked).
 - The rest of the *Aanpassen* run: round 3, the old links, the logs, the expiry, the watchdog,
   the web app guard and a change round's retries
   (`tests/manual/approve.md`, run of 2026-11-19).
