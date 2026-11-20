@@ -16,6 +16,7 @@ Ideas the owner dropped or that came up, not yet planned. No criteria or code un
 | IDEA-10 | *Aanpassen* can change the event date and the last day on screen. | 1 | open |
 | IDEA-11 | The form explains a series (e.g. Alpha, 10 Tuesdays): first date as event date, last day on screen as chosen. | 1 | open |
 | IDEA-12 | The team's own slides for agenda activities show only in weeks the activity is in the agenda. | 1 | planned (2026-11-19, AGD-09, VS4-02/03) |
+| IDEA-13 | A website named in a request gets a QR code on the side screens, for the room, not the livestream. | later | open |
 
 ### IDEA-01
 Intent: members want their own image on a slide. Touches: render (image placement inside the safe area), intake (a
@@ -100,3 +101,20 @@ title replaces condense's slide and shows only in weeks the activity is in the a
 `Vast/`. Planned as AGD-09 in VS4-02 (no proposal) and VS4-03 (in the loop). Touches: `specs/modules/agenda.md`,
 `deliver.md` (DLV-09, DLV-16), `subprojects/google/src/main.js` (`composeLoop`). `Vast/` is read without subfolders, so
 `Vast/Agenda/` is not in "every PNG in `Vast/`" today. Open: none.
+
+### IDEA-13
+Intent: people in the room can open a website the slide names without typing it. Owner, 2026-11-20: when a request or
+slide names a website, a QR code for it goes on the side screens of the triple-wide canvas, so the room sees it and the
+livestream (the centre 1920×1080) does not. The QR comes from the API of `sovrio.eu`, the owner's own project, which
+may need recoding first. Touches: `specs/modules/render.md` (a QR box on the side screens in `assets/layout.json`;
+REN-03 is about text, a QR there needs its own criterion), `condense.md` (the URL only when it is literally in the
+request, found in code, never by Claude: CND-03), `render.yml` (fetch the QR before the render, as the image is
+fetched: `slidegen` stays pure and makes no network call), `INTERFACE.md` (a `qr` field or file), the approval mail
+(the requester sees the QR and its URL before *Goedkeuren*). Open:
+1. sovrio.eu's API: endpoint, auth, PNG or SVG, size and error correction; is it stable enough to depend on, or is a
+   local library (e.g. `segno`) the fallback when the API is down (DLV-08: nothing lost silently)?
+2. One side or both; how large must a QR be on the side beamers to scan from the back of the hall?
+3. Several URLs in one request: the first, or the team decides?
+4. Also for the team's own slides in `Vast/` and agenda slides (VS4), or only requests?
+5. A URL goes to a third party (sovrio.eu) and can hold personal data (a `mailto:` or a name in a path): only
+   `http(s)` URLs, and is sovrio.eu fine under INT-04?
