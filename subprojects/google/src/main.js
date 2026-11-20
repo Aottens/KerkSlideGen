@@ -304,7 +304,38 @@ function composeLoop(e) {
     } catch (e) {}
     return;
   }
-  try { composeLoop_(); expireStale_(); } finally { lock.releaseLock(); }
+  try { composeLoop_(); expireStale_(); readAgenda_(); } finally { lock.releaseLock(); }
+}
+
+// Reads the coming week from the church agenda into the Agenda tab (AGD-01/02). A failure keeps the last good read
+// in the tab and mails the team once a day (AGD-08). Never throws.
+function readAgenda_() {
+  const p = props_();
+  const today = amsterdamDay(new Date());
+  try {
+    const id = p.getProperty('AGENDA_CALENDAR_ID');
+    if (!id) throw new Error('script property AGENDA_CALENDAR_ID ontbreekt');
+    // Not subscribed yet: subscribe this account once; a wrong id throws and is mailed below.
+    const cal = CalendarApp.getCalendarById(id) || CalendarApp.subscribeToCalendar(id);
+    const w = agendaWindow(today);
+    const occ = weekOccurrences(cal.getEvents(w.from, w.to), today);
+    const ss = SpreadsheetApp.openById(p.getProperty('SHEET_ID'));
+    const tab = ss.getSheetByName(AGENDA_TAB) || ss.insertSheet(AGENDA_TAB);
+    const values = [AGENDA_COLUMNS].concat(occ.map(toAgendaRow));
+    tab.getRange(1, 1, values.length, AGENDA_COLUMNS.length).setValues(values);
+    const extra = tab.getMaxRows() - values.length;
+    if (extra > 0) tab.getRange(values.length + 1, 1, extra, AGENDA_COLUMNS.length).clearContent();
+    p.setProperty('AGENDA_READ_DAY', today);
+    p.deleteProperty('AGENDA_MAIL_DAY');
+  } catch (err) {
+    try {
+      if (agendaMailDue(p.getProperty('AGENDA_MAIL_DAY'), today)) {
+        const m = agendaFailMail(String((err && err.message) || err).slice(0, 200), p.getProperty('AGENDA_READ_DAY') || '');
+        MailApp.sendEmail(Session.getEffectiveUser().getEmail(), m.subject, m.body);
+        p.setProperty('AGENDA_MAIL_DAY', today);
+      }
+    } catch (e) {}
+  }
 }
 
 // Called by the change form via google.script.run (DLV-05). Returns the Dutch message to show.

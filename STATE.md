@@ -24,13 +24,17 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
   2 hours to the team. *Aanpassen* runs on Google (run of 2026-11-19); the expiry is still to run.
 - `Loop/` is composed in code after each approval and every night: every PNG in `Vast/`, one from `Vast/Wisselend/`
   by ISO week, approved requests up to their last day; expired ones go to `Archief/`. It runs on Google, and
-  *Goedkeuren* puts the slide in `Loop/` at once (run of 2026-11-18). The agenda in the loop starts with VS4-01.
+  *Goedkeuren* puts the slide in `Loop/` at once (run of 2026-11-18).
+- The night run reads the coming week of the church's Google Agenda into the Sheet tab `Agenda`; a failed read keeps
+  the last good one and mails the team once a day. No agenda slides yet: VS4-02 and VS4-03 make them.
 
 ## Next
 1. VS3-01: the Smart Playlist on the church Mac plays `Loop/` (gate 3).
-2. VS4-01: read the coming week from the church's public Google Agenda (`specs/modules/agenda.md`).
+2. VS4-02: the *Activiteiten* tab and the first slide of a new activity to the visual team (`specs/modules/agenda.md`).
 
 ## Waiting on the owner
+- The agenda: set `AGENDA_CALENDAR_ID`, `clasp push`, run `composeLoop` once to allow the Calendar scope, and
+  check one night run (`tests/manual/agenda.md`).
 - The rest of the *Aanpassen* run: round 3, the old links, the logs, the expiry, the watchdog,
   the web app guard and a change round's retries
   (`tests/manual/approve.md`, run of 2026-11-19).
