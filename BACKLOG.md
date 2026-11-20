@@ -65,6 +65,8 @@ Builds (proposed): VS1-01 + VS1-02 (render); VS1-03 + VS1-04 (condense); VS1-05 
 | FIX-06 | A failed dispatch in an *Aanpassen* round retries every minute and ends as `handwerk` after about 3 minutes instead of 3 times over 10 minutes (`subprojects/google/src/main.js:178`, `nextAttempt` counts from `created`; #22, major): count from `since || created` (`since` is unset before the first dispatch), with a test for round 1 and for an *Aanpassen* round. | INT-05, DLV-05 | S | done (2026-11-19, #33) |
 | FIX-07 | *Owner to decide* in `STATE.md` names `agenda.md` again, whose owner question 2 is still open (`STATE.md:47`; #28, minor). | TRK | S | done (2026-11-19, #28) |
 | FIX-08 | The agenda line in *Waiting on the owner* said the first read worked while the README `## Status` still said it waited on the owner (`STATE.md:36`; #36, minor): README rewritten in the same PR. | TRK | S | done (2026-11-20, #36) |
+| FIX-09 | An activity whose render never answers is dispatched again every night after 20 h without a team mail (`subprojects/google/src/main.js:333`, `activities_` mails only when the dispatch call fails; #38, blocker): mail the team "geen antwoord van de render" on a re-dispatch, with a test. | DLV-08, AGD-04 | S | todo |
+| FIX-10 | When many activity callbacks arrive at once, the last waits more than 30 s for the script lock and is refused, so its activity gets no mail (`subprojects/google/src/main.js`, `doPost` `waitLock(30000)`; seen 2026-11-20 with 12 at once, 1 refused; blocker): let the render job retry a refused callback a few times with a pause, or let `doPost` wait longer, with a test. | DLV-01, DLV-08, AGD-04 | S | todo |
 
 ## Open questions
 - See *Owner to decide* in `STATE.md`.
