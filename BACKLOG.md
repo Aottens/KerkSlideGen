@@ -64,6 +64,7 @@ Builds (proposed): VS1-01 + VS1-02 (render); VS1-03 + VS1-04 (condense); VS1-05 
 | FIX-05 | The change page loads `google.script.run`, which lets anyone holding an *Aanpassen* link call every public top-level function of the script as the owner (`setup`, `composeLoop`, `retryDispatches`, `onSubmit`; `subprojects/google/src/main.js`; #22, plausible, minor): make the trigger and setup entry points refuse a call from the web app, with a test. | DLV-05 | S | done (2026-11-19, #33) |
 | FIX-06 | A failed dispatch in an *Aanpassen* round retries every minute and ends as `handwerk` after about 3 minutes instead of 3 times over 10 minutes (`subprojects/google/src/main.js:178`, `nextAttempt` counts from `created`; #22, major): count from `since || created` (`since` is unset before the first dispatch), with a test for round 1 and for an *Aanpassen* round. | INT-05, DLV-05 | S | done (2026-11-19, #33) |
 | FIX-07 | *Owner to decide* in `STATE.md` names `agenda.md` again, whose owner question 2 is still open (`STATE.md:47`; #28, minor). | TRK | S | done (2026-11-19, #28) |
+| FIX-08 | The agenda line in *Waiting on the owner* said the first read worked while the README `## Status` still said it waited on the owner (`STATE.md:36`; #36, minor): README rewritten in the same PR. | TRK | S | done (2026-11-20, #36) |
 
 ## Open questions
 - See *Owner to decide* in `STATE.md`.
