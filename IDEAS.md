@@ -124,7 +124,7 @@ fetched: `slidegen` stays pure and makes no network call), `INTERFACE.md` (a `qr
 Intent: one tidy format for every agenda slide. Owner, 2026-11-20: the team has photos for many activities and would
 rather have them rebuilt in the house format than keep the old finished slides. A photo `Vast/Agenda/<title>.jpg`
 (or `.png` that is a photo, not a slide; to be decided) goes along with the activity's first slide as its image
-(REN-11..13, left or right by id), and every date of it (VS4-03) keeps that image with its own time and place. A
+(REN-11..14, left or right by id), and every date of it (VS4-03) keeps that image with its own time and place. A
 finished PNG keeps working as today (AGD-09). Phase 1, right after VS4-03 (owner, 2026-11-20). Touches: `agenda.md` (AGD-04,
 AGD-05, AGD-09: which file is a photo and which a finished slide), `INTERFACE.md` (`image: true` and the image fetch
 for an activity id), `deliver.md` DLV-14 (the signed image link serves an activity's photo), the renderer (an
