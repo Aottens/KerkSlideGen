@@ -30,13 +30,16 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - The night run groups the agenda into activities in the tab *Activiteiten* (no "Samenkomst") and sends a new
   activity's first slide, with the agenda's own time and place, to the visual team: *Goedkeuren* sets `tonen`,
   *Aanpassen* renders again, *Niet tonen* keeps it out. An activity's own PNG in `Vast/Agenda/` skips all that and
-  joins the loop while it has a date this week. It runs on Google (run of 2026-11-20); the dates come with VS4-03.
+  joins the loop while it has a date this week. It runs on Google (run of 2026-11-20).
+- Every date this week of an activity in `tonen` is rendered without Claude and without a mail (tab `Datums`), and is
+  in `Loop/` up to its date; a moved time or place is rendered again the next night, a cancelled date leaves the loop.
+  Not yet run on Google (`tests/manual/agenda.md`, step 13 onwards).
 
 ## Next
 1. VS3-01: the Smart Playlist on the church Mac plays `Loop/` (gate 3).
-2. VS4-03: every date of an approved activity rendered without Claude and in the loop (`specs/modules/agenda.md`).
 
 ## Waiting on the owner
+- `clasp push`, a new web app version and the run of the dated slides (`tests/manual/agenda.md`, steps 13–18).
 - The rest of the *Aanpassen* run: round 3, the old links, the logs, the expiry, the watchdog,
   the web app guard and a change round's retries
   (`tests/manual/approve.md`, run of 2026-11-19).
