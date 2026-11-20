@@ -51,6 +51,7 @@ class Callback:
         self.gets: list[str] = []
         self.status = 200
         self.answer = b'{"ok":true}'
+        self.answers: list[bytes] = []  # answered first, one per POST, before `answer`
         self.image: bytes = b'{"error": "no image"}'  # what a GET ?image= answers (DLV-14)
         outer = self
 
@@ -66,7 +67,7 @@ class Callback:
                 outer.posts.append({"path": self.path, "headers": dict(self.headers), "body": body})
                 self.send_response(outer.status)
                 self.end_headers()
-                self.wfile.write(outer.answer)
+                self.wfile.write(outer.answers.pop(0) if outer.answers else outer.answer)
 
             def log_message(self, *a):
                 pass
@@ -113,10 +114,10 @@ class FakeRender:
         Path(out).write_bytes(PNG)
 
 
-def go(cb, tmp_path, run=None, render_fn=None, argv=(), **payload) -> int:
+def go(cb, tmp_path, run=None, render_fn=None, argv=(), sleep=lambda s: None, **payload) -> int:
     return job.main(
         list(argv), env(cb, event(tmp_path, **payload)), run=run or FakeRun(reply()),
-        render_fn=render_fn or FakeRender(), today=TODAY,
+        render_fn=render_fn or FakeRender(), today=TODAY, sleep=sleep,
     )
 
 
@@ -252,7 +253,7 @@ def test_dlv_01_end_to_end_with_the_real_renderer(callback, tmp_path):
 def test_dlv_01_a_failed_post_fails_the_run(callback, tmp_path):
     callback.status = 500
     assert go(callback, tmp_path) == 1
-    assert len(callback.posts) == 1
+    assert len(callback.posts) == 4, "posted again 3 times before it gives up"
 
 
 def test_dlv_01_an_unreachable_callback_fails_the_run(callback, tmp_path, capsys):
@@ -260,7 +261,9 @@ def test_dlv_01_an_unreachable_callback_fails_the_run(callback, tmp_path, capsys
     callback.server.shutdown()
     callback.server.server_close()
     e = env(callback, event(tmp_path), CALLBACK_URL=url)
-    assert job.main([], e, run=FakeRun(reply()), render_fn=FakeRender(), today=TODAY) == 1
+    pauses = []
+    assert job.main([], e, run=FakeRun(reply()), render_fn=FakeRender(), today=TODAY, sleep=pauses.append) == 1
+    assert pauses == [30, 30, 30], "a network error is tried again too"
     assert url not in capsys.readouterr().err  # the URL is a secret
 
 
@@ -450,6 +453,30 @@ def test_dlv_01_a_refused_callback_fails_the_run(callback, tmp_path, capsys):
     callback.answer = b'{"ok": false, "error": "handtekening klopt niet"}'
     assert go(callback, tmp_path) == 1
     assert "callback refused" in capsys.readouterr().err
+    assert len(callback.posts) == 4
+
+
+def test_dlv_01_a_refused_callback_is_posted_again_after_a_pause(callback, tmp_path):
+    """A refused callback changes nothing (DLV-01), so posting it again is safe: many callbacks at once can make the web
+    app's script lock time out (FIX-10)."""
+    callback.answers = [b'{"ok": false}'] * 2
+    pauses = []
+    assert go(callback, tmp_path, sleep=pauses.append) == 0
+    assert len(callback.posts) == 3
+    assert pauses == [30, 30]
+    assert len({p["body"] for p in callback.posts}) == 1, "the same signed body each time"
+    for p in callback.posts:
+        check_sig(p)
+
+
+def test_dlv_01_the_job_waits_longer_than_the_web_app_waits_for_its_lock():
+    """doPost waits up to 2 minutes for the script lock (FIX-10); the job must not give up on it first."""
+    main = (REPO / "subprojects/google/src/main.js").read_text(encoding="utf-8")
+    post = main[main.index("function doPost("):]
+    post = post[: post.index("\nfunction ")]
+    wait = int(re.search(r"waitLock\((\d+)\)", post)[1]) / 1000
+    assert wait >= 120
+    assert job.TIMEOUT >= wait + 60, "room for the work after the lock"
 
 
 # AGD-04: the first slide of an agenda activity ------------------------------------------------------------------------

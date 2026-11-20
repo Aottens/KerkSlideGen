@@ -23,26 +23,33 @@ ALLOWED = {"id", "round", "kind", "text", "change", "event_date", "show_until", 
 NOT_FIT = "the slide does not fit the safe area at the smallest text size: make it shorter (does not fit)"
 
 
-def post(url: str, secret: str, body: dict) -> bool:
+TIMEOUT = 180  # seconds to wait for an answer: longer than the web app waits for its script lock (FIX-10)
+TRIES, PAUSE = 4, 30  # a refused callback changes nothing (DLV-01), so posting it again is safe
+
+
+def post(url: str, secret: str, body: dict, sleep=time.sleep) -> bool:
     data = json.dumps(body).encode()
     sig = hmac.new(secret.encode(), data, hashlib.sha256).hexdigest()
     u = urlsplit(url)
     url = urlunsplit(u._replace(query=urlencode([*parse_qsl(u.query), ("sig", sig)])))
-    req = urllib.request.Request(url, data, {"Content-Type": "application/json"})
-    try:
-        with urllib.request.urlopen(req, timeout=60) as r:
-            answer = r.read()
-    except urllib.error.HTTPError as e:
-        print(f"callback failed: HTTP {e.code}", file=sys.stderr)
-    except (urllib.error.URLError, OSError) as e:  # the URL is a secret: name the class only
-        print(f"callback failed: {type(e).__name__}", file=sys.stderr)
-    else:
-        try:  # the web app answers 200 even when it refuses, or on a script error (INTERFACE.md section 3)
-            if json.loads(answer).get("ok") is True:
-                return True
-        except (ValueError, AttributeError):
-            pass
-        print("callback refused", file=sys.stderr)
+    for attempt in range(TRIES):
+        if attempt:
+            sleep(PAUSE)
+        req = urllib.request.Request(url, data, {"Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+                answer = r.read()
+        except urllib.error.HTTPError as e:
+            print(f"callback failed: HTTP {e.code}", file=sys.stderr)
+        except (urllib.error.URLError, OSError) as e:  # the URL is a secret: name the class only
+            print(f"callback failed: {type(e).__name__}", file=sys.stderr)
+        else:
+            try:  # the web app answers 200 even when it refuses, or on a script error (INTERFACE.md section 3)
+                if json.loads(answer).get("ok") is True:
+                    return True
+            except (ValueError, AttributeError):
+                pass
+            print("callback refused", file=sys.stderr)
     return False
 
 
@@ -144,7 +151,7 @@ def work(f: dict, run, render_fn, today: date, image: tuple[str, bytes] | None =
         return {"reason": f"internal error: {type(e).__name__}"}
 
 
-def main(argv, env, run=None, render_fn=None, today=None) -> int:
+def main(argv, env, run=None, render_fn=None, today=None, sleep=time.sleep) -> int:
     for name in ("CALLBACK_URL", "CALLBACK_SECRET"):
         if not env.get(name):
             print(f"missing secret: {name}", file=sys.stderr)
@@ -158,7 +165,7 @@ def main(argv, env, run=None, render_fn=None, today=None) -> int:
         print("invalid payload: round", file=sys.stderr)
         return 1
     head = {"id": rid, "round": rnd}
-    send = lambda body: post(env["CALLBACK_URL"], env["CALLBACK_SECRET"], body)  # noqa: E731
+    send = lambda body: post(env["CALLBACK_URL"], env["CALLBACK_SECRET"], body, sleep)  # noqa: E731
     if "--setup-failed" in argv:
         send({**head, "ok": False, "reason": "render job setup failed"})
         return 1

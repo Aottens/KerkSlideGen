@@ -552,7 +552,7 @@ function doPost(e) {
   let rowNumber = 0;
   let mailed = false;
   try {
-    lock.waitLock(30000);
+    lock.waitLock(120000);
     // DLV-08: a missing setting is mailed, not silently refused.
     if (!props_().getProperty('CALLBACK_SECRET')) throw new Error('CALLBACK_SECRET ontbreekt');
     const raw = (e && e.postData && e.postData.contents) || '';
