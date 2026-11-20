@@ -183,3 +183,20 @@ test('dlv_08_night_run_without_the_lock_mails_the_team', () => {
   assert.match(night, /if \(!lock\.tryLock\(30000\)\)/);
   assert.match(night, /loopFailMail\(/);
 });
+
+// AGD-09: an agenda activity's own PNG joins the loop like a fixed slide -------------------------------------------------
+
+test('AGD-09 own agenda PNGs are in the loop once, kept and replaced like fixed slides', () => {
+  const agenda = [file('k', 'Bijbelkring.png')];
+  const p = plan({ fixed: [file('w', 'welkom.png')], agenda });
+  assert.deepEqual(names(p), ['Bijbelkring.png', 'welkom.png']);
+  const current = p.add.map((a, i) => ({ id: 'loop-' + i, key: a.key }));
+  assert.deepEqual(plan({ fixed: [file('w', 'welkom.png')], agenda, current }).add, []);
+  const gone = plan({ fixed: [file('w', 'welkom.png')], current });
+  const own = current.find((c) => c.key === p.add.find((a) => a.name === 'Bijbelkring.png').key).id;
+  assert.deepEqual(gone.remove, [own], 'out of the window: out of the loop');
+});
+
+test('AGD-09 loopPlan without agenda files still works', () => {
+  assert.deepEqual(names(plan({ fixed: [file('w', 'welkom.png')] })), ['welkom.png']);
+});
