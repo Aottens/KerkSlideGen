@@ -34,7 +34,7 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 
 ## Next
 1. VS3-01: the Smart Playlist on the church Mac plays `Loop/` (gate 3).
-2. FIX-09: a render of an activity without answer mails the team (blocker from #38).
+2. FIX-09, FIX-10: a render of an activity without answer mails the team; many callbacks at once are not refused.
 3. VS4-03: every date of an approved activity rendered without Claude and in the loop (`specs/modules/agenda.md`).
 
 ## Waiting on the owner
