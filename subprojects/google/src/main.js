@@ -315,8 +315,8 @@ function readAgenda_() {
   try {
     const id = p.getProperty('AGENDA_CALENDAR_ID');
     if (!id) throw new Error('script property AGENDA_CALENDAR_ID ontbreekt');
-    const cal = CalendarApp.getCalendarById(id);
-    if (!cal) throw new Error('agenda niet gevonden: abonneer dit account op de agenda');
+    // Not subscribed yet: subscribe this account once; a wrong id throws and is mailed below.
+    const cal = CalendarApp.getCalendarById(id) || CalendarApp.subscribeToCalendar(id);
     const w = agendaWindow(today);
     const occ = weekOccurrences(cal.getEvents(w.from, w.to), today);
     const ss = SpreadsheetApp.openById(p.getProperty('SHEET_ID'));

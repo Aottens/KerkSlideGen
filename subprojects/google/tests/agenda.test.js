@@ -7,6 +7,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const G = require('../src/agenda.js');
+const MAIN = fs.readFileSync(path.join(__dirname, '..', 'src', 'main.js'), 'utf8');
+const fnBody = (name) => {
+  const start = MAIN.indexOf(`function ${name}(`);
+  assert.ok(start >= 0, `main.js has ${name}`);
+  const next = MAIN.indexOf('\nfunction ', start + 1);
+  return MAIN.slice(start, next < 0 ? undefined : next);
+};
 
 // A CalendarEvent look-alike: only the getters the adapter may use.
 const ev = (o) => ({
@@ -66,6 +73,11 @@ test('AGD-01 the calendar id is a script property, never in the repo', () => {
   assert.doesNotMatch(outside, /CalendarApp/, 'only the adapter knows the agenda');
 });
 
+test('AGD-01 the script subscribes the account to the agenda itself when it is not subscribed yet', () => {
+  const r = fnBody('readAgenda_');
+  assert.match(r, /CalendarApp\.getCalendarById\(id\) \|\| CalendarApp\.subscribeToCalendar\(id\)/);
+});
+
 // AGD-02: the window --------------------------------------------------------------------------------------------------
 
 test('AGD-02 the query window covers today through today + 7 in Amsterdam, with margin', () => {
@@ -91,14 +103,6 @@ test('AGD-02 the week is sorted by start', () => {
   ], '2026-11-19');
   assert.deepEqual(week.map((o) => o.seriesId), ['a', 'b']);
 });
-
-const MAIN = fs.readFileSync(path.join(__dirname, '..', 'src', 'main.js'), 'utf8');
-const fnBody = (name) => {
-  const start = MAIN.indexOf(`function ${name}(`);
-  assert.ok(start >= 0, `main.js has ${name}`);
-  const next = MAIN.indexOf('\nfunction ', start + 1);
-  return MAIN.slice(start, next < 0 ? undefined : next);
-};
 
 test('AGD-02 the night run reads the agenda, and only the night run', () => {
   assert.match(fnBody('composeLoop'), /readAgenda_\(\)/);

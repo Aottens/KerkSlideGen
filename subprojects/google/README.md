@@ -125,9 +125,9 @@ Mails "to the visual team" go to this account (`Session.getEffectiveUser()`).
 20. **Test it** with the *Aanpassen* and *Expiry* sections of `tests/manual/approve.md`.
 
 ### The agenda (VS4-01)
-21. **Subscribe, set the id, push, allow.** Subscribe this account to the church's public Google Agenda by its id,
-    put the id in the script property `AGENDA_CALENDAR_ID` (never in the repo), `npx @google/clasp push`, and run
-    `composeLoop` once in the editor to allow the new *Calendar* scope. Every night the coming week then lands in the
+21. **Set the id, push, allow.** Put the church agenda's id in the script property `AGENDA_CALENDAR_ID` (never in
+    the repo), `npx @google/clasp push`, and run `composeLoop` once in the editor to allow the new *Calendar* scope;
+    the script subscribes this account to the agenda itself. Every night the coming week then lands in the
     Sheet tab `Agenda`; a failed read keeps the last good one and mails this account once a day.
 22. **Test it** with `tests/manual/agenda.md` (click by click, in Dutch).
 
