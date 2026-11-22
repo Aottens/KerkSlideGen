@@ -172,10 +172,84 @@ function activityTeamMail(a, reason) {
   };
 }
 
+// Dated slides (AGD-05, 07, 09): every date of an activity in tonen, rendered without Claude, tab Datums.
+const DATED_TAB = 'Datums';
+const DATED_COLUMNS = ['id', 'sleutel', 'png', 'sinds', 'reden'];
+const toDatedRow = (d) => [d.id, d.key, d.png, d.since, d.reason].map(agLit_);
+function fromDatedRow(r) {
+  const s = (v) => (v == null ? '' : String(v));
+  return { id: s(r[0]), key: s(r[1]), png: s(r[2]), since: r[3] instanceof Date ? r[3] : r[3] ? new Date(r[3]) : '',
+    reason: s(r[4]), round: 1 };
+}
+
+// The dates that should have a dated slide: id -> { activity, occurrence, slide, key, event_date }.
+function datedWanted_({ activities, occurrences, files, today }) {
+  const out = new Map();
+  const sorted = occurrences.slice().sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : 0));
+  for (const o of sorted) {
+    const day = agDay_(new Date(o.start));
+    if (!isActivity_(o) || o.cancelled || day < today) continue;
+    const a = activities.find((x) => agNorm_(x.title) === agNorm_(o.title));
+    if (!a || a.state !== ACT.SHOW || agOwnPng_(files, a.title)) continue;
+    const id = a.id + '-' + day;
+    if (out.has(id)) continue;
+    let t = {};
+    try { t = JSON.parse(a.slide) || {}; } catch (e) {}
+    const slide = { title: String(t.title || ''), when: agendaWhen(o.start), where: agendaWhere(o.location),
+      line: String(t.line || '') };
+    out.set(id, { id, activity: a, occurrence: o, slide, key: JSON.stringify(slide), event_date: day });
+  }
+  return out;
+}
+
+function datedPlan({ activities, occurrences, files, dated, today, now }) {
+  const dispatch = [];
+  for (const w of datedWanted_({ activities, occurrences, files, today }).values()) {
+    const d = dated.find((x) => x.id === w.id);
+    const same = d && d.key === w.key;
+    if (same && d.png) continue;
+    if (same && d.since && now - new Date(d.since) < 20 * 3600e3) continue;
+    dispatch.push({ ...w, retry: Boolean(same && d.since) });
+  }
+  return { dispatch, prune: dated.filter((d) => d.id.slice(-10) < today).map((d) => d.id) };
+}
+
+const datedDispatch = (item) => ({ event_type: 'slide-request', client_payload: { id: item.id, round: 1,
+  kind: 'occurrence', event_date: item.event_date, slide: item.slide } });
+
+const afterDatedDispatch = (d, item, why, now) => ({ id: item.id, key: item.key,
+  png: d && d.key === item.key ? d.png : '', since: why ? '' : now, reason: why, round: 1 });
+
+function afterDatedCallback(d, body, pngId) {
+  if (body.ok) return { ...d, png: pngId, since: '', reason: '' };
+  return { ...d, png: '', since: '', reason: ('render: ' + (body.reason || '')).slice(0, 200) };
+}
+
+function datedLoopItems({ dated, activities, occurrences, files, today }) {
+  const wanted = datedWanted_({ activities, occurrences, files, today });
+  return dated.filter((d) => d.png && wanted.has(d.id) && wanted.get(d.id).key === d.key)
+    .map((d) => ({ sourceId: d.png, name: d.id + '.png', key: d.png }));
+}
+
+function datedTeamMail(items) {
+  const parse = (k) => { try { return JSON.parse(k) || {}; } catch (e) { return {}; } };
+  const lines = items.map((i) => { const s = parse(i.key);
+    return `- ${s.title || '(titel onbekend)'}, ${s.when || 'datum onbekend'}\n  Reden: ${i.reason}`; });
+  const first = parse(items[0].key).title || 'onbekend';
+  return {
+    subject: items.length > 1 ? `Datums zonder slide: ${items.length} stuks` : `Datum zonder slide: ${first}`,
+    body: 'Voor deze datums is geen slide gelukt:\n\n' + lines.join('\n') + '\n\nWat het team kan doen:\n'
+      + '- Zet een eigen PNG in Vast/Agenda/<titel>.png; die komt dan zelf in de loop.\n'
+      + '- Of zet de activiteit op niet tonen in de tab Activiteiten; dan komt er geen slide.\n\n'
+      + 'Anders probeert de volgende nachtrun het opnieuw.\n',
+  };
+}
+
 if (typeof module !== 'undefined') {
   module.exports = { AGENDA_TAB, AGENDA_COLUMNS, toOccurrence, agendaWindow, weekOccurrences, toAgendaRow,
     fromAgendaRow, agendaMailDue, agendaFailMail, ACTIVITIES_TAB, ACTIVITY_COLUMNS, ACT, AGENDA_FOLDER, activityId,
     newActivities, toActivityRow, fromActivityRow, agendaWhen, agendaWhere, activitiesToDispatch, activityDispatch,
     agendaLoopFiles, afterActivityCallback, afterActivityApprove, afterActivityHide, afterActivityChange,
-    activityTeamMail };
+    activityTeamMail, DATED_TAB, DATED_COLUMNS, toDatedRow, fromDatedRow, datedPlan, datedDispatch, afterDatedDispatch,
+    afterDatedCallback, datedLoopItems, datedTeamMail };
 }

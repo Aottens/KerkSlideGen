@@ -175,10 +175,9 @@ def test_int_04_payload_outside_the_interface_goes_to_visual_team(callback, tmp_
     assert "Marja" not in body["reason"] and "marja@" not in body["reason"]
 
 
-@pytest.mark.parametrize("kind", ["occurrence", "something"])
-def test_int_04_only_kind_request_and_activity_in_this_build(callback, tmp_path, kind):
+def test_int_04_an_unknown_kind_goes_to_visual_team(callback, tmp_path):
     run = FakeRun(reply())
-    assert go(callback, tmp_path, run=run, kind=kind) == 0
+    assert go(callback, tmp_path, run=run, kind="something") == 0
     assert callback.json()["ok"] is False and run.calls == []
 
 
@@ -330,7 +329,7 @@ def test_dlv_05_change_text_goes_with_the_original_request(callback, tmp_path):
         (None, FakeRender(FontMissing("font file not found")), {}, "font"),  # REN-08
         (None, FakeRender(RuntimeError(TEXT)), {}, "RuntimeError"),  # anything else, its message withheld
         (None, None, {"image": True}, "image fetch failed"),  # DLV-14: the web app gave no image
-        (None, None, {"kind": "occurrence"}, "not built yet"),  # occurrences come with VS4-03
+        (None, None, {"kind": "occurrence"}, "invalid payload: text"),  # AGD-05: an occurrence carries no text
         (None, None, {"text": ""}, "text"),  # INT-04
     ],
     ids=["claude-login", "over-budget", "does-not-fit", "font-missing", "unexpected", "image", "agenda", "payload"],
@@ -533,4 +532,75 @@ def test_agd_04_activity_with_bad_when_or_where_goes_to_visual_team(callback, tm
 def test_agd_04_a_request_carries_no_when_or_where(callback, tmp_path):
     run = FakeRun(reply())
     assert go(callback, tmp_path, run=run, when=WHEN) == 0
+    assert callback.json()["ok"] is False and run.calls == []
+
+
+# AGD-05: one date of an approved activity, rendered without Claude ----------------------------------------------------
+
+SLIDE = {"title": "Bijbelkring", "when": WHEN, "where": "Zaal 2", "line": "Iedereen welkom"}
+OCCURRENCE = {"id": "A1b2c3d4e-2026-11-25", "kind": "occurrence", "event_date": "2026-11-25", "slide": SLIDE,
+              "text": None, "change": None, "show_until": None, "image": None}
+
+
+def test_agd_05_limits_match_condense():
+    from slidegen.condense import LIMITS
+    assert job.SLIDE_LIMITS == LIMITS
+
+
+def test_agd_05_occurrence_never_calls_claude(callback, tmp_path):
+    run = FakeRun()  # any call to claude -p would pop from an empty queue
+    assert go(callback, tmp_path, run=run, **OCCURRENCE) == 0
+    body = callback.json()
+    assert body["ok"] is True and body["id"] == "A1b2c3d4e-2026-11-25" and run.calls == []
+    assert {k: body["slide"][k] for k in SLIDE} == SLIDE
+    assert base64.b64decode(body["png_base64"]) == PNG
+
+
+def test_agd_05_occurrence_renders_the_slide_as_sent(callback, tmp_path):
+    render = FakeRender()
+    assert go(callback, tmp_path, render_fn=render, **OCCURRENCE) == 0
+    s = render.slides[0]
+    assert (s.title, s.when, s.where, s.line) == tuple(SLIDE.values())
+
+
+def test_agd_05_occurrence_with_empty_where_renders(callback, tmp_path):
+    assert go(callback, tmp_path, run=FakeRun(), **{**OCCURRENCE, "slide": {**SLIDE, "where": ""}}) == 0
+    assert callback.json()["ok"] is True and callback.json()["slide"]["where"] == ""
+
+
+def test_agd_05_occurrence_that_does_not_fit_goes_to_visual_team_without_claude(callback, tmp_path):
+    run = FakeRun()
+    assert go(callback, tmp_path, run=run, render_fn=FakeRender(DoesNotFit()), **OCCURRENCE) == 0
+    body = callback.json()
+    assert body["ok"] is False and body["reason"] == "does not fit" and run.calls == []
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"slide": None},
+        {"slide": "Bijbelkring"},
+        {"slide": {**SLIDE, "title": ""}},
+        {"slide": {**SLIDE, "title": "x" * 33}},
+        {"slide": {**SLIDE, "when": ""}},
+        {"slide": {**SLIDE, "where": "x" * 41}},
+        {"slide": {**SLIDE, "line": "x" * 71}},
+        {"slide": {**SLIDE, "line": 3}},
+        {"slide": {**SLIDE, "extra": "x"}},
+        {"text": "Bijbelkring"},
+    ],
+    ids=["missing", "not-object", "no-title", "title-long", "no-when", "where-long", "line-long", "line-type",
+         "extra-field", "has-text"],
+)
+def test_agd_05_occurrence_with_a_bad_slide_goes_to_visual_team(callback, tmp_path, payload):
+    run, render = FakeRun(), FakeRender()
+    assert go(callback, tmp_path, run=run, render_fn=render, **{**OCCURRENCE, **payload}) == 0
+    body = callback.json()
+    assert body["ok"] is False and body["reason"].startswith("invalid payload")
+    assert run.calls == [] and render.slides == []
+
+
+def test_agd_05_a_request_carries_no_slide(callback, tmp_path):
+    run = FakeRun(reply())
+    assert go(callback, tmp_path, run=run, slide=SLIDE) == 0
     assert callback.json()["ok"] is False and run.calls == []

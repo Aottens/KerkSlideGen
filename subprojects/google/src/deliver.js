@@ -29,7 +29,8 @@ function checkCallback({ raw, sig, expected, row }) {
   if (!body || typeof body !== 'object') return no('geen geldige JSON');
   if (!row) return no('onbekende aanvraag');
   const S = dlvState_();
-  const waiting = String(row.id).startsWith('A') ? row.state === S.NEW && Boolean(row.since) : [S.SENT, S.RETRY].includes(row.state);
+  const isDated = /^A[0-9a-f]{8}-\d{4}-\d{2}-\d{2}$/.test(String(row.id)); // AGD-05
+  const waiting = isDated ? Boolean(row.since) : String(row.id).startsWith('A') ? row.state === S.NEW && Boolean(row.since) : [S.SENT, S.RETRY].includes(row.state);
   if (!waiting) return no('aanvraag wacht niet op een antwoord');
   if (Number(body.round) !== Number(row.round)) return no('andere ronde');
   return { error: '', body };
@@ -193,12 +194,13 @@ function rotatingPick(files, today) {
   return l.length ? l[isoWeek(today) % l.length] : null;
 }
 
-function loopPlan({ fixed, rotating, requests, current, today, agenda = [] }) {
+function loopPlan({ fixed, rotating, requests, current, today, agenda = [], dated = [] }) {
   const S = dlvState_();
   const wanted = [];
   const archive = [];
   const asItem = (f) => ({ sourceId: f.id, name: f.name, key: `${f.id}:${f.updated}` });
   fixed.concat(agenda).filter(isPng_).forEach((f) => wanted.push(asItem(f)));
+  dated.forEach((d) => wanted.push(d)); // DLV-09: dated slides, already filtered by datedLoopItems
   const pick = rotatingPick(rotating, today);
   if (pick) wanted.push(asItem(pick));
   for (const r of requests) {

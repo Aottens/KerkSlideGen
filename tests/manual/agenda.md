@@ -1,4 +1,4 @@
-# Handmatige check: de agenda (VS4-01: AGD-01, 02, 08; VS4-02: AGD-03, 04, 06, 09)
+# Handmatige check: de agenda (VS4-01: AGD-01, 02, 08; VS4-02: AGD-03, 04, 06, 09; VS4-03: AGD-05, 07, 09, DLV-09)
 
 Door de owner, op het eigen Google-account waar het script onder draait (DECISIONS 2026-11-18). Schrijf de run in
 `tests/manual/runs/<datum>-VS4-01.md` met de afgevinkte lijst en `## Open points`. Zet geen titels, namen of
@@ -8,6 +8,8 @@ en aantallen.
 Stap 1–6 (VS4-01) lezen de komende week in het tabblad `Agenda`. Stap 7–12 (VS4-02) maken van elke nieuwe activiteit
 één eerste slide voor het visuele team. VS4-03 zet daarna elke datum van een goedgekeurde activiteit in de loop.
 Schrijf de run van VS4-02 in `tests/manual/runs/<datum>-VS4-02.md`.
+Stap 13–18 (VS4-03) zetten elke datum van een activiteit op `tonen` in de loop; schrijf die run in
+`tests/manual/runs/<datum>-VS4-03.md`.
 
 ## 1. De agenda-ID
 De agenda-ID is het deel na `src=` in de embed-link van de gemeente-agenda, met `%40` vervangen door `@` (de owner
@@ -118,3 +120,55 @@ Kies drie activiteiten uit de mails van stap 9.
 ## 12. De logboeken (INT-04)
 - [ ] **INT-04** Editor → links *Uitvoeringen* → de runs van vandaag: geen titel, omschrijving of plaats uit de
       agenda in het logboek.
+
+## 13. VS4-03 pushen (na de merge)
+1. Open de Terminal en ga naar je eigen checkout (niet een worktree):
+   `cd ~/Documents/Projects/KerkSlideGen && git checkout main && git pull`.
+2. `cd subprojects/google && npx @google/clasp push`. Antwoord *yes* als hij vraagt het manifest te overschrijven.
+   Hij noemt 5 bestanden: `appsscript.json`, `agenda.js`, `deliver.js`, `intake.js`, `main.js`.
+3. `npx @google/clasp open-script`: de editor opent in de browser. Ververs hem als hij al open stond.
+
+## 14. Een nieuwe versie van de web app
+De render stuurt elke datum-slide terug naar de web app; die draait de code van de laatste **versie**.
+1. In de editor rechtsboven **Implementeren** → **Implementaties beheren**.
+2. Kies links de bestaande web-app-implementatie en klik het **potlood** (*Bewerken*).
+3. Bij *Versie*: kies **Nieuwe versie**. Laat *Uitvoeren als* (jij) en *Wie heeft toegang* (iedereen) zoals ze staan.
+4. Klik **Implementeren** en daarna **Gereed**. De URL blijft dezelfde.
+
+## 15. Eén nachtrun met datum-slides (AGD-05, DLV-09)
+Zorg dat minstens één activiteit op `tonen` staat zonder eigen PNG in `Vast/Agenda/`, met deze week een datum.
+1. Kies in de editor bovenaan `main.gs`, in de functielijst `composeLoop`, en klik **Uitvoeren**. Wacht tot het
+   logboek *Uitvoering voltooid* zegt.
+2. Wacht vijf minuten. Kijk op github.com/Aottens/KerkSlideGen → *Actions* → *Render*: één run per datum, groen.
+- [ ] **AGD-05** De Sheet heeft een tabblad `Datums` met de kolommen `id`, `sleutel`, `png`, `sinds`, `reden`, en één
+      rij per datum van elke activiteit op `tonen`; het `id` is het activiteit-id met de datum erachter.
+- [ ] **AGD-05** Geen mail: een datum van een goedgekeurde activiteit hoeft niet nog eens goedgekeurd te worden.
+- [ ] **AGD-05** Elke rij heeft binnen vijf minuten een `png`; `sinds` en `reden` zijn leeg.
+- [ ] **DLV-09** Binnen twee minuten daarna staat in `Loop/` per datum een PNG `<id>.png`. Open er één: titel en zin
+      zijn die van de goedgekeurde slide, dag, datum, tijd en plaats die van die datum in de agenda.
+- [ ] **INT-07** In de run op GitHub (*Actions* → *Render* → de run → *job*) staat alleen `<id> round 1: ok`.
+3. Voer `composeLoop` nog een keer uit.
+- [ ] **AGD-05** Geen nieuwe runs op GitHub en geen nieuwe rijen: een datum die al klaar is gaat niet nog eens weg.
+
+## 16. Een verschoven tijd (AGD-07)
+1. Open de gemeente-agenda in Google Agenda en verschuif bij één datum van zo'n activiteit de begintijd een half uur
+   (alleen die ene datum: kies *Alleen deze afspraak* als hij het vraagt). Pas ook de omschrijving van een andere
+   datum aan.
+2. Voer `composeLoop` uit en wacht vijf minuten.
+- [ ] **AGD-07** Precies één nieuwe run op GitHub: die van de verschoven datum. In `Loop/` toont zijn PNG de nieuwe
+      tijd; de oude PNG van die datum is weg.
+- [ ] **AGD-07** De datum met de andere omschrijving kreeg geen nieuwe run.
+3. Zet de tijd daarna terug als het geen echte wijziging was, en voer `composeLoop` nog een keer uit.
+
+## 17. Een geschrapte datum (AGD-07, DLV-09)
+1. Verwijder in de gemeente-agenda één datum van zo'n activiteit (*Alleen deze afspraak*), of schrap hem.
+2. Voer `composeLoop` uit.
+- [ ] **AGD-07** De PNG van die datum is weg uit `Loop/`; de andere datums van die activiteit staan er nog.
+3. Zet de datum terug als het geen echte wijziging was en voer `composeLoop` uit: hij komt weer in `Loop/`.
+4. Zet de activiteit in de tab `Activiteiten` op `niet tonen` en voer `composeLoop` uit.
+- [ ] **DLV-09** Alle datum-PNG's van die activiteit zijn weg uit `Loop/`. Zet de status daarna terug op `tonen`.
+
+## 18. De volgende ochtend (AGD-05, DLV-09)
+- [ ] **DLV-09** Editor → *Uitvoeringen*: de `composeLoop` van 03:00 en de `retryDispatches` daarna zijn groen.
+- [ ] **AGD-07** In `Datums` staat geen rij meer van een datum vóór vandaag, en in `Loop/` geen PNG van gisteren.
+- [ ] **INT-04** De logboeken van vandaag tonen geen titel, omschrijving of plaats uit de agenda.
