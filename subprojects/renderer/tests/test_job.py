@@ -604,3 +604,56 @@ def test_agd_05_a_request_carries_no_slide(callback, tmp_path):
     run = FakeRun(reply())
     assert go(callback, tmp_path, run=run, slide=SLIDE) == 0
     assert callback.json()["ok"] is False and run.calls == []
+
+
+# AGD-11, AGD-12: an activity's photo (IDEA-14) ----------------------------------------------------------------------
+
+
+def test_agd_11_activity_with_photo_fetches_it_by_activity_id_and_renders_with_it(callback, tmp_path):
+    serve_image(callback)
+    render = ImageRender()
+    assert go(callback, tmp_path, render_fn=render, id="A1b2c3d4e", kind="activity", when=WHEN, where="Zaal 2",
+              image=True) == 0
+    assert parse_qs(urlsplit(callback.gets[0]).query)["image"] == ["A1b2c3d4e"]
+    assert render.image_bytes == IMAGE and render.kw["slide_id"] == "A1b2c3d4e"
+    assert callback.json()["ok"] is True
+
+
+def test_agd_12_occurrence_with_photo_fetches_by_activity_id_without_claude(callback, tmp_path):
+    serve_image(callback, ext="png")
+    run, render = FakeRun(), ImageRender()
+    assert go(callback, tmp_path, run=run, render_fn=render, **{**OCCURRENCE, "image": True}) == 0
+    assert parse_qs(urlsplit(callback.gets[0]).query)["image"] == ["A1b2c3d4e"]
+    assert render.image_bytes == IMAGE and Path(render.kw["image"]).suffix == ".png"
+    assert render.kw["slide_id"] == "A1b2c3d4e", "the side follows the activity id, not the occurrence id"
+    body = callback.json()
+    assert body["ok"] is True and body["id"] == "A1b2c3d4e-2026-11-25" and run.calls == []
+
+
+def test_agd_12_occurrence_without_photo_fetches_nothing(callback, tmp_path):
+    render = ImageRender()
+    assert go(callback, tmp_path, render_fn=render, **{**OCCURRENCE, "image": False}) == 0
+    assert callback.gets == [] and render.kw.get("image") is None
+
+
+def test_agd_12_occurrence_with_a_failed_photo_fetch_goes_to_visual_team(callback, tmp_path):
+    render = ImageRender()
+    assert go(callback, tmp_path, render_fn=render, **{**OCCURRENCE, "image": True}) == 0
+    assert render.slides == [] and callback.json()["reason"] == "image fetch failed"
+
+
+def test_agd_12_occurrence_with_a_bad_image_flag_goes_to_visual_team(callback, tmp_path):
+    assert go(callback, tmp_path, **{**OCCURRENCE, "image": "yes"}) == 0
+    assert callback.json()["reason"] == "invalid payload: image"
+
+
+def test_agd_12_first_slide_and_every_date_get_the_same_side(callback, tmp_path):
+    """REN-14 on the activity id: find an activity whose occurrence ids would pick the other side."""
+    from slidegen.render import image_side
+
+    aid = next(f"A{i:08x}" for i in range(1000) if image_side(f"A{i:08x}") != image_side(f"A{i:08x}-2026-11-25"))
+    serve_image(callback)
+    first, date_ = ImageRender(), ImageRender()
+    assert go(callback, tmp_path, render_fn=first, id=aid, kind="activity", when=WHEN, where="", image=True) == 0
+    assert go(callback, tmp_path, render_fn=date_, **{**OCCURRENCE, "id": f"{aid}-2026-11-25", "image": True}) == 0
+    assert image_side(first.kw["slide_id"]) == image_side(date_.kw["slide_id"])

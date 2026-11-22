@@ -1,4 +1,5 @@
-# Handmatige check: de agenda (VS4-01: AGD-01, 02, 08; VS4-02: AGD-03, 04, 06, 09; VS4-03: AGD-05, 07, 09, DLV-09)
+# Handmatige check: de agenda (VS4-01: AGD-01, 02, 08; VS4-02: AGD-03, 04, 06, 09; VS4-03: AGD-05, 07, 09, DLV-09;
+VS4-04: AGD-10..13, DLV-14)
 
 Door de owner, op het eigen Google-account waar het script onder draait (DECISIONS 2026-11-18). Schrijf de run in
 `tests/manual/runs/<datum>-VS4-01.md` met de afgevinkte lijst en `## Open points`. Zet geen titels, namen of
@@ -10,6 +11,8 @@ Stap 1–6 (VS4-01) lezen de komende week in het tabblad `Agenda`. Stap 7–12 (
 Schrijf de run van VS4-02 in `tests/manual/runs/<datum>-VS4-02.md`.
 Stap 13–18 (VS4-03) zetten elke datum van een activiteit op `tonen` in de loop; schrijf die run in
 `tests/manual/runs/<datum>-VS4-03.md`.
+Stap 19–25 (VS4-04) zetten de eigen foto van een activiteit naast de tekst; schrijf die run in
+`tests/manual/runs/<datum>-VS4-04.md`.
 
 ## 1. De agenda-ID
 De agenda-ID is het deel na `src=` in de embed-link van de gemeente-agenda, met `%40` vervangen door `@` (de owner
@@ -172,3 +175,61 @@ Zorg dat minstens één activiteit op `tonen` staat zonder eigen PNG in `Vast/Ag
 - [ ] **DLV-09** Editor → *Uitvoeringen*: de `composeLoop` van 03:00 en de `retryDispatches` daarna zijn groen.
 - [ ] **AGD-07** In `Datums` staat geen rij meer van een datum vóór vandaag, en in `Loop/` geen PNG van gisteren.
 - [ ] **INT-04** De logboeken van vandaag tonen geen titel, omschrijving of plaats uit de agenda.
+
+## 19. VS4-04 pushen (na de merge)
+1. Open de Terminal en ga naar je eigen checkout (niet een worktree):
+   `cd ~/Documents/Projects/KerkSlideGen && git checkout main && git pull`.
+2. `cd subprojects/google && npx @google/clasp push`. Antwoord *yes* als hij vraagt het manifest te overschrijven.
+   Hij noemt 5 bestanden: `appsscript.json`, `agenda.js`, `deliver.js`, `intake.js`, `main.js`.
+3. `npx @google/clasp open-script`: de editor opent in de browser. Ververs hem als hij al open stond.
+
+## 20. Een nieuwe versie van de web app
+De render-job haalt de foto op bij de web app; die draait de code van de laatste **versie**.
+1. In de editor rechtsboven **Implementeren** → **Implementaties beheren**.
+2. Kies links de bestaande web-app-implementatie en klik het **potlood** (*Bewerken*).
+3. Bij *Versie*: kies **Nieuwe versie**. Laat *Uitvoeren als* (jij) en *Wie heeft toegang* (iedereen) zoals ze staan.
+4. Klik **Implementeren** en daarna **Gereed**. De URL blijft dezelfde.
+5. Voer `composeLoop` één keer uit (functielijst → `composeLoop` → **Uitvoeren**).
+- [ ] **AGD-13** Geen nieuwe runs op GitHub: een activiteit zonder foto houdt haar datum-slides na de update.
+
+## 21. De map `Foto's` (AGD-10)
+1. Open Drive en ga naar `KerkSlideGen` → `Vast` → `Agenda`.
+2. Klik links boven **+ Nieuw** → **Nieuwe map**, typ `Foto's` (met de apostrof, hoofdletter F) en klik **Maken**.
+3. Kies een activiteit die deze week een datum heeft en op `tonen` staat, zonder eigen PNG in `Vast/Agenda/`.
+   Zoek een liggende foto (JPG, PNG, WebP of HEIC, kleiner dan 10 MB) en geef hem op je computer precies de titel
+   van die activiteit als naam, bijvoorbeeld `<titel>.jpg` (hoofdletters maken niet uit).
+4. Open de map `Foto's` en sleep de foto erin. Wacht tot Drive *Upload voltooid* zegt.
+
+## 22. De eerste slide met foto (AGD-11, DLV-14)
+1. Open de Sheet, tabblad `Activiteiten`, de rij van die activiteit. Typ in `status` het woord `nieuw` en maak
+   `sinds` en `reden` leeg.
+2. Voer `composeLoop` uit en wacht vijf minuten.
+- [ ] **AGD-11** Je krijgt één goedkeuringsmail voor die activiteit. De slide toont de foto aan één kant (links of
+      rechts) en de tekst aan de andere kant, beide binnen het middenvlak.
+- [ ] **INT-07** In de run op GitHub (*Actions* → *Render* → de run → *job*) staat alleen `<id> round 1: ok`; geen
+      bestandsnaam, geen link, geen foto, en de run heeft geen *Artifacts*.
+3. Klik in de mail **Goedkeuren**.
+
+## 23. Een nacht met datums (AGD-12)
+1. Voer `composeLoop` uit en wacht vijf minuten.
+- [ ] **AGD-12** Op GitHub één run per datum van die activiteit, groen; geen nieuwe goedkeuringsmail.
+- [ ] **AGD-12** In `Loop/` staat per datum een PNG `<id>.png` met de foto, aan **dezelfde kant** als op de eerste
+      slide, met de dag, tijd en plaats van die datum.
+- [ ] **AGD-12** Een activiteit zonder foto heeft nog steeds alleen tekst.
+
+## 24. Een vervangen foto (AGD-13)
+1. Zoek een andere foto en geef hem dezelfde naam als de eerste. Verwijder in `Foto's` de oude foto (rechtermuisknop
+   → **Verwijderen**) en sleep de nieuwe erin.
+2. Voer `composeLoop` uit en wacht vijf minuten.
+- [ ] **AGD-13** Op GitHub weer één run per datum van die activiteit; geen mail, ook niet aan het team.
+- [ ] **AGD-13** In `Loop/` tonen de datum-PNG's de nieuwe foto, aan dezelfde kant. In `Activiteiten` zijn `status`
+      (`tonen`) en `slide` niet veranderd.
+3. Verwijder de foto uit `Foto's` en voer `composeLoop` uit; wacht vijf minuten.
+- [ ] **AGD-13** De datums zijn opnieuw gemaakt, nu alleen met tekst. Zet daarna de foto terug als je hem wilt houden
+      en voer `composeLoop` nog een keer uit.
+
+## 25. Een eigen PNG wint (AGD-10, AGD-09)
+1. Zet een PNG met dezelfde titel direct in `Vast/Agenda/` (niet in `Foto's`) en voer `composeLoop` uit.
+- [ ] **AGD-10** Geen nieuwe runs op GitHub; in `Loop/` staat de eigen PNG één keer, de datum-PNG's zijn weg.
+2. Haal de eigen PNG weer weg als het een test was en voer `composeLoop` uit.
+- [ ] **INT-04** Editor → *Uitvoeringen*: de logboeken van vandaag tonen geen titel, bestandsnaam of plaats.

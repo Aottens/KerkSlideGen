@@ -114,21 +114,33 @@ const agNext_ = (title, occurrences, today) => occurrences
   .sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : 0))[0];
 const agOwnPng_ = (files, title) => files.some((f) => /\.png$/i.test(f.name) && agNorm_(f.name.replace(/\.png$/i, '')) === agNorm_(title));
 
-function activitiesToDispatch({ activities, occurrences, files, today, now }) {
+// An activity's own photo (AGD-10): Vast/Agenda/Foto's/<title>.<jpg|png|webp|heic>, at most 10 MB, the newest wins.
+const PHOTOS_FOLDER = "Foto's";
+function activityPhoto(photos, title) {
+  const ok = photos.filter((p) => p.size <= 10 * 1024 * 1024 && /\.(jpg|png|webp|heic)$/i.test(p.name)
+    && agNorm_(p.name.replace(/\.[^.]+$/, '')) === agNorm_(title));
+  return ok.sort((x, y) => (x.updated < y.updated ? 1 : x.updated > y.updated ? -1 : 0))[0] || null;
+}
+const activityPhotoFor = (id, activities, photos) => {
+  const a = activities.find((x) => x.id === id);
+  return a ? activityPhoto(photos, a.title) : null;
+};
+
+function activitiesToDispatch({ activities, occurrences, files, photos = [], today, now }) {
   const out = [];
   for (const a of activities) {
     if (a.state !== ACT.NEW || agOwnPng_(files, a.title)) continue;
     if (a.since && now - new Date(a.since) < 20 * 3600e3) continue;
     const occurrence = agNext_(a.title, occurrences, today);
-    if (occurrence) out.push({ activity: a, occurrence, retry: Boolean(a.since) });
+    if (occurrence) out.push({ activity: a, occurrence, retry: Boolean(a.since), photo: activityPhoto(photos, a.title) });
   }
   return out;
 }
 
-function activityDispatch(a, occ) {
+function activityDispatch(a, occ, photo) {
   return { event_type: 'slide-request', client_payload: { id: a.id, round: a.round, kind: 'activity',
     text: (occ.title + '\n\n' + occ.description).trim().slice(0, 5000), change: a.change || '',
-    event_date: agDay_(new Date(occ.start)), show_until: '', image: false, when: agendaWhen(occ.start),
+    event_date: agDay_(new Date(occ.start)), show_until: '', image: Boolean(photo), when: agendaWhen(occ.start),
     where: agendaWhere(occ.location) } };
 }
 
@@ -183,7 +195,7 @@ function fromDatedRow(r) {
 }
 
 // The dates that should have a dated slide: id -> { activity, occurrence, slide, key, event_date }.
-function datedWanted_({ activities, occurrences, files, today }) {
+function datedWanted_({ activities, occurrences, files, photos = [], today }) {
   const out = new Map();
   const sorted = occurrences.slice().sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : 0));
   for (const o of sorted) {
@@ -197,14 +209,17 @@ function datedWanted_({ activities, occurrences, files, today }) {
     try { t = JSON.parse(a.slide) || {}; } catch (e) {}
     const slide = { title: String(t.title || ''), when: agendaWhen(o.start), where: agendaWhere(o.location),
       line: String(t.line || '') };
-    out.set(id, { id, activity: a, occurrence: o, slide, key: JSON.stringify(slide), event_date: day });
+    // AGD-13: a photo is part of the key, so a new, replaced or removed photo renders the date again.
+    const photo = activityPhoto(photos, a.title);
+    const key = JSON.stringify(photo ? { ...slide, photo: photo.id + '@' + photo.updated } : slide);
+    out.set(id, { id, activity: a, occurrence: o, slide, key, event_date: day, photo });
   }
   return out;
 }
 
-function datedPlan({ activities, occurrences, files, dated, today, now }) {
+function datedPlan({ activities, occurrences, files, photos = [], dated, today, now }) {
   const dispatch = [];
-  for (const w of datedWanted_({ activities, occurrences, files, today }).values()) {
+  for (const w of datedWanted_({ activities, occurrences, files, photos, today }).values()) {
     const d = dated.find((x) => x.id === w.id);
     const same = d && d.key === w.key;
     if (same && d.png) continue;
@@ -215,7 +230,7 @@ function datedPlan({ activities, occurrences, files, dated, today, now }) {
 }
 
 const datedDispatch = (item) => ({ event_type: 'slide-request', client_payload: { id: item.id, round: 1,
-  kind: 'occurrence', event_date: item.event_date, slide: item.slide } });
+  kind: 'occurrence', event_date: item.event_date, slide: item.slide, image: Boolean(item.photo) } });
 
 const afterDatedDispatch = (d, item, why, now) => ({ id: item.id, key: item.key,
   png: d && d.key === item.key ? d.png : '', since: why ? '' : now, reason: why, round: 1 });
@@ -225,8 +240,8 @@ function afterDatedCallback(d, body, pngId) {
   return { ...d, png: '', since: '', reason: ('render: ' + (body.reason || '')).slice(0, 200) };
 }
 
-function datedLoopItems({ dated, activities, occurrences, files, today }) {
-  const wanted = datedWanted_({ activities, occurrences, files, today });
+function datedLoopItems({ dated, activities, occurrences, files, photos = [], today }) {
+  const wanted = datedWanted_({ activities, occurrences, files, photos, today });
   return dated.filter((d) => d.png && wanted.has(d.id) && wanted.get(d.id).key === d.key)
     .map((d) => ({ sourceId: d.png, name: d.id + '.png', key: d.png }));
 }
@@ -249,6 +264,7 @@ if (typeof module !== 'undefined') {
   module.exports = { AGENDA_TAB, AGENDA_COLUMNS, toOccurrence, agendaWindow, weekOccurrences, toAgendaRow,
     fromAgendaRow, agendaMailDue, agendaFailMail, ACTIVITIES_TAB, ACTIVITY_COLUMNS, ACT, AGENDA_FOLDER, activityId,
     newActivities, toActivityRow, fromActivityRow, agendaWhen, agendaWhere, activitiesToDispatch, activityDispatch,
+    PHOTOS_FOLDER, activityPhoto, activityPhotoFor,
     agendaLoopFiles, afterActivityCallback, afterActivityApprove, afterActivityHide, afterActivityChange,
     activityTeamMail, DATED_TAB, DATED_COLUMNS, toDatedRow, fromDatedRow, datedPlan, datedDispatch, afterDatedDispatch,
     afterDatedCallback, datedLoopItems, datedTeamMail };

@@ -79,7 +79,7 @@ test('AGD-05 the dispatch is kind occurrence with the full SlideText and no text
   const d = G.datedDispatch(plan().dispatch[0]);
   assert.equal(d.event_type, 'slide-request');
   assert.deepEqual(d.client_payload, { id: ID, round: 1, kind: 'occurrence', event_date: '2026-11-25',
-    slide: { title: 'Bijbelkring', when: 'woensdag 25 november, 19.30 uur', where: 'Zaal 2', line: 'Iedereen welkom' } });
+    slide: { title: 'Bijbelkring', when: 'woensdag 25 november, 19.30 uur', where: 'Zaal 2', line: 'Iedereen welkom' }, image: false });
 });
 
 test('AGD-05 two occurrences of one activity on one day make one dated slide, the first', () => {
