@@ -85,7 +85,9 @@ def parse(p: dict) -> tuple[dict | None, str]:
                 or not all(isinstance(v, str) and len(v) <= SLIDE_LIMITS[k] for k, v in sl.items())
                 or not sl.get("title") or not sl.get("when")):
             return None, "invalid payload: slide"
-        return {"occurrence": sl, "image": False}, ""
+        if not isinstance(p.get("image", False), bool):  # AGD-12
+            return None, "invalid payload: image"
+        return {"occurrence": sl, "image": p.get("image", False)}, ""
     if "slide" in p:
         return None, "payload has a field outside INTERFACE.md"
     text, change = p.get("text"), p.get("change", "")
@@ -136,8 +138,13 @@ def work(f: dict, run, render_fn, today: date, image: tuple[str, bytes] | None =
             slide = SlideText(**{"line": "", **f["occurrence"]}, show_until="")
             with tempfile.TemporaryDirectory() as tmp:
                 out = Path(tmp) / "slide.png"
+                kw = {}
+                if image:  # AGD-12, DLV-14: lives in tmp only; the side follows the activity id (REN-14)
+                    path = Path(tmp) / f"image.{image[0]}"
+                    path.write_bytes(image[1])
+                    kw = {"image": path, "slide_id": f["id"]}
                 try:
-                    render_fn(slide, ASSETS, out)
+                    render_fn(slide, ASSETS, out, **kw)
                 except DoesNotFit:
                     return {"reason": "does not fit"}
                 png = base64.b64encode(out.read_bytes()).decode()
@@ -191,13 +198,15 @@ def main(argv, env, run=None, render_fn=None, today=None, sleep=time.sleep) -> i
         send({**head, "ok": False, "reason": "render job setup failed"})
         return 1
     fields, reason = parse(p)
+    # AGD-12: an occurrence id is <activity id>-<yyyy-mm-dd>; the photo and the image side belong to the activity
+    sid = re.sub(r"-\d{4}-\d{2}-\d{2}$", "", rid) if p.get("kind") == "occurrence" else rid
     image = None
     if fields and fields["image"]:
-        image = fetch_image(env["CALLBACK_URL"], env["CALLBACK_SECRET"], rid)
+        image = fetch_image(env["CALLBACK_URL"], env["CALLBACK_SECRET"], sid)
         if not image:
             fields, reason = None, "image fetch failed"
     if fields:
-        fields["id"] = rid
+        fields["id"] = sid
     res = work(fields, run, render_fn, today or date.today(), image) if fields else {"reason": reason}
     ok = "reason" not in res
     if not send({**head, "ok": ok, **res}):
