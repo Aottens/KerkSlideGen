@@ -54,7 +54,6 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - Nothing.
 
 ## Owner to decide
-- Gate 1 for AGD-10..13 (an activity's own photo, IDEA-14) in `specs/modules/agenda.md`; VS4-04 waits for it.
 - The owner questions in `specs/modules/render.md`, `condense.md`, `intake.md`, `deliver.md`, `autoreview.md`,
   `agenda.md`.
 - Order of the loop, and is "de dienst begint zo" in the loop or cued by hand (`deliver.md`, question 4)?

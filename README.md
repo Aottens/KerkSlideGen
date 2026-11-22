@@ -24,7 +24,7 @@ The intake runs on the owner's Google account: a signed-in member's form submit 
 The web app mails the approval mail; *Goedkeuren* fills `Loop/`, *Aanpassen* renders again up to 3 rounds.
 Unapproved slides expire after 7 days; the Google run of the expiry waits on the owner.
 On Google the night run reads the church agenda, mails a new activity's first slide, puts each date in the loop.
-Next: VS3-01 in the church; VS4-04 (an activity's photo) waits for gate 1.
+Next: VS3-01 in the church; VS4-04 (an activity's photo).
 The Claude review and risk gate run on every PR, in shadow.
 
 ## Layout

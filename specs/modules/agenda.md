@@ -4,7 +4,7 @@ Owner: `subprojects/google/` (reading the agenda, the activities tab, the nightl
 (rendering an occurrence without Claude). Tests: `subprojects/google/tests/`, `subprojects/renderer/tests/`.
 Status: draft 2026-11-18, asked for by the owner ("koppelen aan de gemeente-agenda, zodat de terugkerende dingen er
 automatisch ingezet kunnen worden"). Approved (gate 1, 2026-11-19). The agenda is the church's public Google Agenda (owner
-question 1, 2026-11-19). AGD-10..13 (an activity's own photo, IDEA-14): draft 2026-11-22, waits for gate 1.
+question 1, 2026-11-19). AGD-10..13 (an activity's own photo, IDEA-14): approved (gate 1, 2026-11-22).
 
 What is in the church's agenda for the coming week is on the screen without anyone asking for it. A recurring
 activity gets one slide, approved once; after that only its date changes.
