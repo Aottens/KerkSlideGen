@@ -291,13 +291,28 @@ function agendaFiles_() {
   return out;
 }
 
+// AGD-10: the photos in Vast/Agenda/Foto's.
+function agendaPhotos_() {
+  const ag = DriveApp.getFolderById(props_().getProperty('FIXED_FOLDER_ID')).getFoldersByName(AGENDA_FOLDER);
+  if (!ag.hasNext()) return [];
+  const sub = ag.next().getFoldersByName(PHOTOS_FOLDER);
+  if (!sub.hasNext()) return [];
+  const out = [];
+  const files = sub.next().getFiles();
+  while (files.hasNext()) {
+    const f = files.next();
+    out.push({ id: f.getId(), name: f.getName(), size: f.getSize(), updated: f.getLastUpdated().toISOString() });
+  }
+  return out;
+}
+
 function mailTeamActivity_(a, reason) {
   const m = activityTeamMail(a, reason);
   MailApp.sendEmail(Session.getEffectiveUser().getEmail(), m.subject, m.body);
 }
 
 // Returns '' on success, else the reason. Same call as tryDispatch_.
-function dispatchActivity_(a, occ) { return postDispatch_(activityDispatch(a, occ)); }
+function dispatchActivity_(a, occ, photo) { return postDispatch_(activityDispatch(a, occ, photo)); }
 
 function postDispatch_(payload) {
   const token = props_().getProperty('GITHUB_TOKEN');
@@ -331,10 +346,10 @@ function activities_() {
     }
     const rows = activityRows_();
     const list = activitiesToDispatch({ activities: rows.map((x) => x.a), occurrences: agendaOccurrences_(),
-      files: agendaFiles_(), today: amsterdamDay(new Date()), now: new Date() });
-    for (const { activity, occurrence, retry } of list) {
+      files: agendaFiles_(), photos: agendaPhotos_(), today: amsterdamDay(new Date()), now: new Date() });
+    for (const { activity, occurrence, retry, photo } of list) {
       const rowNumber = rows.find((x) => x.a.id === activity.id).rowNumber;
-      const why = dispatchActivity_(activity, occurrence);
+      const why = dispatchActivity_(activity, occurrence, photo);
       const after = why ? { ...activity, reason: why, since: '' } : { ...activity, reason: '', since: new Date() };
       writeActivity_(rowNumber, after);
       if (why || retry) mailTeamActivity_(after, why || NO_RENDER_REASON);
@@ -403,7 +418,7 @@ function datedSlides_() {
     const rows = datedRows_();
     const today = amsterdamDay(new Date());
     const plan = datedPlan({ activities: activityRows_().map((x) => x.a), occurrences: agendaOccurrences_(),
-      files: agendaFiles_(), dated: rows.map((x) => x.d), today, now: new Date() });
+      files: agendaFiles_(), photos: agendaPhotos_(), dated: rows.map((x) => x.d), today, now: new Date() });
     const bad = [];
     for (const item of plan.dispatch) {
       const found = rows.find((x) => x.d.id === item.id);
@@ -474,12 +489,13 @@ function composeLoop_() {
     const ag = fixedFolder.getFoldersByName(AGENDA_FOLDER);
     const agFiles = ag.hasNext() ? list(ag.next().getFiles(), info) : [];
     const acts = activityRows_().map((x) => x.a);
+    const photos = agendaPhotos_();
     const today = amsterdamDay(new Date());
     const occs = agendaOccurrences_();
     const plan = loopPlan({
       fixed: list(fixedFolder.getFiles(), info),
       agenda: agendaLoopFiles({ files: agFiles, activities: acts, occurrences: occs, today }),
-      dated: datedLoopItems({ dated: datedRows_().map((x) => x.d), activities: acts, occurrences: occs, files: agFiles, today }),
+      dated: datedLoopItems({ dated: datedRows_().map((x) => x.d), activities: acts, occurrences: occs, files: agFiles, photos, today }),
       rotating: rot.hasNext() ? list(rot.next().getFiles(), info) : [],
       requests: rows_(),
       current: list(loop.getFiles(), (f) => ({ id: f.getId(), key: f.getDescription() || '' })),
@@ -569,8 +585,8 @@ function submitActivityChange_(id, token, text) {
   if (a.png) DriveApp.getFileById(a.png).setTrashed(true);
   writeActivity_(found.rowNumber, after);
   const next = activitiesToDispatch({ activities: [{ ...after, since: '' }], occurrences: agendaOccurrences_(),
-    files: [], today: amsterdamDay(new Date()), now: new Date() })[0];
-  const why = next ? dispatchActivity_(after, next.occurrence) : 'geen komende datum in de agenda';
+    files: [], photos: agendaPhotos_(), today: amsterdamDay(new Date()), now: new Date() })[0];
+  const why = next ? dispatchActivity_(after, next.occurrence, next.photo) : 'geen komende datum in de agenda';
   if (why) {
     writeActivity_(found.rowNumber, { ...after, reason: why, since: '' });
     mailTeamActivity_(after, why);
@@ -703,9 +719,12 @@ function doGet(e) {
     if (!props_().getProperty('CALLBACK_SECRET')) return json_({ error: 'geen toegang' });
     const bad = checkImageRequest({ id: q.image, exp: q.exp, sig: q.sig, nowSec: Math.floor(Date.now() / 1000),
       expected: hmacHex_(imageMessage(q.image, q.exp)) });
-    const { row } = bad ? {} : rowById_(q.image);
-    if (bad || !row || !row.image) return json_({ error: 'geen afbeelding' });
-    const file = DriveApp.getFileById(row.image);
+    // AGD-11: an id starting with A is an activity, its photo is served (DLV-14).
+    const fileId = bad ? '' : q.image.startsWith('A')
+      ? (activityPhotoFor(q.image, activityRows_().map((x) => x.a), agendaPhotos_()) || {}).id
+      : (rowById_(q.image).row || {}).image;
+    if (!fileId) return json_({ error: 'geen afbeelding' });
+    const file = DriveApp.getFileById(fileId);
     return ContentService.createTextOutput(imageAnswer(file.getName(), Utilities.base64Encode(file.getBlob().getBytes())))
       .setMimeType(ContentService.MimeType.JSON);
   }
