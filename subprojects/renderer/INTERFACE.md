@@ -27,18 +27,20 @@ else `""`. `show_until` may be `""`.
 `image` says whether the request has one; the job then fetches it with
 `GET <web app URL>?image=<id>&exp=<unix time + 900>&sig=<hex HMAC-SHA256 of "<id>.<exp>">` (DLV-14). The answer is
 `{"ext": "jpg", "base64": "<the image>"}` (`ext` one of `jpg`, `png`, `webp`, `heic`); a wrong or expired signature,
-or a request without image, answers `{"error": "…"}`. An Apps Script web app cannot send binary or a status code.
+or a request without image, answers `{"error": "…"}`. For `kind` `activity` and `occurrence` the job fetches with the
+activity id and gets the activity's photo (AGD-10); the image's side follows the activity id (AGD-12). An Apps Script web app cannot send binary or a status code.
 
 Agenda (`specs/modules/agenda.md`) uses the same event with a `kind` (absent means `request`):
 - `"kind": "activity"`: the first slide of an agenda activity (AGD-04). `id` is the activity id (`A` + a hash of
   the activity's title, AGD-03), `text` is the event's title and description, and `when` and `where` come along filled from the agenda;
   condense fills only `title` and `line`.
   Extra fields: `when` (at most 40), `where` (at most 40, may be `""`); `event_date` is the occurrence date,
-  `round` 1..3 (Aanpassen), `change` as for a request, `image` false.
+  `round` 1..3 (Aanpassen), `change` as for a request, `image` true when the activity has a photo (AGD-10, AGD-11).
 - `"kind": "occurrence"`: one date of an approved activity (AGD-05). `id` is `<activity id>-<yyyy-mm-dd>`, and
   `slide` carries the full `SlideText`; there is no `text`, and the renderer does not call Claude.
   Fields: `id`, `round` (always 1), `kind`, `event_date` (the occurrence date), `slide` (`title`, `when`, `where`,
-  `line`, within the limits of section 2; `title` and `when` not empty). A slide that does not fit is posted as a
+  `line`, within the limits of section 2; `title` and `when` not empty), `image` (true when the activity has a photo,
+  AGD-12). A slide that does not fit is posted as a
   failure (`does not fit`), with no second try. The web app stores the PNG without an approval mail: the activity is
   approved already.
 

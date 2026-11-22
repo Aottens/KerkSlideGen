@@ -17,7 +17,7 @@ Ideas the owner dropped or that came up, not yet planned. No criteria or code un
 | IDEA-11 | The form explains a series (e.g. Alpha, 10 Tuesdays): first date as event date, last day on screen as chosen. | 1 | open |
 | IDEA-12 | The team's own slides for agenda activities show only in weeks the activity is in the agenda. | 1 | planned (2026-11-19, AGD-09, VS4-02/03) |
 | IDEA-13 | A website named in a request gets a QR code on the side screens, for the room, not the livestream. | later | open |
-| IDEA-14 | An agenda activity's own photo goes beside its text in the house format, instead of a finished PNG. | 1 | open (phase confirmed 2026-11-20: after VS4-03) |
+| IDEA-14 | An agenda activity's own photo goes beside its text in the house format, instead of a finished PNG. | 1 | planned (2026-11-22, AGD-10..13, VS4-04 todo) |
 
 ### IDEA-01
 Intent: members want their own image on a slide. Touches: render (image placement inside the safe area), intake (a
@@ -128,8 +128,5 @@ rather have them rebuilt in the house format than keep the old finished slides. 
 finished PNG keeps working as today (AGD-09). Phase 1, right after VS4-03 (owner, 2026-11-20). Touches: `agenda.md` (AGD-04,
 AGD-05, AGD-09: which file is a photo and which a finished slide), `INTERFACE.md` (`image: true` and the image fetch
 for an activity id), `deliver.md` DLV-14 (the signed image link serves an activity's photo), the renderer (an
-occurrence render with an image, still without Claude). Open:
-1. How to tell a photo from a finished slide in `Vast/Agenda/`: by extension (`.jpg` photo, `.png` slide), by a
-   subfolder (`Vast/Agenda/Foto's/`), or by size (1920×1080 or triple-wide = slide)?
-2. A changed photo: does it make a new first slide to approve, or only the next renders?
-3. Activities without a photo: text only, as now, or a default church image?
+occurrence render with an image, still without Claude). Answered 2026-11-22: a subfolder
+`Vast/Agenda/Foto's/`, a replaced photo only renders again, no photo means text only (`agenda.md` questions 3–5).
