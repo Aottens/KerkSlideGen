@@ -18,7 +18,8 @@ slide: requests (this spec and `intake.md`), the agenda's coming week (`agenda.m
 - **DLV-14** The render job fetches a request's image from the Apps Script web app (`?image=<id>&exp=<unix time>&sig=`),
   signed with the shared secret and valid for 15 minutes; a wrong or expired signature, or an `exp` more than 15
   minutes ahead, gives nothing. The job keeps the image only on the runner and never logs or uploads it (INT-07); a
-  request with an image is rendered with it (REN-11), and a failed fetch is posted as a failure (DLV-08).
+  request with an image is rendered with it (REN-11), and a failed fetch is posted as a failure (DLV-08). For an agenda
+  activity the id is the activity id and the answer is its photo (AGD-10); an occurrence fetches its activity's photo.
 
 ## Approval
 - **DLV-03** The requester gets one mail from the script's account (the owner's, DECISIONS 2026-11-18) with the slide

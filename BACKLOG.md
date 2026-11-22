@@ -46,6 +46,7 @@ Builds (proposed): VS1-01 + VS1-02 (render); VS1-03 + VS1-04 (condense); VS1-05 
 | VS4-01 | The agenda adapter reads the coming week of the church's agenda as occurrences, and a failed read keeps the last good week. | AGD-01, 02, 08 | S | done (2026-11-19, #35) |
 | VS4-02 | The *Activiteiten* tab: a new activity's first slide goes to the visual team with *Goedkeuren*, *Aanpassen*, *Niet tonen*. | AGD-03, 04, 06, 09 | M | done (2026-11-20, #38) |
 | VS4-03 | Every occurrence of an approved activity is rendered without Claude with the agenda's time and place and joins the loop composition. | AGD-05, 07, 09, DLV-09 | M | done (2026-11-20, #44) |
+| VS4-04 | An activity's photo in `Vast/Agenda/Foto's/` goes beside the text of its first slide and of every date, on one side, and a replaced photo renders the dates again. | AGD-10..13, DLV-14 | M | todo |
 
 ## Vertical slice 3 — in the church
 | Id | Task (one sentence, verifiable) | Spec ids | Size | Status |

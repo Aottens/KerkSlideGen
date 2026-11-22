@@ -4,7 +4,7 @@ Owner: `subprojects/google/` (reading the agenda, the activities tab, the nightl
 (rendering an occurrence without Claude). Tests: `subprojects/google/tests/`, `subprojects/renderer/tests/`.
 Status: draft 2026-11-18, asked for by the owner ("koppelen aan de gemeente-agenda, zodat de terugkerende dingen er
 automatisch ingezet kunnen worden"). Approved (gate 1, 2026-11-19). The agenda is the church's public Google Agenda (owner
-question 1, 2026-11-19).
+question 1, 2026-11-19). AGD-10..13 (an activity's own photo, IDEA-14): draft 2026-11-22, waits for gate 1.
 
 What is in the church's agenda for the coming week is on the screen without anyone asking for it. A recurring
 activity gets one slide, approved once; after that only its date changes.
@@ -46,6 +46,22 @@ activity gets one slide, approved once; after that only its date changes.
   carries no date from the agenda. Slides that do not belong to the agenda (collecte, welkom) stay in `Vast/` (DLV-12)
   or `Vast/Wisselend/` (DLV-16) (owner, 2026-11-19).
 
+## An activity's own photo (IDEA-14)
+- **AGD-10** The visual team keeps a photo for an agenda activity in `KerkSlideGen/Vast/Agenda/Foto's/`, the file name
+  being the activity's title (trimmed, case ignored) with `.jpg`, `.png`, `.webp` or `.heic`, at most 10 MB (as
+  INT-08). A file there is always a photo, never a finished slide (owner, 2026-11-22); a finished slide directly in
+  `Vast/Agenda/` keeps AGD-09 and wins over a photo with the same title. An activity without a photo gets the *text*
+  layout, as before (owner, 2026-11-22).
+- **AGD-11** An activity in state `nieuw` with a photo (AGD-10) gets its first slide (AGD-04) with that photo: the
+  dispatch says `image: true`, the render job fetches the photo by the activity id over the signed image link (DLV-14),
+  and the slide uses the *with image* layout (REN-11, REN-12).
+- **AGD-12** Every occurrence of an activity in state `tonen` with a photo (AGD-05) is rendered with that photo, still
+  without Claude. The image's side is chosen by the activity id (REN-14 on the activity id, not the occurrence id), so
+  the first slide and every date of an activity show the photo on the same side.
+- **AGD-13** When the photo is replaced (a newer file) or removed, the next night's run renders the activity's
+  occurrences again with the new photo or as *text*; the state and the approved slide text stay, and no approval mail
+  goes out (owner, 2026-11-22). An activity in state `te keuren` keeps the first slide it was sent with.
+
 ## Failure
 - **AGD-08** When the agenda cannot be read, the night's run keeps the agenda slides of the last successful read in
   the loop, and the visual team gets one mail per day with the error until it works again (DLV-08).
@@ -55,3 +71,7 @@ activity gets one slide, approved once; after that only its date changes.
    weekly activities in it are separate events rather than a series, so an activity is grouped by title (AGD-03).
 2. **What if an activity's slide should differ per date** (e.g. a speaker's name)? Recommended: phase 1 no; such an
    evening goes through the form. Otherwise: let condense read each occurrence's description, with an approval each time.
+3. **How is a photo told from a finished slide in `Vast/Agenda/`?** Answered (2026-11-22): a photo lives in the
+   subfolder `Vast/Agenda/Foto's/` (AGD-10). By extension or by size were not chosen.
+4. **A replaced photo: a new approval, or only new renders?** Answered (2026-11-22): only new renders (AGD-13).
+5. **An activity without a photo: text only, or a default church image?** Answered (2026-11-22): text only (AGD-10).
