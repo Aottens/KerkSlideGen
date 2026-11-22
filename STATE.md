@@ -34,12 +34,14 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 - Every date this week of an activity in `tonen` is rendered without Claude and without a mail (tab `Datums`), and is
   in `Loop/` up to its date; a moved time or place is rendered again, a cancelled date leaves the loop. It runs on
   Google (run of 2026-11-22, on a test calendar for the moved and cancelled date).
+- An activity's photo in `Vast/Agenda/Foto's/` goes beside its text on the first slide and every date, one side per
+  activity; a replaced or removed photo renders the dates again (not yet run on Google).
 
 ## Next
 1. VS3-01: the Smart Playlist on the church Mac plays `Loop/` (gate 3).
-2. VS4-04: an activity's photo beside its text, on its first slide and every date (`agenda.md`, AGD-10..13).
 
 ## Waiting on the owner
+- Push and run the activity photos on Google (`tests/manual/agenda.md`, steps 19–25).
 - The next morning's check of the dated slides: night run green, past dates gone (`tests/manual/agenda.md`, step 18).
 - The rest of the *Aanpassen* run: round 3, the old links, the logs, the expiry, the watchdog,
   the web app guard and a change round's retries
