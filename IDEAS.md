@@ -18,6 +18,7 @@ Ideas the owner dropped or that came up, not yet planned. No criteria or code un
 | IDEA-12 | The team's own slides for agenda activities show only in weeks the activity is in the agenda. | 1 | planned (2026-11-19, AGD-09, VS4-02/03) |
 | IDEA-13 | A website named in a request gets a QR code on the side screens, for the room, not the livestream. | later | open |
 | IDEA-14 | An agenda activity's own photo goes beside its text in the house format, instead of a finished PNG. | 1 | planned (2026-11-22, AGD-10..13, VS4-04 done) |
+| IDEA-15 | A time never breaks from its unit: "18.00 uur" stays on one line (seen beside an image). | 1 | open (phase confirmed 2026-11-23, after VS3-01) |
 
 ### IDEA-01
 Intent: members want their own image on a slide. Touches: render (image placement inside the safe area), intake (a
@@ -130,3 +131,14 @@ AGD-05, AGD-09: which file is a photo and which a finished slide), `INTERFACE.md
 for an activity id), `deliver.md` DLV-14 (the signed image link serves an activity's photo), the renderer (an
 occurrence render with an image, still without Claude). Answered 2026-11-22: a subfolder
 `Vast/Agenda/Foto's/`, a replaced photo only renders again, no photo means text only (`agenda.md` questions 3–5).
+
+### IDEA-15
+Intent: no lonely word on a line of its own. Owner, 2026-11-23, after the first agenda slide with a whole image
+(VS1-10): beside the image, `when` broke as "dinsdag 24 november, 18.00" / "uur". The agenda builds that text in code
+(`subprojects/google/src/agenda.js`, `… 18.00 uur`); condense writes it for requests. Touches: `render.md` (a
+criterion that a time and its unit, and maybe a day and its month, never break apart, e.g. a no-break space set in
+the renderer so both sources are covered: `slidegen` stays the one place for layout), or `agenda.md`/`condense.md`
+if the text itself changes. Phase 1, a small build after VS3-01 (owner, 2026-11-23). Open:
+1. Keep "uur", or drop it ("18.00") so the line is shorter everywhere?
+2. Only time + unit, or also "24 november" and "ruimte 1" never split?
+3. Is a two-line `when` fine as long as it breaks before the time ("dinsdag 24 november," / "18.00 uur")?
