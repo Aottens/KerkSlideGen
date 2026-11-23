@@ -35,17 +35,17 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
   in `Loop/` up to its date; a moved time or place is rendered again, a cancelled date leaves the loop. It runs on
   Google (run of 2026-11-22, on a test calendar for the moved and cancelled date).
 - An activity's photo in `Vast/Agenda/Foto's/` goes beside its text on the first slide and every date, one side per
-  activity; a replaced or removed photo renders the dates again (not yet run on Google).
+  activity; a replaced or removed photo renders the dates again. The first slide ran on Google (2026-11-23).
 
 ## Next
 1. VS3-01: the Smart Playlist on the church Mac plays `Loop/` (gate 3).
+2. VS1-10: the image shown whole beside the text, not cropped (`render.md`, REN-12, after gate 1).
 
 ## Waiting on the owner
-- Push and run the activity photos on Google (`tests/manual/agenda.md`, steps 19–25).
+- Approve REN-12 (the image whole, not cropped; gate 1); then photo steps 23–25 (`tests/manual/agenda.md`).
 - The next morning's check of the dated slides: night run green, past dates gone (`tests/manual/agenda.md`, step 18).
-- The rest of the *Aanpassen* run: round 3, the old links, the logs, the expiry, the watchdog,
-  the web app guard and a change round's retries
-  (`tests/manual/approve.md`, run of 2026-11-19).
+- The rest of the *Aanpassen* run: round 3, the old links, the logs, the expiry, the watchdog, the web app guard
+  and a change round's retries (`tests/manual/approve.md`, run of 2026-11-19).
 - Share `KerkSlideGen` with `visueel@` and the church Mac's account; check the night run of `composeLoop` in
   *Executions* (`tests/manual/loop.md`, run of 2026-11-18).
 - The owner's Drive is nearly full: a full Drive stops every copy into `Loop/`. Free space or buy storage.

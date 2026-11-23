@@ -2,7 +2,8 @@
 
 Owner: `subprojects/renderer/slidegen/render.py`, its template and `assets/`. Tests: `subprojects/renderer/tests/`.
 Status: draft 2026-11-17; image 2026-11-18 (owner: "er moet ook een plaatje in kunnen"); geometry fitted to the real
-background (3615×768) and the two layouts chosen from example renders 2026-11-18 (owner: "0 of A"). Waits for gate 1.
+background (3615×768) and the two layouts chosen from example renders 2026-11-18 (owner: "0 of A"). Waits for gate 1. REN-12 reworded 2026-11-23: the image is shown whole, not cropped (owner);
+waits for gate 1.
 
 Turns slide text (a `SlideText`, `subprojects/renderer/INTERFACE.md`) into one PNG on the church's background. The
 triple-wide canvas is the background's own size; only the centre 16:9 area carries text, because that area is also
@@ -47,8 +48,11 @@ the livestream.
 - **REN-14** The image's side varies, so the loop is not monotonous (owner, 2026-11-18): it is left when the first
   byte of the SHA-256 of the slide's id is even, else right, so about half of the slides each way. The same id always
   gives the same side, also after *Aanpassen*. A test renders two ids with different sides and checks both.
-- **REN-12** The image fills its box, cropped around its centre, never stretched, turned upright by its EXIF
-  orientation (phone photos). JPG, PNG, WebP and HEIC are read; HEIC is converted before the browser sees it.
+- **REN-12** The image is shown whole: scaled to the largest size that fits its box, never cropped or stretched,
+  turned upright by its EXIF orientation (phone photos), with rounded corners. It sits against the text side of its
+  box and is centred in height; where it leaves the box empty, the background shows. Transparent parts of a PNG or
+  WebP stay transparent, never black or white (owner, 2026-11-23, after a square image lost its sides). JPG, PNG,
+  WebP and HEIC are read; HEIC is converted before the browser sees it.
 - **REN-13** The image is read from a local file passed to `slidegen render --image <path>`; the renderer never
   fetches from the network itself (the job fetches it first, DLV-14).
 
