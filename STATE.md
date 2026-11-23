@@ -42,7 +42,7 @@ The handoff, one screen: what is true now, what is next, what waits for whom. No
 2. VS1-10: the image shown whole beside the text, not cropped (`render.md`, REN-12, after gate 1).
 
 ## Waiting on the owner
-- Approve REN-12 (the image whole, not cropped; gate 1); then the rest of the photo run (`tests/manual/agenda.md`, 23–25).
+- Approve REN-12 (the image whole, not cropped; gate 1); then photo steps 23–25 (`tests/manual/agenda.md`).
 - The next morning's check of the dated slides: night run green, past dates gone (`tests/manual/agenda.md`, step 18).
 - The rest of the *Aanpassen* run: round 3, the old links, the logs, the expiry, the watchdog, the web app guard
   and a change round's retries (`tests/manual/approve.md`, run of 2026-11-19).
