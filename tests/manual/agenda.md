@@ -233,3 +233,14 @@ De render-job haalt de foto op bij de web app; die draait de code van de laatste
 - [ ] **AGD-10** Geen nieuwe runs op GitHub; in `Loop/` staat de eigen PNG één keer, de datum-PNG's zijn weg.
 2. Haal de eigen PNG weer weg als het een test was en voer `composeLoop` uit.
 - [ ] **INT-04** Editor → *Uitvoeringen*: de logboeken van vandaag tonen geen titel, bestandsnaam of plaats.
+
+## 26. De hele foto (REN-12, na de merge van VS1-10)
+Alleen de renderer is veranderd: `clasp push` en een nieuwe versie van de web app zijn niet nodig.
+1. Zoek een vierkante foto of illustratie, liefst een PNG met een doorzichtige achtergrond, en geef hem de titel van
+   de activiteit uit stap 21 als naam. Verwijder in `Foto's` de oude foto en sleep de nieuwe erin.
+2. Voer `composeLoop` uit en wacht vijf minuten.
+- [ ] **REN-12** In `Loop/` tonen de datum-PNG's de **hele** foto: niets van de zijkanten of boven en onder is
+      afgesneden, en hij is niet uitgerekt.
+- [ ] **REN-12** De foto staat tegen de kant van de tekst aan en in het midden van de hoogte; waar hij het vlak niet
+      vult, zie je de achtergrond.
+- [ ] **REN-12** Doorzichtige delen van de PNG tonen de achtergrond, geen zwart of wit vlak.
