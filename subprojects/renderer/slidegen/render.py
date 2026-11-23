@@ -73,9 +73,12 @@ def build_html(
     if image:
         ib = geo.box(layout, "image", mirror=side == "right")
         radius = geo.layouts[layout]["image"]["radius_px"]
+        edge = "flex-end" if side == "left" else "flex-start"  # against the text side
         img = (
-            f'<img data-image src="{image.resolve().as_uri()}" style="position:absolute;left:{ib.x}px;top:{ib.y}px;'
-            f'width:{ib.w}px;height:{ib.h}px;border-radius:{radius}px">'
+            f'<div style="position:absolute;left:{ib.x}px;top:{ib.y}px;width:{ib.w}px;height:{ib.h}px;'
+            f'display:flex;align-items:center;justify-content:{edge}">'
+            f'<img data-image src="{image.resolve().as_uri()}" '
+            f'style="display:block;max-width:100%;max-height:100%;border-radius:{radius}px"></div>'
         )
     return f"""<!doctype html>
 <html lang="nl"><head><meta charset="utf-8"><style>
@@ -108,11 +111,11 @@ def _scales(min_scale: float) -> list[float]:
 
 
 def _prepare_image(src: Path, box: Rect, dest: Path) -> None:
-    """REN-12: upright, filling the box, cropped around the centre, never stretched; PNG for the browser."""
+    """REN-12: upright, largest size that fits the box, never cropped or stretched, alpha kept; PNG."""
     pillow_heif.register_heif_opener()
     with Image.open(src) as im:
-        im = ImageOps.exif_transpose(im).convert("RGB")
-        ImageOps.fit(im, (round(box.w), round(box.h))).save(dest, "PNG")
+        im = ImageOps.exif_transpose(im).convert("RGBA")
+        ImageOps.contain(im, (round(box.w), round(box.h))).save(dest, "PNG")
 
 
 def render(

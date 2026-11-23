@@ -50,10 +50,11 @@ def test_ren_11_image_left_text_right_inside_safe_area(assets, kerst, tmp_path):
     result = render(kerst, assets, tmp_path / "s.png", image=_photo(tmp_path / "p.png"), slide_id=LEFT_ID)
     safe = Geometry.load(assets).safe
     assert result.side == "left"
-    assert result.image.x == pytest.approx(safe.x, abs=1)
-    assert result.image.w == pytest.approx(0.42 * safe.w, abs=1)
-    assert result.image.h == pytest.approx(safe.h, abs=1)
-    assert safe.contains(result.image)
+    box = Geometry.load(assets).box("with_image", "image")
+    assert box.x == pytest.approx(safe.x, abs=1)
+    assert box.w == pytest.approx(0.42 * safe.w, abs=1)
+    assert box.h == pytest.approx(safe.h, abs=1)
+    assert box.contains(result.image) and safe.contains(result.image)
     for b in result.blocks:
         assert safe.contains(b.rect), b
         assert b.rect.x >= safe.x + 0.47 * safe.w - 1, b
@@ -63,7 +64,9 @@ def test_ren_14_image_right_text_left_mirrored(assets, kerst, tmp_path):
     result = render(kerst, assets, tmp_path / "s.png", image=_photo(tmp_path / "p.png"), slide_id=RIGHT_ID)
     safe = Geometry.load(assets).safe
     assert result.side == "right"
-    assert result.image.x + result.image.w == pytest.approx(safe.x + safe.w, abs=1)
+    box = Geometry.load(assets).box("with_image", "image", mirror=True)
+    assert box.x + box.w == pytest.approx(safe.x + safe.w, abs=1)
+    assert box.contains(result.image)
     for b in result.blocks:
         assert safe.contains(b.rect), b
         assert b.rect.x + b.rect.w <= safe.x + 0.53 * safe.w + 1, b
@@ -86,12 +89,57 @@ def test_ren_11_layout_box_outside_safe_area_is_refused(assets_copy):
         Geometry.load(assets_copy)
 
 
-def test_ren_12_image_fills_its_box_cropped_around_the_centre(assets, kerst, tmp_path):
+def _bg_near(out, assets, p, tol=6):
+    """The slide shows the church's background at p (it is drawn 1:1 on the canvas)."""
+    bg = Image.open(Geometry.load(assets).background).convert("RGB").getpixel(p)
+    return _near(Image.open(out).convert("RGB").getpixel(p), bg, tol)
+
+
+@pytest.mark.parametrize("size", [(1000, 1000), (1600, 400)], ids=["square", "landscape"])
+def test_ren_12_image_shown_whole_not_cropped(assets, kerst, tmp_path, size):
     out = tmp_path / "s.png"
-    result = render(kerst, assets, out, image=_photo(tmp_path / "p.png"), slide_id=LEFT_ID)
-    png = Image.open(out).convert("RGB")
-    for p in _inner_points(result.image):
-        assert _near(png.getpixel(p), RED), (p, png.getpixel(p))
+    result = render(kerst, assets, out, image=_photo(tmp_path / "p.png", size), slide_id=LEFT_ID)
+    box, r = Geometry.load(assets).box("with_image", "image"), result.image
+    assert box.contains(r)
+    assert r.w == pytest.approx(box.w, abs=1)  # both are wider than the 42 % box: width-bound
+    assert r.w / r.h == pytest.approx(size[0] / size[1], rel=0.02)  # aspect kept, not stretched
+    png, mid = Image.open(out).convert("RGB"), int(r.y + r.h / 2)
+    assert _near(png.getpixel((int(r.x + r.w / 8), mid)), BLUE)  # left quarter still there
+    assert _near(png.getpixel((int(r.x + r.w / 2), mid)), RED)
+    assert _near(png.getpixel((int(r.x + 7 * r.w / 8), mid)), GREEN)  # right quarter still there
+
+
+@pytest.mark.parametrize("sid,mirror", [(LEFT_ID, False), (RIGHT_ID, True)], ids=["left", "right"])
+def test_ren_12_image_against_text_side_centred_in_height(assets, kerst, tmp_path, sid, mirror):
+    out = tmp_path / "s.png"
+    result = render(kerst, assets, out, image=_photo(tmp_path / "p.png", (600, 1200)), slide_id=sid)
+    box, r = Geometry.load(assets).box("with_image", "image", mirror=mirror), result.image
+    assert r.w < box.w - 20  # tall image: height-bound, room left beside it
+    if mirror:  # image right, text left: the image hugs the left edge of its box
+        assert r.x == pytest.approx(box.x, abs=1)
+    else:  # image left, text right: the image hugs the right edge of its box
+        assert r.x + r.w == pytest.approx(box.x + box.w, abs=1)
+    assert r.y + r.h / 2 == pytest.approx(box.y + box.h / 2, abs=1)
+    # landscape: the background shows above and below the image, inside the box
+    result = render(kerst, assets, out, image=_photo(tmp_path / "q.png", (1600, 400)), slide_id=sid)
+    r = result.image
+    assert r.y + r.h / 2 == pytest.approx(box.y + box.h / 2, abs=1)
+    assert r.y > box.y + 20
+    for y in (int(box.y + 5), int(box.y + box.h - 5)):
+        assert _bg_near(out, assets, (int(box.x + box.w / 2), y))
+
+
+@pytest.mark.parametrize("suffix", [".png", ".webp"])
+def test_ren_12_transparency_kept(assets, kerst, tmp_path, suffix):
+    im = Image.new("RGBA", (800, 800), (0, 0, 0, 0))  # transparent black: RGB conversion would show black
+    im.paste((*RED, 255), (300, 300, 500, 500))
+    path = tmp_path / f"p{suffix}"
+    im.save(path, lossless=True) if suffix == ".webp" else im.save(path)
+    out = tmp_path / "s.png"
+    r = render(kerst, assets, out, image=path, slide_id=LEFT_ID).image
+    assert _near(Image.open(out).convert("RGB").getpixel((int(r.x + r.w / 2), int(r.y + r.h / 2))), RED)
+    for p in ((int(r.x + r.w * 0.15), int(r.y + r.h / 2)), (int(r.x + r.w / 2), int(r.y + r.h * 0.15))):
+        assert _bg_near(out, assets, p), p
 
 
 def test_ren_12_exif_orientation_is_applied(assets, kerst, tmp_path):
